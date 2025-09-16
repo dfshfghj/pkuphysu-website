@@ -1,0 +1,103 @@
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>投点</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/main.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/arco-palette.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/invest.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/toast.css') }}"
+    />
+  </head>
+  <body style="margin: 0 0">
+    <div class="headerPanel">
+      <div class="navDiv" style="display: flex">
+        <div class="logoDiv">
+          <!--<span style="padding: 0 3px">物院学生会</span>-->
+        </div>
+
+        <a
+          href="/"
+          style="
+            text-decoration: none;
+            display: flex;
+            border-left: 1px solid var(--c-border);
+          "
+        >
+          <div class="panelButton">
+            <span style="font-size: 16px"> 主页 </span>
+          </div>
+        </a>
+      </div>
+      <div class="userInfoDiv">
+        <span
+          style="display: flex; flex-direction: column; justify-content: center"
+          >欢迎，{{ username }}！</span
+        >
+      </div>
+    </div>
+    <div class="container">
+      <div id="pageTitleDiv" style="text-align: center; padding: 20px 0px">
+        <span id="pageTitleText" style="color: var(--c-title)">抽奖投点</span>
+      </div>
+      <div id="noteContainer" style="font-size: 14px; font-weight: bold">
+        <p style="color: var(--red-6)">
+          投入点数为非负整数，且总和应在0-99之间。
+        </p>
+
+        <p style="color: var(--red-6)">注意：只有现场的同学才能抽奖！</p>
+      </div>
+      <div id="listContainer">
+        <table class="dataTable">
+          <thead>
+            <tr class="listHead">
+              <th>奖项</th>
+              <th>信息</th>
+              <th>限数/已选</th>
+              <th>投点</th>
+            </tr>
+          </thead>
+          <tbody class="dataBody">
+            {% for prize_item in prize_data %}
+            <tr class="{{ ['even', 'odd'][loop.index0 % 2] }}">
+              <th>{{ prize_item.name }}</th>
+              <th>{{ prize_item.desc }}</th>
+              <th>{{ prize_item.limit }}/{{ current_participants }}</th>
+              <th>
+                <form method="POST" class="CJForm">
+                  <input
+                    type="number"
+                    name="{{ prize_item.name }}"
+                    id="{{ loop.index }}"
+                    min="0"
+                    max="99"
+                    placeholder="0"
+                    value="{{ values[prize_item.name] }}"
+                    required
+                  />
+                  <button type="submit">修改</button>
+                </form>
+              </th>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="toast-container" id="toast-container"></div>
+      <script id="flask-messages" type="application/json">
+        {{ get_flashed_messages(with_categories=true) | tojson }}
+      </script>
+      <script src="{{ url_for('static', filename='scripts/toast.js') }}"></script>
+    </div>
+  </body>
+</html>

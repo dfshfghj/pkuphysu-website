@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>抽奖程序</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles/random_draw/vendor.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles/random_draw/main.css') }}">
+  <body>
+    <div id="play-zone">
+      <div class=".ip-slideshow">
+        <div class="ip-slideshow"></div>
+      </div>
+    </div>
+    <script>
+      const data = {
+        data: {{ data | tojson}}
+      };
+      const eventName = "抽奖";
+      const prizeType = "{{ prize_type }}";
+      window.word = "{{ prize_type }}抽奖";
+
+    </script>
+    <script src="{{ url_for('static', filename='scripts/random_draw/choujiang/vendor.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/random_draw/choujiang/plugins.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/random_draw/choujiang/animate.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/random_draw/choujiang/main.js') }}" type="module"></script>
+  </body>
+</head>
+
+</html>

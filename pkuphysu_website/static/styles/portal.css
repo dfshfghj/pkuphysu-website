@@ -1,0 +1,87 @@
+@import "arco-palette.css";
+@import "main.css";
+
+span {
+  color: var(--c-text);
+}
+
+.headerPanel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--c-navbar);
+  display: flex;
+  color: var(--c-title);
+  height: 60px;
+  padding: 1px 0;
+  border-radius: 3px;
+  border-bottom: 1px solid var(--c-border);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.logoDiv {
+  padding-left: 2em;
+  background-image: var(--i-logo);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-size: auto 100px;
+  width: 100px;
+}
+
+.Title,
+.Title * {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--c-title);
+}
+
+.activityContainer {
+  margin: 20px 50px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 80px;
+  font-size: 20px;
+}
+
+.card {
+  padding: 20px;
+  margin: 20px;
+  border-radius: 5px;
+  border: 1px solid var(--c-border);
+  box-shadow: var(--c-box-shadow);
+}
+
+.container {
+  margin-top: 100px;
+}
+
+.containerHeader * {
+  font-weight: bold;
+  font-size: 18px;
+  color: var(--c-title);
+}
+
+.cardHeader * {
+  font-weight: bold;
+  font-size: 17px;
+  color: var(--c-subtitle);
+}
+
+.time {
+  font-size: 13px;
+}
+
+.detail {
+  margin: 10px;
+}

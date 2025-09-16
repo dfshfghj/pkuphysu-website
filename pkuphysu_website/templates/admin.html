@@ -1,0 +1,80 @@
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>抽奖管理</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/main.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/arco-palette.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/portal.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/invest.css') }}"
+    />
+  </head>
+  <body style="margin: 0 0">
+    <div class="headerPanel">
+      <div class="navDiv" style="display: flex">
+        <div class="logoDiv">
+          <!--<span style="padding: 0 3px">物院学生会</span>-->
+        </div>
+
+        <a
+          href="/"
+          style="
+            text-decoration: none;
+            display: flex;
+            border-left: 1px solid var(--c-border);
+          "
+        >
+          <div class="panelButton">
+            <span style="font-size: 16px"> 主页 </span>
+          </div>
+        </a>
+      </div>
+      <div class="userInfoDiv">
+        <span
+          style="display: flex; flex-direction: column; justify-content: center"
+          >欢迎，{{ username }}！</span
+        >
+      </div>
+    </div>
+    <div class="container">
+      <div id="pageTitleDiv" style="text-align: center; padding: 20px 0px">
+        <span id="pageTitleText" style="color: var(--c-title)">抽奖管理</span>
+      </div>
+      <div
+        id="optionContainer"
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          padding: 16px;
+        "
+      >
+        {% for prize_item in prize_data %}
+        <a
+          href="/random_draw/choujiang?prize_type={{ prize_item.name }}"
+          style="text-decoration: none"
+        >
+          <div class="card" style="text-align: center">
+            <div class="cardHeader">
+              <span> {{ prize_item.name }} </span>
+            </div>
+            <div class="detail">
+              <span> 获奖人数： {{ prize_item.limit }}</span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </body>
+</html>

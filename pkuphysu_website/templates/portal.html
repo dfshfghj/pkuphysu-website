@@ -1,0 +1,92 @@
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>主页 - 物院学生会</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/main.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/arco-palette.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/portal.css') }}"
+    />
+  </head>
+  <body style="margin: 0 0">
+    <div class="headerPanel">
+      <div class="logoDiv">
+        <!--<span style="padding: 0 3px">物院学生会</span>-->
+      </div>
+      <div class="Title">
+        <span>物院学生会</span>
+      </div>
+    </div>
+    <div class="container">
+      <div class="activityContainer">
+        <div class="containerHeader">
+          <span>活动</span>
+        </div>
+        {% for activity in activities %}
+        <a href="{{ activity.href }}" style="text-decoration: none">
+          <div class="card">
+            <div class="time">
+              
+              <span>{{ activity.start}}-{{ activity.end}}</span>
+              {% if activity.start_time <= now and now <= activity.end_time %}
+              <span style="color: var(--green-4); font-weight: bold">
+                进行中
+              </span> 
+              {% elif now < activity.start_time %}
+              <span style="color: var(--gray-4); font-weight: bold">
+                未开始
+              </span>
+              {% else %}
+              <span style="color: var(--gray-4); font-weight: bold">
+                已结束
+              </span>
+              {% endif %}
+            </div>
+            <div class="cardHeader">
+              <span> {{ activity.name }} </span>
+            </div>
+            <div class="detail">
+              <span>{{ activity.detail }}</span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="activityContainer">
+        <div class="containerHeader">
+          <span>通知</span>
+        </div>
+        <div class="card">
+          <div class="cardHeader">
+            <span> 抽奖系统更新 </span>
+          </div>
+          <div class="detail">
+            <span>新增抽奖投点方式：网页投点</span>
+          </div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div id="github">
+          <a href="https://github.com/pkuphysu" target="_blank" rel="noopener" style="text-decoration: none; color: var(--c-text);">
+            <i class="fab fa-github github-icon"></i>
+          </a>
+        </div>
+        <div id="wechat" style="display: flex;">
+          <i class="fab fa-weixin" style="color: #07c160; margin-right: 5px;"></i>
+          <span style="font-size: 12px;"> 公众号 | 物院学生会 </span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

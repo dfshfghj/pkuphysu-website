@@ -1,0 +1,49 @@
+@import "arco-palette.css";
+@import "main.css";
+
+
+.toast-container {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 300px;
+  width: 100%;
+}
+
+.toast {
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: white;
+  background-color: var(--gray-4);
+  box-shadow: var(--c-box-shadow);
+  opacity: 1;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: slideIn 0.3s forwards;
+}
+
+.toast.success { background-color: var(--green-4); }
+.toast.error   { background-color: var(--red-4); }
+.toast.info    { background-color: var(--gray-4); }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}

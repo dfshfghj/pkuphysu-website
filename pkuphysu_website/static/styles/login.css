@@ -1,0 +1,55 @@
+@import "arco-palette.css";
+@import "main.css";
+
+
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding-top: 100px;
+}
+
+#singleColPanel {
+  background-color: var(--c-card);
+  border-radius: 5px;
+  border: 1px solid var(--c-border);
+  height: 350px;
+  width: 300px;
+  padding: 100px 20px 20px 20px;
+  box-shadow: var(--c-box-shadow);
+  background-image: var(--i-logo);
+  background-position: center -15%;
+  background-size: auto 200px;
+  background-repeat: no-repeat;
+}
+
+.row {
+  text-align: center;
+  padding: 10px;
+}
+
+span {
+  color: var(--c-text);
+}
+
+input {
+  width: 100%;
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid var(--c-border);
+  outline: none;
+  margin: 0;
+  line-height: 2em;
+  background-color: var(--c-input-bg);
+  color: var(--c-text);
+}
+
+#logonButton {
+  background-color: var(--c-accent);
+  width: 100%;
+  height: 40px;
+  color: #ffffff;
+  border-radius: 5px;
+  border: 1px solid var(--c-border);
+}

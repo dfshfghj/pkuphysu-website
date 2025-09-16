@@ -1,0 +1,5 @@
+[default.flask]
+SECRET_KEY = "secret-key"
+TESTING = false
+SQLALCHEMY_TRACK_MODIFICATIONS = false
+SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://user:password@localhost/wechat"
