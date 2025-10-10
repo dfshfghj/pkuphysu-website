@@ -1,4 +1,4 @@
 from .utils import get_name
-from .view import bp
+from .views import bp
 
 __all__ = ["bp", "get_name"]

@@ -2,4 +2,13 @@
 SECRET_KEY = "secret-key"
 TESTING = false
 SQLALCHEMY_TRACK_MODIFICATIONS = false
-SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://user:password@localhost/wechat"
+SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://user:password@localhost/pkuphysu_db"
+
+[default.jwt]
+JWT_SECRET_KEY = "secret-key"
+JWT_EXPIRATION_HOURS = 24
+
+[default.eveparty]
+PRIZE_COUNT = 3
+PRIZE_NAMES = ["一等奖", "二等奖", "三等奖"]
+EVENT = "eveparty"
