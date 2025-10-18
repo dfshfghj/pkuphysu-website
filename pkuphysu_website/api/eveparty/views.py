@@ -6,7 +6,7 @@ from .utils import get_user_investments, submit_data
 from .data import PRIZE_DATA
 
 
-bp = Blueprint("random_draw", __name__, url_prefix="/api/random_draw")
+bp = Blueprint("random_draw", __name__, url_prefix="/random_draw")
 
 @bp.route('/config', methods=["POST"])
 @token_required

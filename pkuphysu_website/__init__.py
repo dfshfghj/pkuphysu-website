@@ -10,10 +10,11 @@ def create_app():
     app = Flask(__name__)
     app.config.update(settings.flask)
 
-    from . import auth, dba
+    from . import auth, dba, wechat
     from .api import eveparty, portal, images
 
     app.register_blueprint(auth.bp)
+    app.register_blueprint(wechat.bp)
     app.register_blueprint(images.bp)
     app.register_blueprint(dba.bp)
     app.register_blueprint(eveparty.bp)
@@ -23,10 +24,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-    
-    
-    @app.context_processor
-    def context():
-        return {'now': datetime.now()}
+        
     CORS(app)
     return app

@@ -1,5 +1,5 @@
-import os.path
-from dynaconf import Dynaconf
+import os
+from dynaconf import Dynaconf, settings
 
 __all__ = ["settings"]
 
@@ -10,4 +10,5 @@ settings = Dynaconf(
         os.path.join(os.path.dirname(__file__), filename)
         for filename in ("settings.toml", ".secrets.toml")
     ],
+    load_dotenv=True,
 )

@@ -4,10 +4,11 @@ import datetime
 import jwt
 from functools import wraps
 from flask import request, jsonify, g
+from pkuphysu_website.config import settings
 from .models import User
 
-JWT_SECRET_KEY = 'your-super-secret-jwt-key-change-in-production'
-JWT_EXPIRATION_HOURS = 24
+JWT_SECRET_KEY = settings.jwt.JWT_SECRET_KEY
+JWT_EXPIRATION_HOURS = settings.jwt.JWT_EXPIRATION_HOURS
 
 def generate_token(user_id):
     payload = {

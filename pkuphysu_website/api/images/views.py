@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, send_from_directory
 
-bp = Blueprint("images_api", __name__,  url_prefix="/api/images")
+bp = Blueprint("images_api", __name__,  url_prefix="/images")
 
 @bp.route("/<path:filename>")
 def get_image(filename):

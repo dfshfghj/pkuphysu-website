@@ -1,18 +1,16 @@
 from flask import send_from_directory, request, Blueprint
 from pkuphysu_website.utils import respond_error, respond_success
-from pkuphysu_website.config import settings
 from .models import db, User
-from .utils import generate_token, token_required, get_info
+from .utils import JWT_SECRET_KEY, generate_token, token_required, get_info
 import jwt
 import datetime
 import os
 import subprocess
 
-JWT_SECRET_KEY = settings.jwt.JWT_SECRET_KEY
-JWT_EXPIRATION_HOURS = settings.jwt.JWT_EXPIRATION_HOURS
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-bp = Blueprint("auth", __name__, url_prefix="/api")
+bp = Blueprint("auth", __name__)
 
 @bp.route('/register', methods=['POST'])
 def register():
@@ -55,12 +53,26 @@ def login():
 
     return respond_success(message="登录成功", token=generate_token(user.id), username=user.username)
 
-@bp.route('/admin/list')
+@bp.route('/users/list')
+def user_list():
+    users = User.query.all()
+    return respond_success(data={
+        'total': len(users),
+            'users': [
+                {
+                    'id': user.id,
+                    'username': user.username
+                }
+                for user in users
+            ]
+    })
+
+@bp.route('/admins/list')
 def admin_list():
     admins = User.query.filter_by(is_admin=1).all()
     return respond_success(data={
         'total': len(admins),
-            'admins': [
+            'users': [
                 {
                     'id': user.id,
                     'username': user.username
@@ -152,13 +164,13 @@ def upload_avatar(current_user):
             'ffmpeg',
             '-i', tmp_path,
             '-vf', (
-                "scale='min(800,iw)':min'(800,ih)':force_original_aspect_ratio=decrease,"  # 缩放保持比例
-                "pad=ceil(iw/2)*2:ceil(ih/2)*2:0:0:white"                                   # 补白解决 odd width/height
+                "scale='min(800,iw)':min'(800,ih)':force_original_aspect_ratio=decrease,"
+                "pad=ceil(iw/2)*2:ceil(ih/2)*2:0:0:white"
             ),
-            '-q:v', '10',                         # JPG 质量 (2~5 是高质量, 10+ 更小体积)
-            '-f', 'image2',                     # 输出格式
-            '-y',                                # 覆盖输出
-            final_filepath                       # 输出路径
+            '-q:v', '10',
+            '-f', 'image2',
+            '-y',
+            final_filepath
         ]
         result = subprocess.run(
             cmd,
@@ -179,5 +191,9 @@ def upload_avatar(current_user):
     
 @bp.route('/avatars/<username>')
 def serve_avatar(username):
-    print(username)
-    return send_from_directory(os.path.join(current_dir, 'avatars'), f"{username}.jpg")
+    avatar_path = os.path.join(current_dir, 'avatars')
+    if not os.path.exists(os.path.join(avatar_path, f"{username}.jpg")):
+        from identicons import generate, save
+        icon = generate(username)
+        save(icon, os.path.join(avatar_path, f"{username}.jpg"), 500, 500)
+    return send_from_directory(avatar_path, f"{username}.jpg")

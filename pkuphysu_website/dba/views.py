@@ -3,9 +3,6 @@ from logging import getLogger
 from flask import Blueprint, request
 from sqlalchemy import inspect
 from sqlalchemy.exc import DataError
-from sqlalchemy.sql.expression import insert
-from sqlalchemy import select, update, delete, insert
-import sqlalchemy as sa
 
 from pkuphysu_website import db
 from pkuphysu_website.auth.utils import master_before_request
@@ -89,7 +86,6 @@ def manage_table(table_name):
         return respond_success(deleted=deleted_count)
 
     elif request.method in ["PUT", "PATCH"]:
-        # UPSERT 多条记录（支持 insert 或 update）
         payload = request.get_json(force=True)
         records = payload.get("data")
         if not isinstance(records, list):
@@ -106,8 +102,6 @@ def manage_table(table_name):
             record = {k: v for k, v in record.items() if k in columns_list}
             if not record:
                 return respond_error(400, "InvalidColumnInData")
-
-            # 构建主键查询条件
             filters = []
             pk_values = {}
             for pk_name in pk_names:
@@ -138,7 +132,7 @@ def manage_table(table_name):
             except DataError as e:
                 logger.error("Data error on record %r: %s", record, str(e))
                 db.session.rollback()
-                return respond_error(500, "DBADataValidationError", message=str(e))
+                return respond_error(500, "DBADataValidationError", str(e))
 
         try:
             db.session.commit()
@@ -146,7 +140,7 @@ def manage_table(table_name):
         except Exception as e:
             db.session.rollback()
             logger.error("Commit failed: %s", str(e))
-            return respond_error(500, "DBACommitFailed", detail=str(e))
+            return respond_error(500, "DBACommitFailed", str(e))
 
 
 @bp.route("/db-tables/migrate", methods=["GET", "POST"])

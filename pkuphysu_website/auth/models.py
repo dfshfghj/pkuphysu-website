@@ -25,5 +25,6 @@ class User(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'username': self.username
+            'username': self.username,
+            'is_admin': True if self.is_admin else False
         }
