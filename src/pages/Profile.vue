@@ -19,13 +19,21 @@
     <div class="info-section">
       <h3>基本信息</h3>
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="用户名">{{ currentUser.username }}</el-descriptions-item>
+        <el-descriptions-item label="用户名">
+          {{ currentUser.username }}
+          <el-tag :type="currentUser.verified ? 'success' : 'warning'" round> {{ currentUser.verified ? "已验证" : "未验证" }} </el-tag>
+        </el-descriptions-item>
         <el-descriptions-item label="状态">
           {{ currentUser.verified ? "已验证" : "未验证" }}
           <el-button v-if="!currentUser.verified" type="primary" style="margin-left: 20px;" @click="VerifyDialogVisible = true">前往认证</el-button>
         </el-descriptions-item>
         <el-descriptions-item label="姓名" v-if="currentUser.verified">{{ currentUser.realname }}</el-descriptions-item>
         <el-descriptions-item label="学号" v-if="currentUser.verified">{{ currentUser.real_id }}</el-descriptions-item>
+        <el-descriptions-item label="邮箱" v-if="currentUser.email">{{ currentUser.email }}</el-descriptions-item>
+        <el-descriptions-item label="权限">
+          {{ currentUser.is_admin ? "管理员" : "用户" }}
+          <el-button v-if="currentUser.is_admin" @click="router.push('/admin/dashboard')" style="float: right;" size="small"> 后台入口 </el-button>
+        </el-descriptions-item>
       </el-descriptions>
       <el-dialog v-model="VerifyDialogVisible" title="认证" width="500" align-center>
         <span>输入北京大学门户网站cookies中的SESSION:</span>
@@ -50,6 +58,7 @@ import { ElMessage } from "element-plus";
 import { useUserStore } from "../stores/user";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
+const router = useRouter();
 const userStore = useUserStore();
 const currentUser = ref(null);
 const avatarUpload = `${API_BASE}/api/upload-avatar`;

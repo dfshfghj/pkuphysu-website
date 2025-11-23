@@ -131,7 +131,8 @@ def get_user(current_user):
         'username': current_user.username,
         'realname': current_user.realname,
         'real_id': current_user.real_id,
-        'verified': current_user.verified
+        'verified': current_user.verified,
+        'is_admin': current_user.is_admin
     })
 
 @bp.route('/upload-avatar', methods=['POST'])

@@ -46,6 +46,37 @@ const routes = [
     meta: { login: true },
   },
   {
+    path: "/new-article",
+    name: "WriteArticle",
+    component: () => import("../pages/WriteArticle.vue"),
+    meta: { login: true },
+  },
+  {
+    path: "/chat/articles",
+    name: "ArticleCenter",
+    component: () => import("../pages/ArticleCenter.vue"),
+    meta: {
+      noHeader: true,
+      login: true,
+    },
+  },
+  {
+    path: "/chat/articles/:id",
+    name: "Article",
+    component: () => import("../pages/Article.vue"),
+    meta: { login: true },
+    props: true,
+  },
+  {
+    path: "/chat/blogs",
+    name: "BlogCenter",
+    component: () => import("../pages/BlogCenter.vue"),
+    meta: {
+      noHeader: true,
+      login: true,
+    },
+  },
+  {
     path: "/admin/random-draw",
     name: "RandomDraw",
     component: () => import("../pages/admin/RandomDraw.vue"),
@@ -94,7 +125,7 @@ router.beforeEach(async (to, from, next) => {
   const result = await userStore.validateToken();
 
   if (!userStore.isLoggedIn) {
-    return next("/login");
+    return next(`/login?redirect=${to.fullPath}`);
   }
 
   if (to.meta.admin) {

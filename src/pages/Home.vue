@@ -1,5 +1,6 @@
 <template>
-  <div class="body body-home show" ref="homeRef" @wheel="changeBodyDown">
+  <div class="bb" @click="changeBodyDown">&#xe737;</div>
+  <div class="body body-home show" ref="homeRef" @wheel="onScrollDown">
     <div class="pictureContainer">
       <el-carousel height="calc(100vh - var(--el-menu-item-height) - 4px)" motion-blur indicator-position="none">
         <el-carousel-item v-for="item in news" :key="item.title" type="card" class="carousel-item">
@@ -63,6 +64,7 @@
             </div>
           </div>
         </a>
+        <div style="text-align: right; font-size: 12px; text-decoration: none; padding: 10px 20px 30px 20px;"><a href="/posts"><span> View More </span></a></div>
       </div>
     </div>
 
@@ -147,14 +149,18 @@ const fetchPosts = async () => {
   }
 };
 
-const changeBodyDown = (event) => {
+const changeBodyDown = () => {
+  const homeEl = homeRef.value;
+  const contentEl = contentRef.value;
+  if (!homeEl || !contentEl) return;
+
+  contentEl.classList.add('show');
+};
+
+const onScrollDown = (event) => {
   const { deltaY } = event;
   if (deltaY > 0) {
-    const homeEl = homeRef.value;
-    const contentEl = contentRef.value;
-    if (!homeEl || !contentEl) return;
-
-    contentEl.classList.add('show');
+    changeBodyDown();
   }
 };
 
@@ -186,6 +192,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.bb {
+  z-index: 98;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  text-align: center;
+  color: #94070a;
+  font-size: 36px;
+  cursor: pointer;
+  font-family: icon;
+  transform: translateX(-50%);
+  animation: bb 2s linear 0s infinite;
+  font-weight: bold;
+}
+
 .carousel-item {
   display: flex;
   justify-content: center;
@@ -245,6 +266,7 @@ strong {
 }
 
 .card {
+  text-align: center;
   padding: 0px;
   margin: 40px;
   border-radius: 5px;
@@ -283,7 +305,8 @@ strong {
   margin-top: 100px;
 }
 
-.containerHeader * {
+.containerHeader {
+  text-align: center;
   margin-right: 30px;
   font-weight: bold;
   font-size: 24px;
@@ -308,7 +331,38 @@ strong {
   font-size: 14px;
 }
 
+@keyframes bb {
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 0;
+  }
+
+  20% {
+    transform: translate(-50%, 3px);
+    opacity: 1;
+  }
+
+  80% {
+    transform: translate(-50%, 10px);
+    opacity: 1;
+  }
+
+  90% {
+    transform: translate(-50%, 10px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translate(-50%, 10px);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 768px) {
+  .bb {
+    visibility: hidden;
+  }
+
   .pictureContainer {
     margin: 0%;
   }
@@ -332,7 +386,7 @@ strong {
     flex-direction: column;
   }
 
-  .containerHeader * {
+  .containerHeader {
     text-align: center;
     margin: 0px;
   }
@@ -353,6 +407,7 @@ strong {
   }
 
   .body.body-content {
+    z-index: 99;
     top: 100vh;
     transition: top 0.7s cubic-bezier(0.5, 0, 0.2, 1) 0s;
   }

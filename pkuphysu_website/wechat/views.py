@@ -1,7 +1,7 @@
 from flask import Blueprint, Response, request
 from pkuphysu_website.utils import respond_error, respond_success
 from pkuphysu_website.auth.utils import admin_required
-from .utils import wx, load_posts, update_posts
+from .utils import wx, get_state, get_token, load_posts, update_posts
 import io
 import json
 import os
@@ -16,40 +16,6 @@ bp = Blueprint("wechat", __name__, url_prefix="/wechat")
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
-
-def get_state():
-    if os.path.exists(os.path.join(state_dir, "login_state.json")):
-        with open(os.path.join(state_dir, "login_state.json"), encoding="utf-8") as file:
-            state = json.load(file)
-
-        return state
-    else:
-        return None
-    
-def get_token():
-    state = get_state()
-    if not state:
-        return None
-    session = requests.Session()
-    for cookie in state.get("cookies", []):
-        session.cookies.set(
-            name=cookie['name'],
-            value=cookie['value'],
-            domain=cookie['domain'],
-            path=cookie['path']
-        )
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-    response = session.get("https://mp.weixin.qq.com", headers=headers, allow_redirects=True)
-    url = response.url
-    token = None
-    if "home" in url and "token=" in url:
-        match = re.search(r"token=([^&]+)", url)
-        if match:
-            token = match.group(1)
-    return token, session
-    
 
 @bp.route("/posts")
 def get_posts():
@@ -79,36 +45,14 @@ def refresh_login(current_user):
 @bp.route("/update-posts")
 @admin_required
 def update(current_user):
-    token, session = get_token()
     begin = request.args.get("begin", 0)
     count = request.args.get("count", 10)
 
-    if not token:
-        return {"message": "UnAuthorized"}, 403
-    
-    api_url = f"https://mp.weixin.qq.com/cgi-bin/appmsgpublish?sub=list&begin={begin}&count={count}&token={token}&lang=zh_CN&f=json"
-    response = session.get(api_url, headers=headers)
-    if response.ok:
-        data = response.json()
-        posts = []
-        data = json.loads(data["publish_page"])["publish_list"]
-        for item in data:
-            item["publish_info"] = json.loads(item["publish_info"])
-            for sub_item in item["publish_info"]["appmsg_info"]:
-                post = {
-                    "title": sub_item["title"],
-                    "description": sub_item["digest"],
-                    "mp_name": "物院学生会",
-                    "url": sub_item["content_url"],
-                    "publish_time": sub_item["line_info"]["send_time"]
+    posts = update_posts(begin, count)
 
-                }
-                posts.append(post)
-        
-        update_posts(posts)
-        return respond_success(data=posts)
-    else:
-        return respond_error(400, "UnKnownError")
+    if posts is None:
+        return respond_error(400, "TokenExpired")
+    return respond_success(data=posts)
 
 @bp.route("/cgi-bin/scanloginqrcode")
 @admin_required

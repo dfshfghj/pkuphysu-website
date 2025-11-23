@@ -1,10 +1,12 @@
 import re
+import json
 import os
 import fcntl
 import threading
 from functools import wraps
 from datetime import datetime, timezone, timedelta
 from .models import Post
+import requests
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 state_dir=os.path.join(current_dir, "data")
@@ -62,8 +64,19 @@ class WxRunner:
                 print(f"❌ 保存二维码失败: {e}")
 
     def _poll_for_token(self, page):
+        max_retry = 1000
+        retry = 0
         while self.running:
             try:
+                retry += 1
+                if retry > max_retry:
+                    print("登录超时")
+                    try:
+                            os.remove(qr_path)
+                    except:
+                        pass
+                    return 
+                
                 url = page.url
                 if "home" in url and "token=" in url:
                     match = re.search(r"token=([^&]+)", url)
@@ -140,6 +153,39 @@ class WxRunner:
 
 wx = WxRunner()
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+def get_state():
+    if os.path.exists(os.path.join(state_dir, "login_state.json")):
+        with open(os.path.join(state_dir, "login_state.json"), encoding="utf-8") as file:
+            state = json.load(file)
+
+        return state
+    else:
+        return None
+    
+def get_token():
+    state = get_state()
+    if not state:
+        return None
+    session = requests.Session()
+    for cookie in state.get("cookies", []):
+        session.cookies.set(
+            name=cookie['name'],
+            value=cookie['value'],
+            domain=cookie['domain'],
+            path=cookie['path']
+        )
+    response = session.get("https://mp.weixin.qq.com", headers=headers, allow_redirects=True)
+    url = response.url
+    token = None
+    if "home" in url and "token=" in url:
+        match = re.search(r"token=([^&]+)", url)
+        if match:
+            token = match.group(1)
+    return token, session
+
 def load_posts(offset=0, limit=10, mp_name="物院学生会"):
     posts = Post.query.filter_by(mp_name=mp_name).order_by(Post.publish_time.desc(), Post.id.asc()).offset(offset).limit(limit).all()
     count = Post.query.filter_by(mp_name=mp_name).count()
@@ -166,5 +212,27 @@ def load_posts(offset=0, limit=10, mp_name="物院学生会"):
             "count": count
         }
 
-def update_posts(new_posts):
-    Post.merge_posts(new_posts)
+def update_posts(begin, count):
+    token, session = get_token()
+    if not token:
+        return
+    api_url = f"https://mp.weixin.qq.com/cgi-bin/appmsgpublish?sub=list&begin={begin}&count={count}&token={token}&lang=zh_CN&f=json"
+    response = session.get(api_url, headers=headers)
+    if response.ok:
+        data = response.json()
+        posts = []
+        data = json.loads(data["publish_page"])["publish_list"]
+        for item in data:
+            item["publish_info"] = json.loads(item["publish_info"])
+            for sub_item in item["publish_info"]["appmsg_info"]:
+                post = {
+                    "title": sub_item["title"],
+                    "description": sub_item["digest"],
+                    "mp_name": "物院学生会",
+                    "url": sub_item["content_url"],
+                    "publish_time": sub_item["line_info"]["send_time"]
+
+                }
+                posts.append(post)
+        Post.merge_posts(posts)
+        return posts

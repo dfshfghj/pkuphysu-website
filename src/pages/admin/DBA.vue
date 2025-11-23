@@ -9,7 +9,7 @@
   </div>
   <el-row v-if="!currentTable" :gutter="16">
     <el-col v-for="(info, name) in tables" :key="name" :md="8" :sm="12" :xs="24">
-      <el-card class="mb-3" shadow="hover" @click="viewTable(name)">
+      <el-card class="mb-3" shadow="hover" @click="viewTable(name)" style="margin: 10px 30px 10px 30px;">
         <template #header>
           <div class="font-bold">{{ name }}</div>
         </template>

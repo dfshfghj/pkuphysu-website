@@ -30,7 +30,9 @@ const toggleSidebar = () => {
       </el-menu-item>
       <el-sub-menu index="/admin/random-draw">
         <template #title>
-          <el-icon><Tickets /></el-icon>
+          <el-icon>
+            <Tickets />
+          </el-icon>
           <span>抽奖管理</span>
         </template>
         <el-menu-item index="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0">一等奖</el-menu-item>
@@ -38,8 +40,8 @@ const toggleSidebar = () => {
         <el-menu-item index="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2">三等奖</el-menu-item>
       </el-sub-menu>
     </el-menu>
-    <div w="full" py="4" :class="['main-content', isCollapsed ? 'main-content--collapsed' : 'main-content--expanded']">
-      <RouterView />
+    <div :class="['main-content', isCollapsed ? 'main-content--collapsed' : 'main-content--expanded']">
+        <RouterView />
     </div>
   </div>
 </template>
@@ -47,18 +49,19 @@ const toggleSidebar = () => {
 <style scoped>
 .adminContainer {
   display: flex;
-  height: calc(100vh - var(--el-menu-item-height) - 4px);
 }
 
 .el-menu {
   position: fixed;
   height: calc(100vh - var(--el-menu-item-height) - 4px);
 }
+
 .main-content {
   position: relative;
   margin-right: 5%;
   transition: all 0.5s ease;
 }
+
 .main-content--expanded {
   width: calc(0.9*(100vw - 200px));
   margin-left: 200px;

@@ -2,7 +2,7 @@ from pkuphysu_website import db
 from sqlalchemy import Index
 
 class Post(db.Model):
-    __tablename__ = 'posts'
+    __tablename__ = 'wechat_posts'
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Text, nullable=False)

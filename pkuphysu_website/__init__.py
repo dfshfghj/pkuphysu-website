@@ -11,7 +11,7 @@ def create_app():
     app.config.update(settings.flask)
 
     from . import auth, dba, wechat
-    from .api import eveparty, portal, images
+    from .api import eveparty, portal, images, blogs, file_upload
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(wechat.bp)
@@ -19,6 +19,8 @@ def create_app():
     app.register_blueprint(dba.bp)
     app.register_blueprint(eveparty.bp)
     app.register_blueprint(portal.bp)
+    app.register_blueprint(blogs.bp)
+    app.register_blueprint(file_upload.bp)
 
     db.init_app(app)
 

@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { toggleDark, isDark } from "../../composables/theme";
 import { useUserStore } from "../../stores/user";
 import { More } from "@element-plus/icons-vue";
@@ -7,7 +8,10 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const router = useRouter();
 const userStore = useUserStore();
 const username = computed(() => userStore.username);
-const isScrolled = ref(false);
+
+const scrollTop = inject("scrollTop");
+
+const isScrolled = computed(() => scrollTop.value > 50)
 
 const userAvatar = computed(() => {
   const path = `${API_BASE}/api/avatars/${username.value}`;
@@ -23,18 +27,6 @@ const handleCommand = command => {
     router.push("/profile");
   }
 };
-
-const handleScroll = () => {
-  isScrolled.value = window.scrollY > 80;
-};
-
-onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("scroll", handleScroll);
-});
 </script>
 
 <template>
@@ -94,11 +86,13 @@ onUnmounted(() => {
           </el-menu-item>
         </el-sub-menu>
       </el-sub-menu>
+      <el-menu-item index="/chat/articles" id="document"> BBS </el-menu-item>
+      <el-menu-item index="/chat/blogs" id="document"> 论坛 </el-menu-item>
       <el-menu-item index="/doc" id="document"> 文档 </el-menu-item>
       <el-menu-item index="/posts" id="posts"> Posts </el-menu-item>
 
       <el-menu-item h="full" @click="toggleDark()" id="toggleDark">
-        <button class="w-full cursor-pointer border-none bg-transparent" style="height: var(--ep-menu-item-height)">
+        <button class="cursor-pointer border-none bg-transparent" style="height: var(--ep-menu-item-height); padding: none;">
           <el-icon-sunny v-if="!isDark" width="20px" height="20px" />
           <el-icon-moon v-else width="20px" height="20px" />
         </button>
@@ -121,7 +115,7 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 .menu-wrapper {
   position: sticky;
   border: 1px solid var(--c-border);

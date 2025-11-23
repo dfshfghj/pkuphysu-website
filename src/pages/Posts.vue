@@ -28,17 +28,17 @@
           @current-change="handlePageChange"
           :current-page="currentPage"
           :page-size="pageSize"
-          :total="total"
+          :total="count"
           layout="prev, pager, next, total"
         />
       </div>
-  </div>
+    </div>
 </template>
 
 <script setup>
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const posts = ref([]);
-const total = ref(0);
+const count = ref(0);
 const loading = ref(true);
 const error = ref('');
 const pageSize = 10
@@ -47,11 +47,11 @@ const currentPage = ref(1)
 // 获取数据
 const fetchPosts = async (page = 1) => {
   try {
-    const res = await fetch(`${API_BASE}/api/posts?limit=${pageSize}&page=${page}`);
+    const res = await fetch(`${API_BASE}/api/wechat/posts?limit=${pageSize}&page=${page}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     posts.value = data.data;
-    total.value = data.total;
+    count.value = data.count;
   } catch (err) {
     error.value = '无法加载文章列表，请稍后重试。';
     console.error(err);
@@ -83,7 +83,6 @@ span {
 .posts-container {
   max-width: 700px;
   margin: 0 auto;
-  padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 

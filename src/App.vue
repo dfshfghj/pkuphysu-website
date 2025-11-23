@@ -2,34 +2,33 @@
 import Header from './components/layouts/Header.vue';
 import { useUserStore } from "./stores/user";
 const userStore = useUserStore();
+const route = useRoute();
+
+const scrollbarRef = ref();
+const scrollTop = ref(0);
+provide('scrollTop', scrollTop);
 
 onMounted(async () => {
-  userStore.restoreSession()
+  userStore.restoreSession();
 
   if (userStore.isLoggedIn) {
-    await userStore.validateToken()
+    await userStore.validateToken();
   }
 });
 </script>
 
 <template>
   <el-config-provider>
-    <Header />
-    <div class="main-container">
-      <div w="full" py="4">
-        <RouterView />
-      </div>
-    </div>
+    <el-scrollbar ref="scrollbarRef" class="main-container" @scroll="(e) => scrollTop = scrollbarRef.wrapRef.scrollTop">
+      <Header v-if="route.name && !route.meta.noHeader" />
+      <RouterView />
+    </el-scrollbar>
   </el-config-provider>
 </template>
 
 <style>
-#app {
-  text-align: center;
-  color: var(--ep-text-color-primary);
-}
-
 .main-container {
-  min-height: calc(100vh - var(--el-menu-item-height) - 4px);
+  max-height: 100vh;
+  display: contents;
 }
 </style>

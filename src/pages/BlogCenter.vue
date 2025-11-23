@@ -1,0 +1,777 @@
+<template>
+  <el-scrollbar distance="500" @end-reached="loadMorePosts" style="height: 100vh;">
+    <div class="title-bar">
+      <div class="aux-margin">
+        <div class="title">
+          <img src="../assets/logo_white.svg" class="logo" v-if="isDark" @click="router.push('/')" />
+          <img src="../assets/logo_black.svg" class="logo" v-else @click="router.push('/')" />
+          <h4>TreeHole(BETA)</h4>
+        </div>
+      </div>
+      <div class="control-bar">
+        <div class="control-btn" @click="browseType = 'posts'; endOfPosts = false; fetchPosts();">
+          <el-icon :size="20">
+            <Refresh />
+          </el-icon>
+          <span class="control-btn-label">最新</span>
+        </div>
+        <div class="control-btn" @click="browseType = 'follow'; fetchPosts();">
+          <el-icon :size="20">
+            <Star />
+          </el-icon>
+          <span class="control-btn-label">关注</span>
+        </div>
+        <div class="control-search">
+          <el-select v-model="searchConfig.tag" placeholder="选择分类" style="padding-left: 10px; width: 50%;">
+            <el-option label="全部" value=""></el-option>
+            <el-option v-for="tag in tags" :label="tag.tag_name" :value="tag.tag_name">
+            </el-option>
+          </el-select>
+          <el-input v-model="searchConfig.query" placeholder="搜索内容 或 #PID" />
+          <el-icon :size="20" @click="fetchPosts(config=searchConfig)">
+            <Search />
+          </el-icon>
+        </div>
+        <div class="control-btn" @click="editing = true;">
+          <el-icon :size="20">
+            <Plus />
+          </el-icon>
+          <span class="control-btn-label">发布</span>
+        </div>
+        <div class="control-btn">
+          <el-icon :size="20">
+            <Message />
+          </el-icon>
+          <span class="control-btn-label">消息</span>
+        </div>
+        <div class="control-btn">
+          <el-icon :size="20">
+            <Setting />
+          </el-icon>
+          <span class="control-btn-label">设置</span>
+        </div>
+        <div v-if="userStore.isLoggedIn" style="display: flex">
+          <el-dropdown @command="handleCommand">
+            <el-avatar :size="40" :src="userAvatar" />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                <el-dropdown-item command="logout" divided style="color: #f56c6c"> 退出登录 </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+        <el-button v-else link type="primary" plain @click="$router.push('/login')" class="border-none"> 登录
+        </el-button>
+      </div>
+    </div>
+    <div class="posts-container">
+      <div v-for="post in posts" class="card" :id="post.id">
+        <CollapsibleDiv max-height="500">
+          <div @click="fetchComments(post.id); currentPost = post; content = ''">
+            <div class="card-header">
+              <div class="header-badge" v-if="post.likenum">
+                {{ post.likenum }}
+                <el-icon :size="12">
+                  <StarFilled v-if="post.is_follow" />
+                  <Star v-else />
+                </el-icon>
+              </div>
+              <div class="header-badge" v-if="post.reply">
+                {{ post.reply }}
+                <el-icon :size="12">
+                  <ChatLineRound />
+                </el-icon>
+              </div>
+              <code class="card-id"> #{{ post.id }} </code>
+              &nbsp;
+              <span> {{ formatTime(post.timestamp).relativeTime }} {{ formatTime(post.timestamp).formattedTime }}
+              </span>
+              &nbsp;
+              <el-tag v-if="post.tag"> {{ post.tag }} </el-tag>
+            </div>
+            <MarkdownRenderer :dark-mode="isDark" :content="post.text" />
+          </div>
+        </CollapsibleDiv>
+      </div>
+    </div>
+  </el-scrollbar>
+
+  <div v-if="editing" class="edit-panel acrylic">
+    <div class="editor">
+      <MarkdownEditor v-model="content">
+        <div style="display: flex; align-items: baseline;">
+          <el-upload style="padding-top: 20px; flex: 1;" v-model:file-list="fileList" action="/api/files/upload"
+            :on-preview="handlePreview" :on-success="handleUploadSuccess" :on-remove="handleRemove"
+            :before-remove="beforeRemove" :limit="50" :on-exceed="handleExceed">
+            <el-button>
+              <el-icon>
+                <Link />
+              </el-icon>
+              上传文件
+            </el-button>
+            <template #tip>
+              <div class="el-upload__tip" style="color: white;">
+                files with a size less than 5MB.
+              </div>
+            </template>
+          </el-upload>
+          <div class="btn-panel">
+            <el-select v-model="tag" placeholder="选择tag" style="width: 100px;">
+              <el-option v-for="tag in tags" :label="tag.tag_name" :value="tag.tag_name">
+              </el-option>
+            </el-select>
+            <el-button @click="editing = false"> 取消编辑 </el-button>
+            <el-button @click="editing = false" :disabled="content ? false : true"> 保存草稿 </el-button>
+            <el-button @click="submitPost" :disabled="content ? false : true"> 发布 </el-button>
+          </div>
+        </div>
+      </MarkdownEditor>
+    </div>
+  </div>
+  <div v-if="currentPost" class="comment-panel acrylic">
+    <div class="shadow"></div>
+    <div style="width: 100%; background-color: var(--c-card);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px; border-radius: 0 0 0 5px; border: 1px solid var(--c-border);">
+      <div>
+        <el-icon @click="currentPost = null; comments = []; endOfComments = false;">
+          <Close />
+        </el-icon>
+        <b><code> POST #{{ currentPost.id }}</code></b>
+      </div>
+      <div style="display: flex; align-items: center; margin-right: 20px;">
+        <div class="control-btn" @click="fetchComments(currentPost.id);">
+          <el-icon>
+            <Refresh />
+          </el-icon>
+          <span> 刷新 </span>
+        </div>
+        <div class="control-btn" @click="handleFollow(currentPost.id); currentPost.is_follow = !currentPost.is_follow">
+          <el-icon>
+            <StarFilled v-if="currentPost.is_follow" />
+            <Star v-else />
+          </el-icon>
+          <span> 关注 </span>
+        </div>
+        <div class="control-btn" @click="AscSort = !AscSort; fetchComments(currentPost.id);">
+          <el-icon>
+            <Histogram />
+          </el-icon>
+          <span> {{ AscSort ? '顺序' : '逆序' }} </span>
+        </div>
+      </div>
+    </div>
+    <el-scrollbar class="card-list" distance="300" @end-reached="loadMoreComments($event, currentPost.id)">
+      <div v-for="comment in comments" class="card comment-card">
+        <CollapsibleDiv max-height="300">
+          <div class="card-header">
+            <code class="card-id"> #{{ comment.cid }} </code>
+            &nbsp;
+            <span> {{ formatTime(comment.timestamp).relativeTime }} {{ formatTime(comment.timestamp).formattedTime }}
+            </span>
+          </div>
+          <MarkdownRenderer :dark-mode="isDark" :content="comment.text" />
+        </CollapsibleDiv>
+      </div>
+    </el-scrollbar>
+    <div class="reply">
+      <div style="width: 100%; display: flex; flex-direction: column-reverse;">
+        <MarkdownEditor v-model="content">
+          <div style="display: flex; align-items: baseline; padding: 5px;">
+            <el-upload v-model:file-list="fileList" action="/api/files/upload" :show-file-list="false"
+              :on-success="handleUploadSuccess" style="flex: 1;">
+              <el-button>
+                <el-icon>
+                  <Link />
+                </el-icon>
+                上传文件
+              </el-button>
+            </el-upload>
+            <el-button style="width: 100px; background: var(--c-card);" @click="submitComment(currentPost.id)">
+              <el-icon>
+                <Promotion />
+              </el-icon>
+            </el-button>
+          </div>
+        </MarkdownEditor>
+      </div>
+    </div>
+  </div>
+  <div class="bg-img">
+  </div>
+</template>
+
+<script setup>
+import { Promotion, Close, Refresh, Star, Search, Message, Setting, Plus, ChatLineRound, Histogram, StarFilled, Link } from "@element-plus/icons-vue";
+import MarkdownEditor from '../components/MarkdownEditor-v2.vue';
+import MarkdownRenderer from '../components/MarkdownRenderer-v3.vue';
+import CollapsibleDiv from "../components/CollapsibleDiv.vue";
+import { isDark } from "../composables/theme";
+import { useUserStore } from "../stores/user";
+
+const router = useRouter();
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const userStore = useUserStore();
+const username = computed(() => userStore.username);
+
+const tags = ref([]);
+
+const searchConfig = ref({
+  mode: "page",
+  count: 1,
+  tag: '',
+  query: '',
+});
+
+const posts = ref([]);
+const browseType = ref('posts');
+const comments = ref([]);
+const AscSort = ref(true);
+
+const content = ref('');
+const tag = ref('');
+const editing = ref(false);
+
+const currentPost = ref(null);
+const endOfPosts = ref(false);
+const endOfComments = ref(false);
+
+const fileList = ref([]);
+
+const windowWidth = ref(window.innerWidth);
+
+const handleCommand = command => {
+  if (command === "logout") {
+    userStore.logout();
+    ElMessage.success("已退出登录");
+    router.push("/login");
+  } else if (command === "profile") {
+    router.push("/profile");
+  }
+};
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth;
+};
+
+const userAvatar = computed(() => {
+  const path = `${API_BASE}/api/avatars/${username.value}`;
+  return path + "?t=" + Date.now();
+});
+
+function formatTime(timestamp) {
+  const date = new Date(timestamp * 1000);
+
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  const formattedTime = `${month}-${day} ${hours}:${minutes}`;
+
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+
+  let relativeTime;
+
+  if (diffInSeconds < 60) {
+    relativeTime = '刚刚';
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    relativeTime = `${minutes}分钟前`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    relativeTime = `${hours}小时前`;
+  } else if (diffInSeconds < 2592000) {
+    const days = Math.floor(diffInSeconds / 86400);
+    relativeTime = `${days}天前`;
+  } else if (diffInSeconds < 604800) {
+    const weeks = Math.floor(diffInSeconds / 604800);
+    relativeTime = `${weeks}周前`;
+  } else {
+    const months = Math.floor(diffInSeconds / 2592000);
+    relativeTime = `${months}月前`;
+  }
+
+  return {
+    formattedTime: formattedTime,
+    relativeTime: relativeTime
+  };
+}
+
+const handleRemove = (file, uploadFiles) => {
+  console.log(file, uploadFiles);
+};
+
+const handlePreview = (uploadFile) => {
+  console.log(uploadFile);
+};
+
+const handleUploadSuccess = (response, uploadFile, uploadFiles) => {
+  if (response.ext in [".png", ".jpg", ".jpeg", ".gif", ".webp", ".eps", ".svg", ".bmp", ".ico", ".tiff"]) {
+    content.value += `\n![${uploadFile.name}](/api${response.url})\n`;
+  } else {
+    content.value += `\n[${uploadFile.name}](/api${response.url})\n`;
+  }
+
+  console.log(response, uploadFile, uploadFiles);
+};
+
+const handleExceed = (files, uploadFiles) => {
+  ElMessage.warning(
+    `you selected ${files.length} files this time, add up to ${files.length + uploadFiles.length
+    } totally`
+  );
+};
+
+const beforeRemove = (uploadFile, uploadFiles) => {
+  return ElMessageBox.confirm(
+    `Cancel the transfer of ${uploadFile.name} ?`
+  ).then(
+    () => true,
+    () => false
+  );
+};
+
+const handleFollow = async (id) => {
+  try {
+    const res = await fetch(`${API_BASE}/api/blogs/follow/${id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userStore.token}`,
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch (err) {
+    error.value = "无法加载数据，请稍后再试。";
+    console.error("Fetch posts failed:", err);
+  }
+};
+
+const fetchConfig = async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/blogs/tags`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userStore.token}`,
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    tags.value = data.data;
+  } catch (err) {
+    error.value = "无法加载数据，请稍后再试。";
+    console.error("Fetch posts failed:", err);
+  }
+};
+
+const fetchPosts = async (config = { mode: "page", count: 1, tag: '', query: '' }) => {
+  try {
+    config.pid = '';
+    config.keyword = '';
+    const trimmedQuery = config.query.trim();
+    if (/^#\d+$/.test(trimmedQuery)) {
+      config.pid = trimmedQuery.slice(1);
+    } else if (trimmedQuery) {
+      config.keyword = trimmedQuery;
+    }
+    const res = await fetch(`${API_BASE}/api/blogs/${browseType.value}?limit=10&${config.mode}=${config.count}&tag=${config.tag}&pid=${config.pid}&keyword=${config.keyword}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userStore.token}`,
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    posts.value = data.data;
+  } catch (err) {
+    error.value = "无法加载数据，请稍后再试。";
+    console.error("Fetch posts failed:", err);
+  }
+};
+
+const fetchComments = async (id) => {
+  try {
+    const res = await fetch(`${API_BASE}/api/blogs/comments/${id}?limit=10&page=1&sort=${AscSort.value ? 'asc' : 'desc'}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userStore.token}`,
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    comments.value = data.data;
+  } catch (err) {
+    error.value = "无法加载数据，请稍后再试。";
+    console.error("Fetch posts failed:", err);
+  }
+};
+
+const loadMorePosts = async (direction) => {
+  if (direction === 'bottom' && !endOfPosts.value) {
+    try {
+      const res = await fetch(`${API_BASE}/api/blogs/${browseType.value}?limit=10&begin=${posts.value.at(-1).id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userStore.token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      posts.value = [
+        ...posts.value,
+        ...data.data
+      ];
+      if (data.data.length < 10) {
+        endOfPosts.value = true;
+      }
+    } catch (err) {
+      error.value = "无法加载数据，请稍后再试。";
+      console.error("Fetch posts failed:", err);
+    }
+  }
+};
+
+const loadMoreComments = async (direction, id) => {
+  if (direction === 'bottom' && !endOfComments.value) {
+    try {
+      const res = await fetch(`${API_BASE}/api/blogs/comments/${id}?limit=10&begin=${comments.value.at(-1).cid}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userStore.token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      comments.value = [
+        ...comments.value,
+        ...data.data
+      ];
+      if (data.data.length < 10) {
+        endOfComments.value = true;
+      }
+    } catch (err) {
+      error.value = "无法加载数据，请稍后再试。";
+      console.error("Fetch posts failed:", err);
+    }
+  }
+};
+
+
+const submitPost = async () => {
+  console.log(content.value);
+  if (!content.value) {
+    ElMessage.error("不能为空");
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/blogs/submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userStore.token}`,
+      },
+      body: JSON.stringify({
+        text: content.value,
+        type: "text",
+        tag: tag.value,
+      }),
+    });
+    if (!res.ok) throw new Error("上传失败");
+    editing.value = false;
+    content.value = '';
+    tag.value = '';
+  } catch (err) {
+    ElMessage.error(err.message || "网络错误");
+    console.error(err);
+  } finally {
+    fetchPosts();
+  }
+};
+
+const submitComment = async (id) => {
+  console.log(content.value);
+  try {
+    const res = await fetch(`${API_BASE}/api/blogs/comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userStore.token}`,
+      },
+      body: JSON.stringify({
+        text: content.value,
+        pid: id,
+        quote: null,
+      }),
+    });
+    if (!res.ok) throw new Error("上传失败");
+    editing.value = false;
+    content.value = '';
+  } catch (err) {
+    ElMessage.error(err.message || "网络错误");
+    console.error(err);
+  } finally {
+    fetchComments(id);
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+  fetchPosts();
+  fetchConfig();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
+</script>
+
+<style scoped>
+.title {
+  font-size: 1.5em;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.title-bar {
+  color: var(--c-title);
+  padding-bottom: .7em;
+  z-index: 10;
+  position: sticky;
+  top: -110px;
+  left: 0;
+  width: 100%;
+  min-height: 9em;
+  box-shadow: 0 0 25px rgba(0, 0, 0, .4);
+  margin-bottom: 1em;
+  background-color: var(--c-card);
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 28px;
+  width: 28px
+}
+
+.control-bar {
+  line-height: 2em;
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  height: 100%;
+  padding: 10px;
+}
+
+.control-btn-label {
+  margin-left: .25rem;
+  font-size: .9em;
+  vertical-align: .05em
+}
+
+:deep(.el-input__wrapper) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+:deep(.el-select__wrapper) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+:deep(.reply textarea) {
+  max-height: 300px;
+}
+
+.control-search {
+  display: flex;
+  align-items: center;
+  padding: 2px 10px 2px 10px;
+  border: 1px solid var(--c-border);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);
+  border-radius: 9999px;
+  flex: 1;
+}
+
+.aux-margin {
+  margin-bottom: 50px;
+}
+
+#edit-new {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  right: 20px;
+  bottom: 100px;
+  border-radius: 50%;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  font-size: 20px;
+  -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, .12);
+  box-shadow: 0 0 6px rgba(0, 0, 0, .12);
+  cursor: pointer;
+  z-index: 5;
+  background-color: rgb(148, 7, 10);
+  color: white;
+}
+
+.edit-panel {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  right: 0px;
+  top: 0px;
+  background-color: rgba(0, 0, 0, .5);
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.editor {
+  height: calc(100vh - 200px);
+  padding: 50px 50px 0px 50px;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.el-upload-list__item-file-name) {
+  color: beige;
+}
+
+.header-badge {
+  float: right;
+  margin-right: 15px;
+}
+
+.comment-panel {
+  user-select: text;
+  position: fixed;
+  top: 0;
+  height: 100%;
+  left: calc(100% - 550px);
+  width: 550px;
+  display: flex;
+  flex-direction: column;
+  z-index: 150;
+}
+
+.shadow {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0, 0, 0, .2);
+  z-index: -1;
+}
+
+.reply {
+  box-sizing: border-box;
+  display: flex;
+  padding: 2px;
+  padding-bottom: 10px;
+  transition: height 0.15s ease-in-out;
+}
+
+.reply:deep(.vditor-editor) {
+  max-height: 300px;
+}
+
+.editor:deep(.vditor-editor) {
+  max-height: calc(100vh - 400px);
+}
+
+.card {
+  padding: 0px;
+  margin: 40px;
+  border-radius: 5px;
+  border: 1px solid var(--c-border);
+  box-shadow: var(--c-box-shadow);
+  transition: transform 0.3s ease;
+  max-width: 500px;
+  background-color: var(--c-card);
+}
+
+.dark .el-tag {
+  background: #3c108f;
+  border: #3c108f;
+}
+
+.el-tag {
+  background: #c396ed;
+  border: #3c108f;
+  font-weight: bold;
+}
+
+.comment-card {
+  margin: 5px;
+  max-width: none;
+}
+
+.card-header {
+  font-size: 14px;
+  padding: 10px 50px 10px 50px;
+}
+
+.card:hover {
+  transform: translateX(5px);
+}
+
+.bg-img {
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("/images/bg.webp") center center / cover rgb(255, 255, 255);
+
+}
+
+@media (max-width: 768px) {
+  .editor {
+    padding: 100px 5px 0px 5px;
+  }
+
+  .btn-panel {
+    text-align: center;
+  }
+
+  .card {
+    margin: 5px;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+
+  .control-btn-label {
+    display: none;
+  }
+
+  .comment-panel {
+    left: 27px;
+    width: calc(100% - 27px);
+  }
+}
+</style>

@@ -1,8 +1,6 @@
-@import "arco-palette.css";
-
 :root {
   --c-title: #212121;
-  --c-text: #666;
+  --c-text: #333;
   --c-border: #d0d7de;
   --c-background: #f6f8fa;
   --c-input-bg: #f6f8fa;
@@ -60,10 +58,6 @@
   --c-contrast-bg: rgba(0, 0, 0, 0.9);
 }
 
-* {
-  outline: none !important;
-}
-
 html {
   background: var(--c-background) !important;
 }
@@ -102,12 +96,22 @@ html {
   backdrop-filter: blur(8px) saturate(120%);
 }
 
-h2 {
+h2, h3 {
   color: var(--c-title);
+}
+
+code {
+  font-family: Consolas, Courier, monospace;
 }
 
 ::-webkit-scrollbar {
   display: none;
+}
+
+@font-face {
+  font-family: 'icon';
+  src: url('../assets/fonts/iconfont.woff') format('woff');
+  font-display: swap;
 }
 
 @keyframes fadeInUpTransition {

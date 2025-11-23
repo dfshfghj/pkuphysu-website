@@ -1,7 +1,7 @@
 <template>
   <h2 class="page-title">抽奖投点</h2>
   <div class="note-container">
-    <el-row :gutter="16" style="margin-bottom: 30px; justify-content: center">
+    <el-row :gutter="16" style="margin-bottom: 30px; justify-content: center; text-align: center;">
       <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
         <el-countdown title="" format="HH:mm:ss" :value="value1" />
       </el-col>
@@ -64,17 +64,12 @@ const value1 = ref(Date.now() + 1000 * 60 * 60 * 24 * 2);
 const userStore = useUserStore();
 const username = userStore.username;
 
-// -------------------------------
-// 计算属性：总点数
-// -------------------------------
-
 const total = computed(() => {
   return Object.values(inputs.value).reduce((sum, val) => sum + (val || 0), 0);
 });
 
 onMounted(async () => {
   try {
-    // 获取用户信息与配置
     const configRes = await fetch(`${API_BASE}/api/random_draw/config`, {
       method: "POST",
       headers: {
@@ -90,7 +85,6 @@ onMounted(async () => {
 
     prizeData.value = config.prizes;
 
-    // 初始化 inputs
     config.prizes.forEach(prize => {
       inputs.value[prize.name] = prize.investment || 0;
     });

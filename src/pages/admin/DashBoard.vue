@@ -37,8 +37,12 @@
     <el-button type="primary" plain :loading="checking" @click="checkWechatEngine"> {{ checking ? "检查中..." : "手动检查" }}
     </el-button>
     <el-button type="primary" plain :loading="refreshing" @click="refreshWechatState"> {{ refreshing ? "更新中..." : "更新文章"
-      }}
+    }}
     </el-button>
+
+    <div class="qrcodeContainer" v-if="qrcodeUrl">
+      <img :src="qrcodeUrl" />
+    </div>
 
   </div>
 </template>
@@ -57,6 +61,7 @@ const loading = ref(false);
 const checking = ref(false);
 const refreshing = ref(false);
 const cookies_expire = ref(0);
+const qrcodeUrl = ref('');
 
 const FormatTime = function (timestamp) {
   const date = new Date(timestamp);
@@ -133,7 +138,53 @@ const checkWechatEngine = async () => {
       ElMessage.success("登录状态有效");
     } else {
       ElMessage.error(result.message || "登录状态失效");
+      await fetch(`${API_BASE}/api/wechat/refresh-login`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userStore.token}`,
+        },
+      })
+      let qrcodeDone = false;
+      while (!qrcodeDone) {
+        const res = await fetch(`${API_BASE}/api/wechat/cgi-bin/scanloginqrcode`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userStore.token}`,
+          },
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          if (qrcodeUrl.value) {
+            URL.revokeObjectURL(qrcodeUrl.value);
+          }
+          qrcodeUrl.value = URL.createObjectURL(blob);
+          qrcodeDone = true;
+          break;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      let isLogged = false;
+      while (!isLogged) {
+        const res = await fetch(`${API_BASE}/api/wechat/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${userStore.token}`,
+          },
+        });
+        if (res.ok) {
+          isLogged = true;
+          URL.revokeObjectURL(qrcodeUrl.value);
+          qrcodeUrl.value = '';
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
     }
+
   } catch (err) {
     ElMessage.error("网络错误，请检查连接");
     console.error(err);

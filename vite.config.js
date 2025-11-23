@@ -4,7 +4,7 @@ import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
-const target = process.env.VITE_PROXY_TARGET || 'http://localhost:8000';
+const target = process.env.VITE_PROXY_TARGET || 'http://localhost:5200';
 
 export default defineConfig({
   plugins: [
