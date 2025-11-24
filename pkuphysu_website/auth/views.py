@@ -1,6 +1,6 @@
 from flask import send_from_directory, request, Blueprint
 from pkuphysu_website.utils import respond_error, respond_success
-from .models import db, User
+from .models import db, User, Email
 from .utils import JWT_SECRET_KEY, generate_token, token_required, get_info
 import jwt
 import datetime
@@ -198,3 +198,28 @@ def serve_avatar(username):
         icon = generate(username)
         save(icon, os.path.join(avatar_path, f"{username}.jpg"), 500, 500)
     return send_from_directory(avatar_path, f"{username}.jpg")
+
+@bp.route('/verify_email', methods=['GET', 'POST'])
+@token_required
+def send_verify(current_user):
+    if request.method == 'GET':
+        from pkuphysu_website.email import send_email
+        import random
+        import re
+        email = request.args.get('email')
+        print(email)
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@(?:stu\.)?pku\.edu\.cn$', email):
+            return respond_error(400, "InvalidEmail", "邮箱无效, 请使用北京大学邮箱")
+        code = random.randint(100000, 999999)
+        print(code)
+        Email.insert_email(current_user.id, email, str(code))
+        send_email(email, "验证码", f"您正在使用邮箱注册。\n 您的验证码是：{code}")
+        return respond_success(message="验证码已发送")
+    elif request.method == 'POST':
+        code = request.args.get('code')
+        email = request.args.get('email')
+        if Email.verify(current_user.id, email, code):
+            return respond_success(message="验证成功")
+        else:
+            return respond_error(400, "InvalidCode", "验证码错误")
+

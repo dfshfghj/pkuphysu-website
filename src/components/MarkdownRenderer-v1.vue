@@ -5,30 +5,30 @@
 </template>
 
 <script setup>
-import MarkdownIt from 'markdown-it';
+import MarkdownIt from "markdown-it";
 import { katex } from "@mdit/plugin-katex";
-import 'katex/dist/katex.min.css';
-import '../styles/github-markdown.css';
+import "katex/dist/katex.min.css";
+import "../styles/github-markdown.css";
 
 const props = defineProps({
   content: {
     type: String,
-    default: ''
+    default: "",
   },
   katexOptions: {
     type: Object,
     default: () => ({
       throwOnError: false,
-      errorColor: '#cc0000',
-      macros: {}
-    })
-  }
+      errorColor: "#cc0000",
+      macros: {},
+    }),
+  },
 });
 
-const renderedContent = ref('');
+const renderedContent = ref("");
 const renderMarkdown = () => {
   if (!props.content.trim()) {
-    renderedContent.value = '';
+    renderedContent.value = "";
     return;
   }
 
@@ -37,16 +37,16 @@ const renderMarkdown = () => {
       html: true,
       linkify: true,
       typographer: true,
-      breaks: true
+      breaks: true,
     });
-    
+
     // 使用数学公式插件
     md.use(katex);
-    
+
     // 渲染内容
     renderedContent.value = md.render(props.content);
   } catch (error) {
-    console.error('Markdown rendering error:', error);
+    console.error("Markdown rendering error:", error);
     renderedContent.value = `<p class="error">渲染失败: ${error.message}</p>`;
   }
 };
@@ -60,9 +60,9 @@ onMounted(renderMarkdown);
 
 <style scoped>
 .markdown-body {
-    padding-left: 50px;
-    padding-right: 50px;
-    --bgColor-default: var(--c-card);
+  padding-left: 50px;
+  padding-right: 50px;
+  --bgColor-default: var(--c-card);
 }
 
 /* KaTeX 相关样式 */

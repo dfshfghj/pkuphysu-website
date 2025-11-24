@@ -96,7 +96,8 @@ html {
   backdrop-filter: blur(8px) saturate(120%);
 }
 
-h2, h3 {
+h2,
+h3 {
   color: var(--c-title);
 }
 
@@ -109,8 +110,8 @@ code {
 }
 
 @font-face {
-  font-family: 'icon';
-  src: url('../assets/fonts/iconfont.woff') format('woff');
+  font-family: "icon";
+  src: url("../assets/fonts/iconfont.woff") format("woff");
   font-display: swap;
 }
 

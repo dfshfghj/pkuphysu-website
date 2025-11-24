@@ -4,7 +4,7 @@ import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
-const target = process.env.VITE_PROXY_TARGET || 'http://localhost:5200';
+const target = process.env.VITE_PROXY_TARGET || "http://localhost:5200";
 
 export default defineConfig({
   plugins: [
@@ -18,7 +18,7 @@ export default defineConfig({
       resolvers: [
         ElementPlusResolver({
           resolveIcons: true,
-          importStyle: 'css'
+          importStyle: "css",
         }),
       ],
       dirs: ["src/components"],
@@ -28,11 +28,11 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': {
+      "/api": {
         target: target,
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
-    }
-  }
+    },
+  },
 });

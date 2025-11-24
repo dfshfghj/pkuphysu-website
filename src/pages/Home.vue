@@ -2,16 +2,30 @@
   <div class="bb" @click="changeBodyDown">&#xe737;</div>
   <div class="body body-home show" ref="homeRef" @wheel="onScrollDown">
     <div class="pictureContainer">
-      <el-carousel height="calc(100vh - var(--el-menu-item-height) - 4px)" motion-blur indicator-position="none">
-        <el-carousel-item v-for="item in news" :key="item.title" type="card" class="carousel-item">
-          <a :href="item.href" target="_blank" style="text-decoration: none; width: 100%; height: 100%;">
+      <el-carousel
+        height="calc(100vh - var(--el-menu-item-height) - 4px)"
+        motion-blur
+        indicator-position="none"
+      >
+        <el-carousel-item
+          v-for="item in news"
+          :key="item.title"
+          type="card"
+          class="carousel-item"
+        >
+          <a
+            :href="item.href"
+            target="_blank"
+            style="text-decoration: none; width: 100%; height: 100%"
+          >
             <div
-              :style="{ backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.9) 0% , transparent 20%), url(/api/images/${item.img})` }"
-              class="carousel-img">
+              :style="{
+                backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.9) 0% , transparent 20%), url(/api/images/${item.img})`,
+              }"
+              class="carousel-img"
+            >
               <div class="carousel-title">
-
-                <span style="color: white;"> {{ item.title }} </span>
-
+                <span style="color: white"> {{ item.title }} </span>
               </div>
             </div>
           </a>
@@ -26,15 +40,34 @@
         <span>活动</span>
       </div>
       <div id="cardList">
-        <a v-for="(activity, index) in activities" :key="index" :href="activity.href" style="text-decoration: none">
-          <div class="card with_image" :style="{ backgroundImage: `url(/api/images/${activity.img})` }">
+        <a
+          v-for="(activity, index) in activities"
+          :key="index"
+          :href="activity.href"
+          style="text-decoration: none"
+        >
+          <div
+            class="card with_image"
+            :style="{ backgroundImage: `url(/api/images/${activity.img})` }"
+          >
             <div class="card-info acrylic">
               <div class="time">
                 <span>{{ activity.start }} - {{ activity.end }}</span>
-                <span v-if="activity.startTime <= now && now <= activity.endTime"
-                  style="color: var(--green-4); font-weight: bold"> 进行中 </span>
-                <span v-else-if="now < activity.startTime" style="color: var(--gray-4); font-weight: bold"> 未开始 </span>
-                <span v-else style="color: var(--gray-4); font-weight: bold"> 已结束 </span>
+                <span
+                  v-if="activity.startTime <= now && now <= activity.endTime"
+                  style="color: var(--green-4); font-weight: bold"
+                >
+                  进行中
+                </span>
+                <span
+                  v-else-if="now < activity.startTime"
+                  style="color: var(--gray-4); font-weight: bold"
+                >
+                  未开始
+                </span>
+                <span v-else style="color: var(--gray-4); font-weight: bold">
+                  已结束
+                </span>
               </div>
               <div class="cardHeader">
                 <span>{{ activity.name }}</span>
@@ -54,9 +87,15 @@
         <span>Posts</span>
       </div>
       <div id="cardList">
-        <a v-for="(post, index) in posts" :key="index" :href="post.url" target="_blank" style="text-decoration: none">
+        <a
+          v-for="(post, index) in posts"
+          :key="index"
+          :href="post.url"
+          target="_blank"
+          style="text-decoration: none"
+        >
           <div class="card post-card">
-            <div class="time" style="white-space: nowrap;">
+            <div class="time" style="white-space: nowrap">
               <span>{{ post.publish_time }}</span>
             </div>
             <div class="detail small">
@@ -64,15 +103,28 @@
             </div>
           </div>
         </a>
-        <div style="text-align: right; font-size: 12px; text-decoration: none; padding: 10px 20px 30px 20px;"><a href="/posts"><span> View More </span></a></div>
+        <div
+          style="
+            text-align: right;
+            font-size: 12px;
+            text-decoration: none;
+            padding: 10px 20px 30px 20px;
+          "
+        >
+          <a href="/posts"><span> View More </span></a>
+        </div>
       </div>
     </div>
 
     <!-- 底部信息 -->
     <div class="bottom">
       <div id="github">
-        <a href="https://github.com/pkuphysu" target="_blank" rel="noopener"
-          style="text-decoration: none; color: var(--c-text)">
+        <a
+          href="https://github.com/pkuphysu"
+          target="_blank"
+          rel="noopener"
+          style="text-decoration: none; color: var(--c-text)"
+        >
           <i class="fab fa-github github-icon"></i>
         </a>
       </div>
@@ -85,30 +137,28 @@
 </template>
 
 <script setup>
+import { requestApi } from "../api/api";
+
 const homeRef = ref(null);
 const contentRef = ref(null);
 const news = ref([]);
 const activities = ref([]);
 const posts = ref([]);
 const loading = ref(true);
-const error = ref(null);
 const now = ref(Date.now());
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const fetchNews = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/news`);
+    const res = await requestApi("/api/news");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    news.value = data.map(item => ({
+    news.value = data.map((item) => ({
       ...item,
       startTime: new Date(item.start_time).getTime(),
       endTime: new Date(item.end_time).getTime(),
     }));
   } catch (err) {
-    error.value = "无法加载数据，请稍后再试。";
     console.error("Fetch news failed:", err);
   } finally {
     loading.value = false;
@@ -117,17 +167,16 @@ const fetchNews = async () => {
 
 const fetchActivities = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/activities`);
+    const res = await requestApi("/api/activities");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    activities.value = data.map(item => ({
+    activities.value = data.map((item) => ({
       ...item,
       startTime: new Date(item.start_time).getTime(),
       endTime: new Date(item.end_time).getTime(),
     }));
   } catch (err) {
-    error.value = "无法加载数据，请稍后再试。";
     console.error("Fetch activities failed:", err);
   } finally {
     loading.value = false;
@@ -136,13 +185,12 @@ const fetchActivities = async () => {
 
 const fetchPosts = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/wechat/posts?limit=10&page=1`);
+    const res = await requestApi("/api/wechat/posts?limit=10&page=1");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
     posts.value = data.data;
   } catch (err) {
-    error.value = "无法加载数据，请稍后再试。";
     console.error("Fetch posts failed:", err);
   } finally {
     loading.value = false;
@@ -154,7 +202,7 @@ const changeBodyDown = () => {
   const contentEl = contentRef.value;
   if (!homeEl || !contentEl) return;
 
-  contentEl.classList.add('show');
+  contentEl.classList.add("show");
 };
 
 const onScrollDown = (event) => {
@@ -171,8 +219,8 @@ const changeBodyUp = (event) => {
   if (!homeEl || !contentEl) return;
 
   if (deltaY < 0 && contentEl.scrollTop == 0) {
-    contentEl.classList.remove('show');
-    homeEl.classList.add('show');
+    contentEl.classList.remove("show");
+    homeEl.classList.add("show");
   }
 };
 

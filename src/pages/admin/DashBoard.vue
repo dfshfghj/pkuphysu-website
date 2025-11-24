@@ -5,9 +5,20 @@
       <h3>用户</h3>
     </div>
     <div v-if="users.users.length > 0" class="avatar-container">
-      <el-tooltip v-for="user in users.users" :key="user.id" class="avatar-item" :content="`${user.username}`"
-        placement="top" :offset="10" :show-after="300">
-        <el-avatar :size="60" :src="avatarUrl(user)" style="border: 2px solid #eee; margin-bottom: 10px" />
+      <el-tooltip
+        v-for="user in users.users"
+        :key="user.id"
+        class="avatar-item"
+        :content="`${user.username}`"
+        placement="top"
+        :offset="10"
+        :show-after="300"
+      >
+        <el-avatar
+          :size="60"
+          :src="avatarUrl(user)"
+          style="border: 2px solid #eee; margin-bottom: 10px"
+        />
       </el-tooltip>
     </div>
 
@@ -18,9 +29,20 @@
       <h3>管理员</h3>
     </div>
     <div v-if="users.admins.length > 0" class="avatar-container">
-      <el-tooltip v-for="admin in users.admins" :key="admin.id" class="avatar-item" :content="`${admin.username}`"
-        placement="top" :offset="10" :show-after="300">
-        <el-avatar :size="60" :src="avatarUrl(admin)" style="border: 2px solid #eee; margin-bottom: 10px" />
+      <el-tooltip
+        v-for="admin in users.admins"
+        :key="admin.id"
+        class="avatar-item"
+        :content="`${admin.username}`"
+        placement="top"
+        :offset="10"
+        :show-after="300"
+      >
+        <el-avatar
+          :size="60"
+          :src="avatarUrl(admin)"
+          style="border: 2px solid #eee; margin-bottom: 10px"
+        />
       </el-tooltip>
     </div>
 
@@ -34,39 +56,47 @@
     <div>
       <span> cookies 失效时间：{{ FormatTime(cookies_expire) }}</span>
     </div>
-    <el-button type="primary" plain :loading="checking" @click="checkWechatEngine"> {{ checking ? "检查中..." : "手动检查" }}
+    <el-button
+      type="primary"
+      plain
+      :loading="checking"
+      @click="checkWechatEngine"
+    >
+      {{ checking ? "检查中..." : "手动检查" }}
     </el-button>
-    <el-button type="primary" plain :loading="refreshing" @click="refreshWechatState"> {{ refreshing ? "更新中..." : "更新文章"
-    }}
+    <el-button
+      type="primary"
+      plain
+      :loading="refreshing"
+      @click="refreshWechatState"
+    >
+      {{ refreshing ? "更新中..." : "更新文章" }}
     </el-button>
 
     <div class="qrcodeContainer" v-if="qrcodeUrl">
       <img :src="qrcodeUrl" />
     </div>
-
   </div>
 </template>
 
-<script lang="ts" setup>
-import { useUserStore } from "../../stores/user";
+<script setup>
+import { requestApi } from "../../api/api";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-const userStore = useUserStore();
-
 const users = ref({
-  "users": [],
-  "admins": []
+  users: [],
+  admins: [],
 });
 const loading = ref(false);
 const checking = ref(false);
 const refreshing = ref(false);
 const cookies_expire = ref(0);
-const qrcodeUrl = ref('');
+const qrcodeUrl = ref("");
 
 const FormatTime = function (timestamp) {
   const date = new Date(timestamp);
   return date.toLocaleString("zh-CN");
-}
+};
 
 const avatarUrl = function (user) {
   const path = `${API_BASE}/api/avatars/${user.username}`;
@@ -76,13 +106,7 @@ const avatarUrl = function (user) {
 const loadUserList = async (group) => {
   loading.value = true;
   try {
-    const res = await fetch(`${API_BASE}/api/${group}/list`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userStore.token}`,
-      },
-    });
+    const res = await requestApi(`/api/${group}/list`);
 
     const result = await res.json();
 
@@ -101,12 +125,7 @@ const loadUserList = async (group) => {
 
 const cookiesExpire = async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/wechat/check-health`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      },
-    });
+    const res = await requestApi("/api/wechat/check-health");
 
     const result = await res.json();
 
@@ -124,13 +143,7 @@ const cookiesExpire = async () => {
 const checkWechatEngine = async () => {
   checking.value = true;
   try {
-    const res = await fetch(`${API_BASE}/api/wechat/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userStore.token}`,
-      },
-    });
+    const res = await requestApi("/api/wechat/");
 
     const result = await res.json();
 
@@ -138,22 +151,10 @@ const checkWechatEngine = async () => {
       ElMessage.success("登录状态有效");
     } else {
       ElMessage.error(result.message || "登录状态失效");
-      await fetch(`${API_BASE}/api/wechat/refresh-login`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userStore.token}`,
-        },
-      })
+      await requestApi("/api/wechat/refresh-login");
       let qrcodeDone = false;
       while (!qrcodeDone) {
-        const res = await fetch(`${API_BASE}/api/wechat/cgi-bin/scanloginqrcode`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userStore.token}`,
-          },
-        });
+        const res = await requestApi("/api/wechat/cgi-bin/scanloginqrcode");
         if (res.ok) {
           const blob = await res.blob();
           if (qrcodeUrl.value) {
@@ -164,45 +165,32 @@ const checkWechatEngine = async () => {
           break;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
       let isLogged = false;
       while (!isLogged) {
-        const res = await fetch(`${API_BASE}/api/wechat/`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userStore.token}`,
-          },
-        });
+        const res = await requestApi("/api/wechat/");
         if (res.ok) {
           isLogged = true;
           URL.revokeObjectURL(qrcodeUrl.value);
-          qrcodeUrl.value = '';
+          qrcodeUrl.value = "";
           break;
         }
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
-
   } catch (err) {
     ElMessage.error("网络错误，请检查连接");
     console.error(err);
   } finally {
     checking.value = false;
   }
-}
+};
 
 const refreshWechatState = async () => {
   refreshing.value = true;
   try {
-    const res = await fetch(`${API_BASE}/api/wechat/update-posts`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userStore.token}`,
-      },
-    });
+    const res = await requestApi("/api/wechat/update-posts");
 
     const result = await res.json();
 
@@ -217,7 +205,7 @@ const refreshWechatState = async () => {
   } finally {
     refreshing.value = false;
   }
-}
+};
 
 onMounted(() => {
   loadUserList("admins");

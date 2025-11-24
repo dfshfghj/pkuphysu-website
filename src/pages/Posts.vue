@@ -6,54 +6,70 @@
     <el-skeleton v-if="loading" :rows="6" animated style="margin: 20px" />
 
     <!-- 错误提示 -->
-    <el-alert v-else-if="error" :title="error" type="error" show-icon style="margin: 20px" />
+    <el-alert
+      v-else-if="error"
+      :title="error"
+      type="error"
+      show-icon
+      style="margin: 20px"
+    />
 
     <!-- 文章列表 -->
     <div v-else class="posts-list">
-      <a v-for="(post, index) in posts" :key="index" :href="post.url" style="text-decoration: none">
-      <div shadow="hover" class="post-card">
-        <div class="time"><span>{{ post.publish_time }}</span></div>
-        <div class="cardHeader">
-          <span class="title">{{ post.title }}</span>
+      <a
+        v-for="(post, index) in posts"
+        :key="index"
+        :href="post.url"
+        style="text-decoration: none"
+      >
+        <div shadow="hover" class="post-card">
+          <div class="time">
+            <span>{{ post.publish_time }}</span>
+          </div>
+          <div class="cardHeader">
+            <span class="title">{{ post.title }}</span>
+          </div>
+          <div class="detail">
+            <span>{{ post.description }}</span>
+          </div>
+          <div>
+            <el-tag type="info" size="small">{{ post.tag }}</el-tag>
+          </div>
         </div>
-        <div class="detail"><span>{{ post.description }}</span></div>
-        <div>
-          <el-tag type="info" size="small">{{ post.tag }}</el-tag>
-        </div>
-      </div>
       </a>
     </div>
     <div class="pagination-container">
-        <el-pagination
-          @current-change="handlePageChange"
-          :current-page="currentPage"
-          :page-size="pageSize"
-          :total="count"
-          layout="prev, pager, next, total"
-        />
-      </div>
+      <el-pagination
+        @current-change="handlePageChange"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="count"
+        layout="prev, pager, next, total"
+      />
     </div>
+  </div>
 </template>
 
 <script setup>
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { requestApi } from "../api/api";
+
 const posts = ref([]);
 const count = ref(0);
 const loading = ref(true);
-const error = ref('');
-const pageSize = 10
-const currentPage = ref(1)
+const error = ref("");
+const pageSize = 10;
+const currentPage = ref(1);
 
-// 获取数据
 const fetchPosts = async (page = 1) => {
   try {
-    const res = await fetch(`${API_BASE}/api/wechat/posts?limit=${pageSize}&page=${page}`);
+    const res = await requestApi(
+      `/api/wechat/posts?limit=${pageSize}&page=${page}`,
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     posts.value = data.data;
     count.value = data.count;
   } catch (err) {
-    error.value = '无法加载文章列表，请稍后重试。';
     console.error(err);
   } finally {
     loading.value = false;
@@ -61,13 +77,13 @@ const fetchPosts = async (page = 1) => {
 };
 
 const handlePageChange = (newPage) => {
-  currentPage.value = newPage
+  currentPage.value = newPage;
   fetchPosts(newPage);
-  window.scrollTo({ top: 50, behavior: 'smooth' })
-}
+  window.scrollTo({ top: 50, behavior: "smooth" });
+};
 
 onMounted(() => {
-  fetchPosts(1);
+  fetchPosts();
 });
 </script>
 
@@ -83,7 +99,8 @@ span {
 .posts-container {
   max-width: 700px;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .page-title {

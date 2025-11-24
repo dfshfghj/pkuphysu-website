@@ -1,7 +1,4 @@
 <script setup>
-import { useUserStore } from "../../stores/user";
-const userStore = useUserStore();
-
 const word = ref(""); // 显示的文字
 const textColor = ref("white"); // 文字颜色
 const status = ref(0); // 抽奖状态: 0=运行中, 1=停止
@@ -11,7 +8,6 @@ const selectedName = ref("人数不足"); // 当前选中的名字
 const isAnimating = ref(false); // 是否正在动画循环
 
 // URL 参数
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const urlParams = new URLSearchParams(window.location.search);
 const ensureLoop = parseInt(urlParams.get("least")) || 20;
 const randomControl = parseFloat(urlParams.get("random")) || 0.1;
@@ -22,7 +18,6 @@ const method = "click_control";
 word.value = urlParams.get("word") || eventName;
 // word.value = "二等奖抽奖";
 
-// 数据状态
 let allStudents = null;
 let names = [];
 let pointList = [];
@@ -30,17 +25,10 @@ let totalPoints = 0;
 let studentNum = 0;
 let loopCounter = 0;
 
-// -------------------------------
-// 2. Canvas 动画核心逻辑
-// -------------------------------
-
 let canvas, context, particles, text, nextText, reOrder, shape;
-let showLoop, numberLoop;
+let showLoop;
 
-// 配置常量
-const FPS = 60;
 const mainNum = 360;
-const partNum = mainNum / 3;
 const halfX = 450;
 const halfY = 250;
 const colors = [
@@ -133,7 +121,12 @@ function createText(textStr) {
   const spacedText = textStr.split("").join(String.fromCharCode(8202));
   context.fillText(spacedText, 0.5 * canvas.width, canvas.height - 50);
 
-  const imageData = context.getImageData(0, canvas.height - 250, canvas.width, 250);
+  const imageData = context.getImageData(
+    0,
+    canvas.height - 250,
+    canvas.width,
+    250,
+  );
   nextText[0] = [];
 
   for (let d = 0; d < imageData.width; d += 4) {
@@ -203,15 +196,19 @@ function createTextFrame(count) {
 function updataTransition() {
   particles.forEach((a, b) => {
     switch (currentLayout.value) {
-      case 1:
+      case 1: {
         shape.x = 0.5 * canvas.width + 100 * -Math.sin(reOrder[b]);
-        shape.y = 0.5 * canvas.height + 60 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
+        shape.y =
+          0.5 * canvas.height +
+          60 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
         break;
-      case 2:
+      }
+      case 2: {
         shape.x = 0.5 * canvas.width + 140 * Math.sin(a.steps);
         shape.y = 180 + 140 * Math.cos(a.steps);
         break;
-      case 3:
+      }
+      case 3: {
         let g = 0.5 * mainNum - 1;
         const f = (2 * Math.PI * reOrder[b]) / g;
         if (reOrder[b] < particles.slice(0, g).length) {
@@ -223,13 +220,19 @@ function updataTransition() {
           shape.y = 180 + 80 * Math.sin(f);
         }
         break;
-      case 4:
-        shape.x = 0.5 * canvas.width + 90 * (1 - Math.sin(reOrder[b])) * Math.cos(reOrder[b]);
+      }
+      case 4: {
+        shape.x =
+          0.5 * canvas.width +
+          90 * (1 - Math.sin(reOrder[b])) * Math.cos(reOrder[b]);
         shape.y = 320 + 140 * (-Math.sin(reOrder[b]) - 1);
         break;
-      case 5:
-        shape.x = 0.5 * canvas.width + 90 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
+      }
+      case 5: {
+        shape.x =
+          0.5 * canvas.width + 90 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
         shape.y = 320 + 140 * (-Math.sin(reOrder[b]) - 1);
+      }
     }
     a.x += 0.08 * (shape.x + 5 * Math.cos(a.angle) - a.x);
     a.y += 0.08 * (shape.y + 5 * Math.sin(a.angle) - a.y);
@@ -239,8 +242,16 @@ function updataTransition() {
   const isOpen = 0; // isTextOpen 是 0
   text.forEach((a, b) => {
     if (nextText[isOpen][b]) {
-      a.x += 0.15 * (nextText[isOpen][b].x + Math.cos(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit - a.x);
-      a.y += 0.15 * (nextText[isOpen][b].y + Math.sin(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit - a.y);
+      a.x +=
+        0.15 *
+        (nextText[isOpen][b].x +
+          Math.cos(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit -
+          a.x);
+      a.y +=
+        0.15 *
+        (nextText[isOpen][b].y +
+          Math.sin(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit -
+          a.y);
       nextText[isOpen][b].angle += 0.08;
     }
   });
@@ -248,13 +259,16 @@ function updataTransition() {
 
 function update() {
   updataTransition();
-  particles.forEach(a => {
+  particles.forEach((a) => {
     a.alpha += 0.05 * (a.maxAlpha - a.alpha);
     if (a.hasBorn) {
       a.radius += (0 - a.radius) * a.bornSpeed;
       if (Math.round(a.radius) === 0) {
         const c = Math.floor((3 * particles.indexOf(a)) / mainNum);
-        a.color = colors[randomNum.value[c]][Math.floor(Math.random() * colors[currentLayout.value].length)];
+        a.color =
+          colors[randomNum.value[c]][
+            Math.floor(Math.random() * colors[currentLayout.value].length)
+          ];
         a.hasBorn = false;
       }
     } else {
@@ -263,7 +277,7 @@ function update() {
     }
   });
 
-  text.forEach(a => {
+  text.forEach((a) => {
     a.alpha += 0.05 * (a.maxAlpha - a.alpha);
     if (a.hasBorn) {
       a.radius += (0 - a.radius) * a.bornSpeed;
@@ -277,7 +291,7 @@ function update() {
 
 function render() {
   context.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(a => {
+  particles.forEach((a) => {
     context.save();
     context.globalAlpha = a.alpha;
     context.fillStyle = a.color;
@@ -286,7 +300,7 @@ function render() {
     context.fill();
     context.restore();
   });
-  text.forEach(a => {
+  text.forEach((a) => {
     context.save();
     context.globalAlpha = a.alpha;
     context.fillStyle = textColor.value;
@@ -316,18 +330,9 @@ function showPic() {
   }
 }
 
-// -------------------------------
-// 3. 业务逻辑
-// -------------------------------
-
 async function fetchData() {
   try {
-    const res = await fetch(`${API_BASE}/api/random_draw/cj_json`,{
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${userStore.token}`,
-      }
-    });
+    const res = await requestApi("/api/random_draw/cj_json");
 
     if (!res.ok) {
       setText("网络故障？");
@@ -339,7 +344,7 @@ async function fetchData() {
       names = allStudents;
     } else {
       names = Object.keys(allStudents);
-      names.forEach(name => {
+      names.forEach((name) => {
         const point = allStudents[name][prizeType] + 1;
         pointList.push(point);
         totalPoints += point;
@@ -384,7 +389,12 @@ function randomSelect() {
   }
 
   loopCounter++;
-  if (loopCounter > ensureLoop && Math.random() < randomControl && isAnimating.value && method === "tradition") {
+  if (
+    loopCounter > ensureLoop &&
+    Math.random() < randomControl &&
+    isAnimating.value &&
+    method === "tradition"
+  ) {
     stopAnimation();
     luckyDogs.value.push(selectedName.value);
     setTimeout(() => {
@@ -408,16 +418,16 @@ function startAnimation() {
   }
   if (isAnimating.value) return;
 
-  clearTimeout(timeoutHandle);
+  clearTimeout(timeoutHandle.value);
   textColor.value = "white";
   randomSelect();
-  handle = setInterval(randomSelect, 140);
+  handle.value = setInterval(randomSelect, 140);
   isAnimating.value = true;
 }
 
 function stopAnimation() {
-  clearInterval(handle);
-  handle = null;
+  clearInterval(handle.value);
+  handle.value = null;
   isAnimating.value = false;
 }
 
@@ -429,16 +439,12 @@ function toggleAnimation() {
       setTimeout(() => {
         textColor.value = "#1d73c9";
       }, 140);
-      timeoutHandle = setTimeout(restore, 5000);
+      timeoutHandle.value = setTimeout(restore, 5000);
     } else {
       startAnimation();
     }
   }
 }
-
-// -------------------------------
-// 4. Vue 生命周期钩子
-// -------------------------------
 
 onMounted(() => {
   fetchData();
@@ -451,7 +457,7 @@ onMounted(() => {
   }
 
   // 监听回车键
-  const handleKeydown = e => {
+  const handleKeydown = (e) => {
     if (e.key === "Enter") {
       location.reload();
     }
@@ -465,36 +471,25 @@ onMounted(() => {
     }
     window.removeEventListener("keydown", handleKeydown);
     if (showLoop) clearInterval(showLoop);
-    if (handle) clearInterval(handle);
-    if (timeoutHandle) clearTimeout(timeoutHandle);
+    if (handle.value) clearInterval(handle.value);
+    if (timeoutHandle.value) clearTimeout(timeoutHandle.value);
     if (canvas && canvas.parentNode) {
       canvas.parentNode.removeChild(canvas);
     }
   });
 });
 
-// -------------------------------
-// 5. 模板变量 (用于 v-model 等)
-// -------------------------------
-
 let handle = ref(null);
 let timeoutHandle = ref(null);
 const randomNum = ref([0, 0, 0]);
 
-function randomNumberArray() {
-  const r = randomBetween(0, 180);
-  const s = Math.floor(r / 10);
-  randomNum.value[0] = Math.floor(s / 10) % 10;
-  randomNum.value[1] = s % 10;
-  randomNum.value[2] = r % 10;
-}
-
-const bg_path = '/images/bg.webp'
-import Sider from '../../components/layouts/Sider.vue';
+const bg_path = "/images/bg.webp";
+import Sider from "../../components/layouts/Sider.vue";
+import { requestApi } from "../../api/api";
 </script>
 
 <template>
-  <div style="position: fixed; z-index: 999;"> <Sider class="dark"/> </div>
+  <div style="position: fixed; z-index: 999"><Sider class="dark" /></div>
   <div id="play-zone" :style="{ backgroundImage: `url(${bg_path})` }">
     <div class=".ip-slideshow">
       <div class="ip-slideshow"></div>
@@ -719,5 +714,4 @@ import Sider from '../../components/layouts/Sider.vue';
   right: 30px;
   bottom: 30px;
 }
-
 </style>

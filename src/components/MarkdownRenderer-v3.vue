@@ -5,28 +5,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import MarkdownIt from 'markdown-it';
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
-import '../styles/github-markdown.css';
+import { ref, onMounted, watch } from "vue";
+import MarkdownIt from "markdown-it";
+import katex from "katex";
+import "katex/dist/katex.min.css";
+import "../styles/github-markdown.css";
 
 const props = defineProps({
   content: {
     type: String,
-    default: ''
-  }
+    default: "",
+  },
 });
 
-const renderedContent = ref('');
+const renderedContent = ref("");
 
 // 唯一的占位符标识
-const INLINE_PLACEHOLDER = 'INLINE_MATH_';
-const BLOCK_PLACEHOLDER = 'BLOCK_MATH_';
+const INLINE_PLACEHOLDER = "INLINE_MATH_";
+const BLOCK_PLACEHOLDER = "BLOCK_MATH_";
 
 const renderMarkdown = () => {
   if (!props.content.trim()) {
-    renderedContent.value = '';
+    renderedContent.value = "";
     return;
   }
 
@@ -49,7 +49,7 @@ const renderMarkdown = () => {
     });
 
     // 2. 提取行内公式 $...$
-    content = content.replace(/\$([^\$]+?)\$/g, (match, formula) => {
+    content = content.replace(/\$([^$]+?)\$/g, (match, formula) => {
       const index = inlineFormulas.length;
       inlineFormulas.push(formula.trim());
       return `${INLINE_PLACEHOLDER}${index}`;
@@ -66,49 +66,54 @@ const renderMarkdown = () => {
       html: false,
       linkify: true,
       typographer: true,
-      breaks: true
+      breaks: true,
     });
-    
+
     let rendered = md.render(content);
 
     // 4. 替换行间公式占位符
-    rendered = rendered.replace(new RegExp(`${BLOCK_PLACEHOLDER}(\\d+)`, 'g'), (match, index) => {
-      const formula = blockFormulas[parseInt(index)];
-      if (formula === undefined) return match;
-      
-      try {
-        return `<div class="katex-block">${katex.renderToString(formula, {
-          displayMode: true,
-          throwOnError: false,
-          errorColor: '#cc0000'
-        })}</div>`;
-      } catch (error) {
-        console.warn('KaTeX block render error:', error);
-        return `<span class="katex-error">$$${formula}$$</span>`;
-      }
-    });
+    rendered = rendered.replace(
+      new RegExp(`${BLOCK_PLACEHOLDER}(\\d+)`, "g"),
+      (match, index) => {
+        const formula = blockFormulas[parseInt(index)];
+        if (formula === undefined) return match;
+
+        try {
+          return `<div class="katex-block">${katex.renderToString(formula, {
+            displayMode: true,
+            throwOnError: false,
+            errorColor: "#cc0000",
+          })}</div>`;
+        } catch (error) {
+          console.warn("KaTeX block render error:", error);
+          return `<span class="katex-error">$$${formula}$$</span>`;
+        }
+      },
+    );
 
     // 5. 替换行内公式占位符
-    rendered = rendered.replace(new RegExp(`${INLINE_PLACEHOLDER}(\\d+)`, 'g'), (match, index) => {
-      const formula = inlineFormulas[parseInt(index)];
-      if (formula === undefined) return match;
-      
-      try {
-        return katex.renderToString(formula, {
-          displayMode: false,
-          throwOnError: false,
-          errorColor: '#cc0000'
-        });
-      } catch (error) {
-        console.warn('KaTeX inline render error:', error);
-        return `<span class="katex-error">$${formula}$</span>`;
-      }
-    });
+    rendered = rendered.replace(
+      new RegExp(`${INLINE_PLACEHOLDER}(\\d+)`, "g"),
+      (match, index) => {
+        const formula = inlineFormulas[parseInt(index)];
+        if (formula === undefined) return match;
+
+        try {
+          return katex.renderToString(formula, {
+            displayMode: false,
+            throwOnError: false,
+            errorColor: "#cc0000",
+          });
+        } catch (error) {
+          console.warn("KaTeX inline render error:", error);
+          return `<span class="katex-error">$${formula}$</span>`;
+        }
+      },
+    );
 
     renderedContent.value = rendered;
-    
   } catch (error) {
-    console.error('Markdown rendering error:', error);
+    console.error("Markdown rendering error:", error);
     renderedContent.value = `<p class="error">渲染失败: ${error.message}</p>`;
   }
 };
@@ -119,10 +124,10 @@ onMounted(renderMarkdown);
 
 <style scoped>
 .markdown-body {
-    padding-left: 50px;
-    padding-right: 50px;
-    --bgColor-default: var(--c-card);
-    position: relative;
+  padding-left: 50px;
+  padding-right: 50px;
+  --bgColor-default: var(--c-card);
+  position: relative;
 }
 
 /* KaTeX 相关样式 */

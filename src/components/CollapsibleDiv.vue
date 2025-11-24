@@ -1,18 +1,27 @@
 <template>
   <div class="collapsible-container">
-    <div ref="contentRef" class="content" :class="{ expanded: isExpanded }" :style="{ maxHeight: currentMaxHeight }">
+    <div
+      ref="contentRef"
+      class="content"
+      :class="{ expanded: isExpanded }"
+      :style="{ maxHeight: currentMaxHeight }"
+    >
       <slot></slot>
     </div>
     <div class="ctl-panel">
-      <span v-if="shouldShowButton" @click="toggleExpanded" style="cursor: pointer; color: var(--c-primary);">
-        {{ isExpanded ? '收起' : '展开' }}
+      <span
+        v-if="shouldShowButton"
+        @click="toggleExpanded"
+        style="cursor: pointer; color: var(--c-primary)"
+      >
+        {{ isExpanded ? "收起" : "展开" }}
       </span>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 
 const props = defineProps({
   maxHeight: {
@@ -28,7 +37,7 @@ const resizeObserver = ref(null);
 
 const currentMaxHeight = computed(() => {
   if (isExpanded.value) {
-    return 'none';
+    return "none";
   }
   return `${props.maxHeight}px`;
 });
@@ -42,7 +51,7 @@ const checkContentHeight = async () => {
   if (contentRef.value) {
     const scrollHeight = contentRef.value.scrollHeight;
     shouldShowButton.value = scrollHeight > props.maxHeight;
-    
+
     if (scrollHeight <= props.maxHeight) {
       isExpanded.value = false;
     }
@@ -58,23 +67,25 @@ onMounted(async () => {
         checkContentHeight();
       });
     });
-    
+
     resizeObserver.value.observe(contentRef.value, {
-      box: 'border-box'
+      box: "border-box",
     });
   }
-  
+
   onUnmounted(() => {
     if (resizeObserver.value) {
       resizeObserver.value.disconnect();
     }
-    clearInterval(interval);
   });
 });
 
-watch(() => props.maxHeight, async () => {
-  await checkContentHeight();
-});
+watch(
+  () => props.maxHeight,
+  async () => {
+    await checkContentHeight();
+  },
+);
 </script>
 
 <style scoped>

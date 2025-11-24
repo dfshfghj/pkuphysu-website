@@ -32,6 +32,8 @@ tools
 *.jpg
 *.jpeg
 *.json
+!package-lock.json
+!package.json
 .secrets.toml
 .env
 .env.development

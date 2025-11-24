@@ -4,16 +4,47 @@
     <el-card class="auth-card">
       <!-- 标题与切换 -->
       <div class="tabs">
-        <button :class="['tab-btn', { active: isLogin }]" @click="isLogin = true">登录</button>
-        <button :class="['tab-btn', { active: !isLogin }]" @click="isLogin = false">注册</button>
+        <button
+          :class="['tab-btn', { active: isLogin }]"
+          @click="isLogin = true"
+        >
+          登录
+        </button>
+        <button
+          :class="['tab-btn', { active: !isLogin }]"
+          @click="isLogin = false"
+        >
+          注册
+        </button>
       </div>
-      <el-form v-if="isLogin" ref="loginFormRef" :model="loginForm" :rules="loginRules" class="auth-form" @submit.prevent="handleLogin">
+      <el-form
+        v-if="isLogin"
+        ref="loginFormRef"
+        :model="loginForm"
+        :rules="loginRules"
+        class="auth-form"
+        @submit.prevent="handleLogin"
+      >
         <el-form-item prop="username">
-          <el-input v-model="loginForm.username" placeholder="请输入学号或用户名" size="large" clearable prefix-icon="UserFilled" />
+          <el-input
+            v-model="loginForm.username"
+            placeholder="请输入学号或用户名"
+            size="large"
+            clearable
+            prefix-icon="UserFilled"
+          />
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" size="large" show-password prefix-icon="Lock" @keyup.enter="handleLogin" />
+          <el-input
+            v-model="loginForm.password"
+            type="password"
+            placeholder="请输入密码"
+            size="large"
+            show-password
+            prefix-icon="Lock"
+            @keyup.enter="handleLogin"
+          />
         </el-form-item>
 
         <div class="form-options">
@@ -21,26 +52,66 @@
         </div>
 
         <el-form-item>
-          <el-button type="primary" size="large" native-type="submit" :loading="loading" style="width: 100%">
+          <el-button
+            type="primary"
+            size="large"
+            native-type="submit"
+            :loading="loading"
+            style="width: 100%"
+          >
             {{ loading ? "登录中..." : "登 录" }}
           </el-button>
         </el-form-item>
       </el-form>
-      <el-form v-else ref="registerFormRef" :model="registerForm" :rules="registerRules" class="auth-form" @submit.prevent="handleRegister">
+      <el-form
+        v-else
+        ref="registerFormRef"
+        :model="registerForm"
+        :rules="registerRules"
+        class="auth-form"
+        @submit.prevent="handleRegister"
+      >
         <el-form-item prop="username">
-          <el-input v-model="registerForm.username" placeholder="请输入用户名" size="large" clearable prefix-icon="UserFilled" />
+          <el-input
+            v-model="registerForm.username"
+            placeholder="请输入用户名"
+            size="large"
+            clearable
+            prefix-icon="UserFilled"
+          />
         </el-form-item>
 
         <el-form-item prop="password">
-          <el-input v-model="registerForm.password" type="password" placeholder="请输入密码（至少6位）" size="large" show-password prefix-icon="Lock" />
+          <el-input
+            v-model="registerForm.password"
+            type="password"
+            placeholder="请输入密码（至少6位）"
+            size="large"
+            show-password
+            prefix-icon="Lock"
+          />
         </el-form-item>
 
         <el-form-item prop="confirmPassword">
-          <el-input v-model="registerForm.confirmPassword" type="password" placeholder="请确认密码" size="large" show-password prefix-icon="Unlock" @keyup.enter="handleRegister" />
+          <el-input
+            v-model="registerForm.confirmPassword"
+            type="password"
+            placeholder="请确认密码"
+            size="large"
+            show-password
+            prefix-icon="Unlock"
+            @keyup.enter="handleRegister"
+          />
         </el-form-item>
 
         <el-form-item>
-          <el-button type="success" size="large" native-type="submit" :loading="registering" style="width: 100%">
+          <el-button
+            type="success"
+            size="large"
+            native-type="submit"
+            :loading="registering"
+            style="width: 100%"
+          >
             {{ registering ? "注册中..." : "注 册" }}
           </el-button>
         </el-form-item>
@@ -50,8 +121,8 @@
 </template>
 
 <script setup>
+import { requestApi } from "../api/api";
 import { useUserStore } from "../stores/user";
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // --- 组件引用 ---
 const loginFormRef = ref();
@@ -106,14 +177,13 @@ const registerRules = {
 
 // --- 登录逻辑 ---
 const handleLogin = async () => {
-  await loginFormRef.value?.validate(async valid => {
+  await loginFormRef.value?.validate(async (valid) => {
     if (!valid) return;
 
     loading.value = true;
     try {
-      const res = await fetch(`${API_BASE}/api/login`, {
+      const res = await requestApi("/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: loginForm.username,
           password: loginForm.password,
@@ -129,7 +199,8 @@ const handleLogin = async () => {
         });
 
         ElMessage.success("登录成功！");
-        const redirect = new URLSearchParams(window.location.search).get("redirect") || "/";
+        const redirect =
+          new URLSearchParams(window.location.search).get("redirect") || "/";
         await router.push(redirect);
       } else {
         ElMessage.error(result.message || "账户或密码错误");
@@ -145,14 +216,13 @@ const handleLogin = async () => {
 
 // --- 注册逻辑 ---
 const handleRegister = async () => {
-  await registerFormRef.value?.validate(async valid => {
+  await registerFormRef.value?.validate(async (valid) => {
     if (!valid) return;
 
     registering.value = true;
     try {
-      const res = await fetch(`${API_BASE}/api/register`, {
+      const res = await requestApi("/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: registerForm.username,
           password: registerForm.password,

@@ -1,7 +1,10 @@
 <template>
   <h2 class="page-title">抽奖投点</h2>
   <div class="note-container">
-    <el-row :gutter="16" style="margin-bottom: 30px; justify-content: center; text-align: center;">
+    <el-row
+      :gutter="16"
+      style="margin-bottom: 30px; justify-content: center; text-align: center"
+    >
       <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
         <el-countdown title="" format="HH:mm:ss" :value="value1" />
       </el-col>
@@ -11,7 +14,12 @@
         <div><strong>投入点数为非负整数，且总和应在 0-99 之间。</strong></div>
       </template>
     </el-alert>
-    <el-alert type="warning" :closable="false" show-icon style="margin-top: 8px">
+    <el-alert
+      type="warning"
+      :closable="false"
+      show-icon
+      style="margin-top: 8px"
+    >
       <template #default>
         <div><strong>注意：只有现场的同学才能抽奖！</strong></div>
       </template>
@@ -20,7 +28,12 @@
 
   <!-- 投点表单 -->
   <el-form @submit.prevent="submitInvest">
-    <el-table :data="prizeData" stripe class="investTable" show-overflow-tooltip>
+    <el-table
+      :data="prizeData"
+      stripe
+      class="investTable"
+      show-overflow-tooltip
+    >
       <el-table-column label="奖项">
         <template #default="{ row }">
           <strong>{{ row.name }}</strong>
@@ -31,7 +44,16 @@
 
       <el-table-column label="投点">
         <template #default="{ row }">
-          <el-input-number v-model="inputs[row.name]" :min="0" :max="99" :controls="true" placeholder="0" size="small" style="width: 80px" controls-position="right" />
+          <el-input-number
+            v-model="inputs[row.name]"
+            :min="0"
+            :max="99"
+            :controls="true"
+            placeholder="0"
+            size="small"
+            style="width: 80px"
+            controls-position="right"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -44,9 +66,17 @@
           {{ total }}
         </el-tag>
         <span> / 99 </span>
-        <el-text v-if="total > 99" type="danger" style="margin-left: 10px">⚠️ 超出限制</el-text>
+        <el-text v-if="total > 99" type="danger" style="margin-left: 10px"
+          >⚠️ 超出限制</el-text
+        >
       </div>
-      <el-button native-type="submit" type="primary" :loading="submitting" :disabled="total < 0 || total > 99" size="default">
+      <el-button
+        native-type="submit"
+        type="primary"
+        :loading="submitting"
+        :disabled="total < 0 || total > 99"
+        size="default"
+      >
         {{ submitting ? "提交中..." : "提交" }}
       </el-button>
     </div>
@@ -54,8 +84,8 @@
 </template>
 
 <script setup>
+import { requestApi } from "../api/api";
 import { useUserStore } from "../stores/user";
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const prizeData = ref([]);
 const inputs = ref({});
@@ -70,12 +100,8 @@ const total = computed(() => {
 
 onMounted(async () => {
   try {
-    const configRes = await fetch(`${API_BASE}/api/random_draw/config`, {
+    const configRes = await requestApi("/api/random_draw/config", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userStore.token}`,
-      },
       body: JSON.stringify({
         username: username,
       }),
@@ -85,7 +111,7 @@ onMounted(async () => {
 
     prizeData.value = config.prizes;
 
-    config.prizes.forEach(prize => {
+    config.prizes.forEach((prize) => {
       inputs.value[prize.name] = prize.investment || 0;
     });
   } catch (err) {
@@ -94,9 +120,7 @@ onMounted(async () => {
   }
 });
 
-// -------------------------------
 // 提交投点
-// -------------------------------
 
 const submitInvest = async () => {
   const pointTotal = total.value;
@@ -107,12 +131,8 @@ const submitInvest = async () => {
 
   submitting.value = true;
   try {
-    const response = await fetch(`${API_BASE}/api/random_draw/invest`, {
+    const response = await requestApi("/api/random_draw/invest", {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${userStore.token}`,
-      },
       body: JSON.stringify(inputs.value),
     });
 
@@ -133,14 +153,15 @@ const submitInvest = async () => {
 </script>
 
 <style scoped>
-
 .el-table :deep(.el-table__cell) {
   text-align: center;
 }
 
 .invest-container {
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 }
 
 .page-title {

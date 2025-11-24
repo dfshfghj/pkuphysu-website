@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { Menu, Setting, ArrowLeft, ArrowRight, Tickets } from "@element-plus/icons-vue";
+import {
+  Menu,
+  Setting,
+  ArrowLeft,
+  ArrowRight,
+  Tickets,
+} from "@element-plus/icons-vue";
 
 const isCollapsed = ref(false);
 const toggleSidebar = () => {
@@ -12,20 +18,25 @@ defineExpose({
 const props = defineProps({
   collapsed: {
     type: Boolean,
-    default: false
+    default: false,
   },
   theme: {
     type: String,
-    validator: (val) => ['dark', 'light'].includes(val),
-    default: 'dark'
-  }
-})
+    validator: (val) => ["dark", "light"].includes(val),
+    default: "dark",
+  },
+});
 
-const themeClass = computed(() => `sider--${props.theme}`)
+const themeClass = computed(() => `sider--${props.theme}`);
 </script>
 
 <template>
-  <el-menu router class="el-menu-vertical-demo" :collapse="isCollapsed" :class="[themeClass, { 'sider--collapsed': collapsed }]">
+  <el-menu
+    router
+    class="el-menu-vertical-demo"
+    :collapse="isCollapsed"
+    :class="[themeClass, { 'sider--collapsed': collapsed }]"
+  >
     <el-menu-item class="collapse-toggle" @click="toggleSidebar">
       <el-icon>
         <ArrowLeft v-if="!isCollapsed" />
@@ -49,9 +60,18 @@ const themeClass = computed(() => `sider--${props.theme}`)
         <el-icon><Tickets /></el-icon>
         <span>抽奖管理</span>
       </template>
-      <el-menu-item index="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0">一等奖</el-menu-item>
-      <el-menu-item index="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1">二等奖</el-menu-item>
-      <el-menu-item index="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2">三等奖</el-menu-item>
+      <el-menu-item
+        index="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0"
+        >一等奖</el-menu-item
+      >
+      <el-menu-item
+        index="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1"
+        >二等奖</el-menu-item
+      >
+      <el-menu-item
+        index="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2"
+        >三等奖</el-menu-item
+      >
     </el-sub-menu>
   </el-menu>
 </template>
@@ -63,11 +83,11 @@ const themeClass = computed(() => `sider--${props.theme}`)
   background-color: transparent;
 }
 .el-menu.dark {
-   background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .el-menu.dark:deep(*) {
-   color: #ffffff;
+  color: #ffffff;
 }
 .el-menu :deep(.el-menu-item:hover) {
   background-color: rgba(230, 247, 255, 0.2) !important;

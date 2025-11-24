@@ -34,7 +34,8 @@ h1 {
   line-height: 1.1;
 }
 
-p, span {
+p,
+span {
   color: var(--c-text);
 }
 

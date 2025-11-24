@@ -4,12 +4,30 @@
   <div class="mb-4 flex flex-wrap gap-2">
     <el-button type="primary" plain @click="loadTables">刷新表列表</el-button>
     <el-button type="success" @click="createAllTables">创建所有表</el-button>
-    <el-button type="warning" @click="showMigratePlan" style="visibility: hidden;">检查迁移</el-button>
-    <el-button type="danger" @click="applyMigrate" style="visibility: hidden;">执行迁移</el-button>
+    <el-button
+      type="warning"
+      @click="showMigratePlan"
+      style="visibility: hidden"
+      >检查迁移</el-button
+    >
+    <el-button type="danger" @click="applyMigrate" style="visibility: hidden"
+      >执行迁移</el-button
+    >
   </div>
   <el-row v-if="!currentTable" :gutter="16">
-    <el-col v-for="(info, name) in tables" :key="name" :md="8" :sm="12" :xs="24">
-      <el-card class="mb-3" shadow="hover" @click="viewTable(name)" style="margin: 10px 30px 10px 30px;">
+    <el-col
+      v-for="(info, name) in tables"
+      :key="name"
+      :md="8"
+      :sm="12"
+      :xs="24"
+    >
+      <el-card
+        class="mb-3"
+        shadow="hover"
+        @click="viewTable(name)"
+        style="margin: 10px 30px 10px 30px"
+      >
         <template #header>
           <div class="font-bold">{{ name }}</div>
         </template>
@@ -23,8 +41,15 @@
           <div class="mt-1">
             数据行数: <strong>{{ info.rows }}</strong>
           </div>
-          <el-button size="small" type="danger" class="mt-2" @click.stop="truncateTable(name)"
-            :disabled="!info.exists || info.rows === 0"> 清空 </el-button>
+          <el-button
+            size="small"
+            type="danger"
+            class="mt-2"
+            @click.stop="truncateTable(name)"
+            :disabled="!info.exists || info.rows === 0"
+          >
+            清空
+          </el-button>
         </div>
       </el-card>
     </el-col>
@@ -32,7 +57,9 @@
 
   <div v-else>
     <el-breadcrumb separator="/" class="mb-3">
-      <el-breadcrumb-item @click.prevent="backToTables" style="cursor: pointer"> 全部表 </el-breadcrumb-item>
+      <el-breadcrumb-item @click.prevent="backToTables" style="cursor: pointer">
+        全部表
+      </el-breadcrumb-item>
       <el-breadcrumb-item>{{ currentTable }}</el-breadcrumb-item>
     </el-breadcrumb>
 
@@ -41,31 +68,62 @@
       <div style="display: ruby">
         <h4>数据预览 ({{ currentData.count }} 条记录)</h4>
         <el-tooltip content="刷新" placement="top">
-          <el-button size="small" circle :icon="Refresh" @click="refreshCurrentTable" />
+          <el-button
+            size="small"
+            circle
+            :icon="Refresh"
+            @click="refreshCurrentTable"
+          />
         </el-tooltip>
       </div>
     </div>
 
     <!-- 数据表格（支持行内编辑） -->
-    <el-table :data="currentData.data" stripe @row-dblclick="startEdit" highlight-current-row max-height="400px" style="text-align: left;">
+    <el-table
+      :data="currentData.data"
+      stripe
+      @row-dblclick="startEdit"
+      highlight-current-row
+      max-height="400px"
+      style="text-align: left"
+    >
       <el-table-column fixed type="index" width="50" />
 
       <!-- 动态列：每个字段都变成可编辑单元格 -->
-      <el-table-column v-for="(col, index) in columns" :key="col" min-width="150" show-overflow-tooltip>
+      <el-table-column
+        v-for="(col, index) in columns"
+        :key="col"
+        min-width="150"
+        show-overflow-tooltip
+      >
         <template #header>
           <div class="table-header-cell">
             <!-- 列名 -->
             <span>{{ col }}&nbsp;</span>
             <!-- 数据类型 -->
-            <span style="text-overflow: ellipsis; font-style: italic; font-size: 12px">{{ info[index] }}</span>
+            <span
+              style="
+                text-overflow: ellipsis;
+                font-style: italic;
+                font-size: 12px;
+              "
+              >{{ info[index] }}</span
+            >
           </div>
         </template>
 
         <template #default="{ row }">
           <!-- 编辑状态显示输入框 -->
           <template v-if="editingRow === row">
-            <el-input v-model="row[col]" :type="getColumnType(col)" :step="isNumberField(col) ? 'any' : undefined"
-              @keyup.enter="saveEdit(row)" @focus="$event.target.select()" @keyup.escape="cancelEdit(row)" autofocus />
+            <el-input
+              v-model="row[col]"
+              :type="getColumnType(col)"
+              :step="isNumberField(col) ? 'any' : undefined"
+              @keyup.enter="saveEdit(row)"
+              @focus="$event.target.select()"
+              @keyup.escape="cancelEdit(row)"
+              autofocus
+            />
           </template>
           <!-- 非编辑状态显示值 -->
           <template v-else>
@@ -78,7 +136,13 @@
 
       <el-table-column fixed="right" label="操作">
         <template #default="{ row }">
-          <el-button link size="small" type="primary" @click="confirmDelete(row)">删除</el-button>
+          <el-button
+            link
+            size="small"
+            type="primary"
+            @click="confirmDelete(row)"
+            >删除</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -98,8 +162,7 @@
 
 <script setup>
 import { Refresh } from "@element-plus/icons-vue";
-import { useUserStore } from "../../stores/user";
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { requestApi } from "../../api/api";
 
 // --- Refs ---
 const tables = ref({});
@@ -111,8 +174,6 @@ const migrateVisible = ref(false);
 const editingRow = ref(null);
 const tempBackup = ref({});
 
-const userStore = useUserStore();
-
 // --- Computed ---
 const columns = computed(() => {
   return currentData.value.columns;
@@ -123,31 +184,25 @@ const info = computed(() => {
 });
 
 // 判断是否为新添加的未保存行
-const isNewRow = row => row.__isNew;
+const isNewRow = (row) => row.__isNew;
 
 // 格式化显示值
-const formatValue = val => {
+const formatValue = (val) => {
   if (val === null || val === undefined) return "(null)";
   return String(val);
 };
 
 // 推断输入框类型（目前只区分 text/number）
-const getColumnType = col => {
-  const sample = currentData.value.data.find(r => r[col] != null)?.[col];
+const getColumnType = (col) => {
+  const sample = currentData.value.data.find((r) => r[col] != null)?.[col];
   return typeof sample === "number" ? "number" : "text";
 };
-const isNumberField = col => getColumnType(col) === "number";
+const isNumberField = (col) => getColumnType(col) === "number";
 
 // --- Methods ---
 
 const request = async (url, options = {}) => {
-  const res = await fetch(`${API_BASE}/api${url}`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${userStore.token}`,
-    },
-    ...options,
-  });
+  const res = await requestApi(`/api${url}`, options);
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || "请求失败");
   return json;
@@ -163,7 +218,7 @@ const loadTables = async () => {
   }
 };
 
-const viewTable = async tableName => {
+const viewTable = async (tableName) => {
   currentTable.value = tableName;
   await refreshCurrentTable();
 };
@@ -202,10 +257,14 @@ const createAllTables = async () => {
   }
 };
 
-const truncateTable = async tableName => {
-  await ElMessageBox.confirm(`确定要清空表 ${tableName} 的所有数据吗？`, "警告", {
-    type: "error",
-  }).catch(() => {
+const truncateTable = async (tableName) => {
+  await ElMessageBox.confirm(
+    `确定要清空表 ${tableName} 的所有数据吗？`,
+    "警告",
+    {
+      type: "error",
+    },
+  ).catch(() => {
     return Promise.reject(new Error("cancel"));
   });
 
@@ -223,7 +282,7 @@ const truncateTable = async tableName => {
 };
 
 // 开始编辑某一行
-const startEdit = row => {
+const startEdit = (row) => {
   if (editingRow.value) return; // 防止重复编辑
 
   // 备份当前行
@@ -232,7 +291,7 @@ const startEdit = row => {
 };
 
 // 保存编辑（包括新增和修改）
-const saveEdit = async row => {
+const saveEdit = async (row) => {
   if (!editingRow.value) return;
 
   try {
@@ -257,17 +316,17 @@ const saveEdit = async row => {
     // 恢复旧数据
     Object.assign(tempBackup.value, row);
     if (isNewRow(row)) {
-      currentData.value.data = currentData.value.data.filter(r => r !== row);
+      currentData.value.data = currentData.value.data.filter((r) => r !== row);
     }
   }
 };
 
-const cancelEdit = row => {
+const cancelEdit = (row) => {
   if (!editingRow.value || editingRow.value !== row) return;
 
   // 如果是新行，直接删除
   if (isNewRow(row)) {
-    currentData.value.data = currentData.value.data.filter(r => r !== row);
+    currentData.value.data = currentData.value.data.filter((r) => r !== row);
   }
 
   editingRow.value = null;
@@ -284,15 +343,15 @@ const addNewRow = () => {
 };
 
 // 取消新增行
-const cancelNewRow = row => {
-  currentData.value.data = currentData.value.data.filter(r => r !== row);
-  if (editingRow.value === row) {
-    editingRow.value = null;
-  }
-};
+// const cancelNewRow = row => {
+//   currentData.value.data = currentData.value.data.filter(r => r !== row);
+//   if (editingRow.value === row) {
+//     editingRow.value = null;
+//   }
+// };
 
 // 删除确认
-const confirmDelete = async row => {
+const confirmDelete = async (row) => {
   await ElMessageBox.confirm("确定要删除这条记录吗？", "警告", {
     type: "error",
   }).catch(() => {
@@ -325,11 +384,15 @@ const showMigratePlan = async () => {
 
 // 执行迁移
 const applyMigrate = async () => {
-  await ElMessageBox.confirm("确定要应用以上迁移操作吗？此操作不可逆！", "危险操作", {
-    type: "error",
-    confirmButtonText: "确认执行",
-    cancelButtonText: "取消",
-  }).catch(() => {
+  await ElMessageBox.confirm(
+    "确定要应用以上迁移操作吗？此操作不可逆！",
+    "危险操作",
+    {
+      type: "error",
+      confirmButtonText: "确认执行",
+      cancelButtonText: "取消",
+    },
+  ).catch(() => {
     return Promise.reject(new Error("cancel"));
   });
 
@@ -359,8 +422,6 @@ onMounted(() => {
   font-family: "Consolas" !important;
   font-size: 14px;
 }
-
-
 
 .el-table:deep(.el-input__wrapper) {
   background-color: transparent;

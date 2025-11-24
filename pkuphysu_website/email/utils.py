@@ -16,7 +16,7 @@ context = ssl.create_default_context()
 
 server = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT, ssl_context=context)
 
-def send_code(to, subject, body):
+def send_email(to, subject, body):
     msg = MIMEMultipart()
     msg['From'] = SENDER_EMAIL
     msg['To'] = to
@@ -35,4 +35,4 @@ def send_code(to, subject, body):
         print(f"发送失败：{e}")
     
 if __name__ == "__main__":
-    send_code(SENDER_EMAIL, "[测试] 验证邮箱", "您的验证码是 114514")
+    send_email(SENDER_EMAIL, "[测试] 验证邮箱", "您的验证码是 114514")
