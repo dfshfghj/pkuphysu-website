@@ -1,13 +1,14 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
 from datetime import datetime, timedelta
+
+from flask_bcrypt import Bcrypt
+
 from pkuphysu_website import db
 
 bcrypt = Bcrypt()
 
 
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -18,23 +19,24 @@ class User(db.Model):
     verified = db.Column(db.Integer)
 
     def set_password(self, password):
-        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'username': self.username,
-            'is_admin': True if self.is_admin else False
+            "id": self.id,
+            "username": self.username,
+            "is_admin": True if self.is_admin else False,
         }
-    
+
+
 class Email(db.Model):
-    __tablename__ = 'emails'
+    __tablename__ = "emails"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     code = db.Column(db.String(6))
     verified = db.Column(db.Boolean, nullable=False, default=False)
@@ -57,7 +59,7 @@ class Email(db.Model):
 
         # 删除该 email 所有未验证的记录（防止垃圾数据）
         cls.query.filter_by(email=email).filter(
-            (cls.verified == False) | (cls.timestamp < expiry_threshold)
+            (not cls.verified) | (cls.timestamp < expiry_threshold)
         ).delete()
 
         # 检查当前用户是否已有该邮箱（理论上已被删，但保险起见）
@@ -70,11 +72,7 @@ class Email(db.Model):
         else:
             # 创建新记录
             item = cls(
-                user_id=user_id,
-                email=email,
-                code=code,
-                verified=False,
-                timestamp=now
+                user_id=user_id, email=email, code=code, verified=False, timestamp=now
             )
             db.session.add(item)
 
@@ -91,11 +89,7 @@ class Email(db.Model):
         now = datetime.utcnow()
         expiry_threshold = now - timedelta(minutes=expiry_minutes)
 
-        item = cls.query.filter_by(
-            user_id=user_id,
-            email=email,
-            verified=False
-        ).first()
+        item = cls.query.filter_by(user_id=user_id, email=email, verified=False).first()
 
         if not item:
             return False
@@ -125,13 +119,14 @@ class Email(db.Model):
 
     @classmethod
     def get_user_emails(cls, user_id):
-        records = cls.query.filter_by(user_id=user_id).order_by(cls.timestamp.desc()).all()
+        records = (
+            cls.query.filter_by(user_id=user_id).order_by(cls.timestamp.desc()).all()
+        )
         return [
             {
-                'email': record.email,
-                'verified': record.verified,
-                'timestamp': record.timestamp
+                "email": record.email,
+                "verified": record.verified,
+                "timestamp": record.timestamp,
             }
             for record in records
         ]
-            

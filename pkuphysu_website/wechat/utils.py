@@ -1,24 +1,28 @@
-import re
+import fcntl
 import json
 import os
-import fcntl
+import re
 import threading
+from datetime import datetime, timedelta, timezone
 from functools import wraps
-from datetime import datetime, timezone, timedelta
-from .models import Post
+
 import requests
 
+from .models import Post
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
-state_dir=os.path.join(current_dir, "data")
+state_dir = os.path.join(current_dir, "data")
 qr_path = os.path.join(state_dir, "qrcode.png")
 state_path = os.path.join(state_dir, "login_state.json")
 lock_path = os.path.join(state_dir, ".wxrunner.lock")
+
 
 def with_lock(func):
     """
     装饰器：确保被装饰的方法在整个系统中（跨 worker）只运行一个实例
     使用 fcntl 文件锁实现
     """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         lock_file = open(lock_path, "w")
@@ -26,7 +30,7 @@ def with_lock(func):
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
             print(f"✅ 进程 {os.getpid()} 获取锁成功，开始执行任务")
         except BlockingIOError:
-            print(f"⚠️ 任务已在其他进程运行（PID未知），本次跳过")
+            print("⚠️ 任务已在其他进程运行（PID未知），本次跳过")
             lock_file.close()
             return None
 
@@ -44,6 +48,7 @@ def with_lock(func):
             print(f"👋 进程 {os.getpid()} 已释放锁")
 
     return wrapper
+
 
 class WxRunner:
     def __init__(self):
@@ -72,11 +77,11 @@ class WxRunner:
                 if retry > max_retry:
                     print("登录超时")
                     try:
-                            os.remove(qr_path)
-                    except:
+                        os.remove(qr_path)
+                    except FileNotFoundError:
                         pass
-                    return 
-                
+                    return
+
                 url = page.url
                 if "home" in url and "token=" in url:
                     match = re.search(r"token=([^&]+)", url)
@@ -84,7 +89,7 @@ class WxRunner:
                         self.token = match.group(1)
                         try:
                             os.remove(qr_path)
-                        except:
+                        except FileNotFoundError:
                             pass
                         print(f"🔑 成功获取 token: {self.token}")
                         return
@@ -105,20 +110,28 @@ class WxRunner:
 
         try:
             from playwright.sync_api import sync_playwright
+
             with sync_playwright() as p:
                 os.makedirs(state_dir, exist_ok=True)
 
-                browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-dev-shm-usage'])
+                browser = p.chromium.launch(
+                    headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
+                )
                 if os.path.exists(state_path):
                     print("USE STATE")
-                    context = browser.new_context(storage_state=state_path,
-                                                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                                                )
+                    context = browser.new_context(
+                        storage_state=state_path,
+                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    )
                 else:
-                    context = browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-                context.add_init_script("""
+                    context = browser.new_context(
+                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                    )
+                context.add_init_script(
+                    """
                         Object.defineProperty(navigator, 'webdriver', { get: () => false });
-                    """)
+                    """
+                )
                 page = context.new_page()
 
                 page.on("response", self._on_response)
@@ -151,20 +164,24 @@ class WxRunner:
                 self.thread.start()
                 print("🧵 自动化线程已启动")
 
+
 wx = WxRunner()
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-}
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+
 def get_state():
     if os.path.exists(os.path.join(state_dir, "login_state.json")):
-        with open(os.path.join(state_dir, "login_state.json"), encoding="utf-8") as file:
+        with open(
+            os.path.join(state_dir, "login_state.json"), encoding="utf-8"
+        ) as file:
             state = json.load(file)
 
         return state
     else:
         return None
-    
+
+
 def get_token():
     state = get_state()
     if not state:
@@ -172,12 +189,14 @@ def get_token():
     session = requests.Session()
     for cookie in state.get("cookies", []):
         session.cookies.set(
-            name=cookie['name'],
-            value=cookie['value'],
-            domain=cookie['domain'],
-            path=cookie['path']
+            name=cookie["name"],
+            value=cookie["value"],
+            domain=cookie["domain"],
+            path=cookie["path"],
         )
-    response = session.get("https://mp.weixin.qq.com", headers=headers, allow_redirects=True)
+    response = session.get(
+        "https://mp.weixin.qq.com", headers=headers, allow_redirects=True
+    )
     url = response.url
     token = None
     if "home" in url and "token=" in url:
@@ -186,31 +205,38 @@ def get_token():
             token = match.group(1)
     return token, session
 
+
 def load_posts(offset=0, limit=10, mp_name="物院学生会"):
-    posts = Post.query.filter_by(mp_name=mp_name).order_by(Post.publish_time.desc(), Post.id.asc()).offset(offset).limit(limit).all()
+    posts = (
+        Post.query.filter_by(mp_name=mp_name)
+        .order_by(Post.publish_time.desc(), Post.id.asc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
     count = Post.query.filter_by(mp_name=mp_name).count()
     data = [
         {
-            'id': post.id,
-            'title': post.title,
-            'description': post.description,
-            'mp_name': post.mp_name,
-            'url': post.url,
-            'publish_time': post.publish_time
+            "id": post.id,
+            "title": post.title,
+            "description": post.description,
+            "mp_name": post.mp_name,
+            "url": post.url,
+            "publish_time": post.publish_time,
         }
         for post in posts
     ]
     for item in data:
-        matches = re.match('【(.*)】', item['title'])
-        item["tag"] = matches.group(1) if matches else '其它'
-        item["title"] = re.sub('【.*】', '', item['title']).strip()
-        item["description"] = item['description'].split('/n')[0]
-        item["publish_time"] = datetime.fromtimestamp(item["publish_time"], tz=timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
-    
-    return {
-            "data": data,
-            "count": count
-        }
+        matches = re.match("【(.*)】", item["title"])
+        item["tag"] = matches.group(1) if matches else "其它"
+        item["title"] = re.sub("【.*】", "", item["title"]).strip()
+        item["description"] = item["description"].split("/n")[0]
+        item["publish_time"] = datetime.fromtimestamp(
+            item["publish_time"], tz=timezone(timedelta(hours=8))
+        ).strftime("%Y-%m-%d %H:%M:%S")
+
+    return {"data": data, "count": count}
+
 
 def update_posts(begin, count):
     token, session = get_token()
@@ -230,8 +256,7 @@ def update_posts(begin, count):
                     "description": sub_item["digest"],
                     "mp_name": "物院学生会",
                     "url": sub_item["content_url"],
-                    "publish_time": sub_item["line_info"]["send_time"]
-
+                    "publish_time": sub_item["line_info"]["send_time"],
                 }
                 posts.append(post)
         Post.merge_posts(posts)

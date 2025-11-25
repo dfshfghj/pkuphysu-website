@@ -1,5 +1,6 @@
 import os
-from dynaconf import Dynaconf, settings
+
+from dynaconf import Dynaconf
 
 __all__ = ["settings"]
 

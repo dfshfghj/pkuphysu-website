@@ -32,4 +32,3 @@ def respond_success(**kwargs) -> Response:
     :rtype: Response
     """
     return jsonify(status=200, **kwargs)
-

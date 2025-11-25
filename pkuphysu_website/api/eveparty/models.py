@@ -1,6 +1,8 @@
+import json
+
 from pkuphysu_website import db
 from pkuphysu_website.config import settings
-import json
+
 
 class CJParticipant(db.Model):
     __tablename__ = "CJParticipant"

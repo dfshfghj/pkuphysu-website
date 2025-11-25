@@ -1,5 +1,7 @@
-from pkuphysu_website import db
 from datetime import datetime
+
+from pkuphysu_website import db
+
 
 class Posts(db.Model):
     __tablename__ = "posts"
@@ -10,7 +12,7 @@ class Posts(db.Model):
     timestamp = db.Column(db.Integer, nullable=False)
     reply = db.Column(db.Integer, default=0)
     likenum = db.Column(db.Integer, default=0)
-    tag = db.Column(db.String(32), default='')
+    tag = db.Column(db.String(32), default="")
 
     @classmethod
     def insert_post(cls, user_id, text, type, tag):
@@ -20,17 +22,19 @@ class Posts(db.Model):
                 text=text,
                 type=type,
                 timestamp=datetime.now().timestamp(),
-                tag=tag
+                tag=tag,
             )
-            
+
             db.session.add(new_post)
             db.session.commit()
             return new_post
-            
-        except:
+
+        except Exception as e:
+            print(f"An error occurred in insert_post: {e}")
             db.session.rollback()
             return None
-        
+
+
 class Comments(db.Model):
     __tablename__ = "Comments"
     cid = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -56,24 +60,27 @@ class Comments(db.Model):
                 quote=quote,
                 timestamp=datetime.now().timestamp(),
             )
-            
+
             db.session.add(new_comment)
             db.session.commit()
             return new_comment
-            
+
         except Exception as e:
-            print(e)
+            print(f"An error occurred in insert_comment: {e}")
             db.session.rollback()
             return None
-        
+
+
 class Follow(db.Model):
     __tablename__ = "follow"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
     timestamp = db.Column(db.Integer, nullable=False)
 
-    __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='unique_user_post_follow'),)
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "post_id", name="unique_user_post_follow"),
+    )
 
     @classmethod
     def insert_follow(cls, user_id, post_id):
@@ -89,12 +96,13 @@ class Follow(db.Model):
                 post_id=post_id,
                 timestamp=datetime.now().timestamp(),
             )
-            
+
             db.session.add(new_follow)
             db.session.commit()
             return new_follow
-            
-        except:
+
+        except Exception as e:
+            print(f"An error occurred in insert_follow: {e}")
             db.session.rollback()
             return None
 
@@ -114,23 +122,27 @@ class Follow(db.Model):
             db.session.delete(follow)
             db.session.commit()
             return follow
-            
-        except:
+
+        except Exception as e:
+            print(f"An error occurred in delete_follow: {e}")
             db.session.rollback()
             return None
-        
+
     @classmethod
     def query_follow(cls, user_id):
-        subquery = db.session.query(cls.post_id).filter(cls.user_id == user_id).subquery()
+        subquery = (
+            db.session.query(cls.post_id).filter(cls.user_id == user_id).subquery()
+        )
         return Posts.query.join(subquery, Posts.id == subquery.c.post_id)
-        
+
+
 class Articles(db.Model):
     __tablename__ = "articles"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.Text, nullable=False)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.Integer, nullable=False)
-    tag = db.Column(db.String(32), default='')
+    tag = db.Column(db.String(32), default="")
     author = db.Column(db.String(80), nullable=False)
     likenum = db.Column(db.Integer, default=0)
     reply = db.Column(db.Integer, default=0)
@@ -143,17 +155,19 @@ class Articles(db.Model):
                 title=title,
                 content=content,
                 timestamp=datetime.now().timestamp(),
-                tag=tag
+                tag=tag,
             )
-            
+
             db.session.add(new_article)
             db.session.commit()
             return new_article
-            
-        except:
+
+        except Exception as e:
+            print(f"An error occurred in insert_article: {e}")
             db.session.rollback()
             return None
-        
+
+
 class Replies(db.Model):
     __tablename__ = "replies"
     rid = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -173,11 +187,12 @@ class Replies(db.Model):
                 quote=quote,
                 timestamp=datetime.now().timestamp(),
             )
-            
+
             db.session.add(new_comment)
             db.session.commit()
             return new_comment
-            
-        except:
+
+        except Exception as e:
+            print(f"An error occurred in Replies.insert_comment: {e}")
             db.session.rollback()
             return None

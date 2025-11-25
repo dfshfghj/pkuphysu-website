@@ -24,13 +24,13 @@ def create_all():
 @bp.route("/db-tables", methods=["GET"])
 def index():
     inspector = inspect(db.engine)
-    tables_info = dict()
+    tables_info = {}
     for table_name, table in db.Model.metadata.tables.items():
         table_exists = inspector.has_table(table_name)
         table_rows = 0
         if table_exists:
             table_rows = db.session.query(table).count()
-        tables_info[table_name] = dict(exists=table_exists, rows=table_rows)
+        tables_info[table_name] = {"exists": table_exists, "rows": table_rows}
     return respond_success(tables=tables_info)
 
 
@@ -40,7 +40,10 @@ def manage_table(table_name):
 
     columns = {col.name: col for col in table.columns}
     columns_list = [col.name for col in table.columns]
-    columns_type = [f'{str(col.type)} {"NOT NULL " if not col.nullable else ""}{"PRIMARY KEY " if col.primary_key else ""}' for col in table.columns]
+    columns_type = [
+        f'{str(col.type)} {"NOT NULL " if not col.nullable else ""}{"PRIMARY KEY " if col.primary_key else ""}'
+        for col in table.columns
+    ]
     primary_keys = [col for col in table.columns if col.primary_key]
     if not primary_keys:
         return respond_error(500, "TableHasNoPrimaryKey")
@@ -50,11 +53,10 @@ def manage_table(table_name):
     if request.method == "GET":
         try:
             rows = db.session.query(table).all()
-            data = [
-                {col: getattr(row, col) for col in columns}
-                for row in rows
-            ]
-            return respond_success(count=len(data), data=data, columns=columns_list, types=columns_type)
+            data = [{col: getattr(row, col) for col in columns} for row in rows]
+            return respond_success(
+                count=len(data), data=data, columns=columns_list, types=columns_type
+            )
         except Exception as e:
             logger.error("Query failed: %s", str(e))
             return respond_error(500, "DBAQueryFailed")
@@ -119,14 +121,14 @@ def manage_table(table_name):
                     # UPDATE
                     result = db.session.execute(
                         db.update(table).where(*filters),
-                        [{k: v for k, v in record.items() if k in columns}]
+                        [{k: v for k, v in record.items() if k in columns}],
                     )
                     updated_count += result.rowcount
                 else:
                     # INSERT
                     result = db.session.execute(
                         db.insert(table),
-                        [{k: v for k, v in record.items() if k in columns}]
+                        [{k: v for k, v in record.items() if k in columns}],
                     )
                     inserted_count += result.rowcount
             except DataError as e:

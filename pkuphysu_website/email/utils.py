@@ -1,8 +1,9 @@
-import smtplib
 import imaplib
+import smtplib
 import ssl
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from ..config import settings
 
 SMTP_SERVER = settings.emails.SMTP_SERVER
@@ -16,13 +17,14 @@ context = ssl.create_default_context()
 
 server = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT, ssl_context=context)
 
+
 def send_email(to, subject, body):
     msg = MIMEMultipart()
-    msg['From'] = SENDER_EMAIL
-    msg['To'] = to
-    msg['Subject'] = subject
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = to
+    msg["Subject"] = subject
 
-    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+    msg.attach(MIMEText(body, "plain", "utf-8"))
 
     try:
         server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
@@ -33,6 +35,7 @@ def send_email(to, subject, body):
         print("邮件发送成功！")
     except Exception as e:
         print(f"发送失败：{e}")
-    
+
+
 if __name__ == "__main__":
     send_email(SENDER_EMAIL, "[测试] 验证邮箱", "您的验证码是 114514")
