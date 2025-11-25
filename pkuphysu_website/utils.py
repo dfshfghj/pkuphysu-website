@@ -1,4 +1,9 @@
-from flask import Response, jsonify
+from logging import getLogger
+
+from flask import Response, abort, jsonify
+from flask_sqlalchemy.query import Query
+
+logger = getLogger()
 
 
 def respond_error(status_code: int, errid: str, message: str = None) -> Response:
@@ -32,3 +37,13 @@ def respond_success(**kwargs) -> Response:
     :rtype: Response
     """
     return jsonify(status=200, **kwargs)
+
+
+class CustomQuery(Query):
+    def get_or_abort(self, ident, code: int, errid_empty: str, errid_notexist: str):
+        if not ident:
+            abort(respond_error(code, errid_empty))
+        rv = self.get(ident)
+        if not rv:
+            abort(respond_error(code, errid_notexist))
+        return rv

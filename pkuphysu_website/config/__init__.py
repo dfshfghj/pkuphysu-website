@@ -1,4 +1,5 @@
 import os
+from logging.config import dictConfig
 
 from dynaconf import Dynaconf
 
@@ -13,3 +14,5 @@ settings = Dynaconf(
     ],
     load_dotenv=True,
 )
+
+dictConfig(settings.logging)
