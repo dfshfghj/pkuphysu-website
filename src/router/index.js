@@ -100,12 +100,6 @@ const routes = [
         component: () => import("../pages/admin/DBA.vue"),
         meta: { admin: true },
       },
-      {
-        path: "tools/encrypt",
-        name: "ImageEncrypt",
-        component: () => import("../pages/tools/ImageEncrypt.vue"),
-        meta: { admin: true },
-      },
     ],
   },
 ];
