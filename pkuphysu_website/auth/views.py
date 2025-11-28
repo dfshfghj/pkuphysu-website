@@ -136,12 +136,36 @@ def get_user(current_user):
         user={
             "id": current_user.id,
             "username": current_user.username,
+            "bio": current_user.bio,
             "realname": current_user.realname,
             "real_id": current_user.real_id,
             "verified": current_user.verified,
             "is_admin": current_user.is_admin,
         }
     )
+
+
+@bp.route("/user/profile", methods=["POST"])
+@token_required
+def update_profile(current_user):
+    data = request.get_json()
+    new_username = data.get("username")
+    new_bio = data.get("bio")
+    if new_username:
+        username_success = User.update_username(
+            current_user.username, new_username)
+    else:
+        username_success = True
+
+    if new_bio:
+        bio_success = User.update_bio(current_user.username, new_bio)
+    else:
+        bio_success = True
+
+    if username_success and bio_success:
+        return respond_success(message="更新成功")
+    else:
+        return respond_error(400, f"{'用户名不合法' if not username_success else ''}  {'简介不合法' if not bio_success else ''}")
 
 
 @bp.route("/upload-avatar", methods=["POST"])

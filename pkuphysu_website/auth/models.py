@@ -15,8 +15,33 @@ class User(db.Model):
     realname = db.Column(db.String(80), unique=True)
     real_id = db.Column(db.String(32), unique=True)
     password_hash = db.Column(db.String(200), nullable=False)
+    bio = db.Column(db.String(100))
     is_admin = db.Column(db.Integer)
     verified = db.Column(db.Integer)
+
+    @classmethod
+    def update_username(cls, old_username, new_username):
+        try:
+            user = cls.query.filter_by(username=old_username).first()
+            user.username = new_username
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return False
+
+    @classmethod
+    def update_bio(cls, username, bio):
+        try:
+            user = cls.query.filter_by(username=username).first()
+            user.bio = bio
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return False
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")

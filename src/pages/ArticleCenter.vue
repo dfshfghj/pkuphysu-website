@@ -142,7 +142,7 @@ onUnmounted(() => {
         <el-menu-item h="full" @click="toggleDark()" id="toggleDark">
           <button
             class="cursor-pointer border-none bg-transparent"
-            style="height: var(--ep-menu-item-height); padding: none"
+            style="height: var(--ep-menu-item-height); padding: 0px"
           >
             <el-icon-sunny v-if="!isDark" width="20px" height="20px" />
             <el-icon-moon v-else width="20px" height="20px" />
@@ -251,7 +251,8 @@ onUnmounted(() => {
   align-items: center;
   margin: 5px;
   padding: 2px 10px 2px 10px;
-  border: 2px solid var(--c-border);
+  border: 1px solid var(--c-border);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   border-radius: 9999px;
   flex: 1;
 }

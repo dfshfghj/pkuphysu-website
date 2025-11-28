@@ -50,11 +50,11 @@ const manageHeight = (name) => {
 <style scoped>
 .markdown-editor {
   border-radius: 6px;
+  border-width: 2px;
 }
 
 .markdown-editor:focus-within {
-  outline: 2px solid #0969da;
-  outline-offset: -1px;
+  border: 2px solid #0969da;
 }
 
 :deep(.el-textarea__inner),

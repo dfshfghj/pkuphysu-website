@@ -16,6 +16,7 @@ const routes = [
     path: "/login",
     name: "Auth",
     component: () => import("../pages/Auth.vue"),
+    meta: { noHeader: true },
   },
   {
     path: "/random_draw/invest",
@@ -98,12 +99,6 @@ const routes = [
         path: "dba",
         name: "AdminDBA",
         component: () => import("../pages/admin/DBA.vue"),
-        meta: { admin: true },
-      },
-      {
-        path: "tools/encrypt",
-        name: "ImageEncrypt",
-        component: () => import("../pages/tools/ImageEncrypt.vue"),
         meta: { admin: true },
       },
     ],

@@ -1,21 +1,65 @@
 <template>
+  <div class="login-bg" id="loginBg">
+    <div class="corner-top">
+      <svg height="1337" width="1337">
+        <defs>
+          <path
+            id="path-1"
+            opacity="1"
+            fill-rule="evenodd"
+            d="M1337,668.5 C1337,1037.455193874239 1037.455193874239,1337 668.5,1337 C523.6725684305388,1337 337,1236 370.50000000000006,1094 C434.03835568300906,824.6732385973953 6.906089672974592e-14,892.6277623047779 0,668.5000000000001 C0,299.5448061257611 299.5448061257609,1.1368683772161603e-13 668.4999999999999,0 C1037.455193874239,0 1337,299.544806125761 1337,668.5Z"
+          />
+          <linearGradient
+            id="linearGradient-2"
+            x1="0.79"
+            y1="0.62"
+            x2="0.21"
+            y2="0.86"
+          >
+            <stop offset="0" stop-color="#ff6b6b" stop-opacity="1" />
+            <stop offset="1" stop-color="#c41212" stop-opacity="1" />
+          </linearGradient>
+        </defs>
+        <g opacity="1">
+          <use href="#path-1" fill="url(#linearGradient-2)" fill-opacity="1" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="corner-bottom">
+      <svg
+        version="1.1"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        height="896"
+        width="967.8852157128662"
+      >
+        <defs>
+          <path
+            id="path-2"
+            opacity="1"
+            fill-rule="evenodd"
+            d="M896,448 C1142.6325445712241,465.5747656464056 695.2579309733121,896 448,896 C200.74206902668806,896 5.684341886080802e-14,695.2579309733121 0,448.0000000000001 C0,200.74206902668806 200.74206902668791,5.684341886080802e-14 447.99999999999994,0 C695.2579309733121,0 475,418 896,448Z"
+          />
+          <linearGradient id="linearGradient-3" x1="0.5" y1="0" x2="0.5" y2="1">
+            <stop offset="0" stop-color="#ff6b6b" stop-opacity="1" />
+            <stop offset="1" stop-color="#c41212" stop-opacity="1" />
+          </linearGradient>
+        </defs>
+        <g opacity="1">
+          <use href="#path-2" fill="url(#linearGradient-3)" fill-opacity="1" />
+        </g>
+      </svg>
+    </div>
+  </div>
   <div class="auth-container">
-    <!-- 认证卡片 -->
     <el-card class="auth-card">
-      <!-- 标题与切换 -->
-      <div class="tabs">
-        <button
-          :class="['tab-btn', { active: isLogin }]"
-          @click="isLogin = true"
-        >
-          登录
-        </button>
-        <button
-          :class="['tab-btn', { active: !isLogin }]"
-          @click="isLogin = false"
-        >
-          注册
-        </button>
+      <div class="auth-title">
+        <img src="../assets/logo_white.svg" class="logo" v-if="isDark" />
+        <img src="../assets/logo_black.svg" class="logo" v-else />
+        <h2 style="color: #f53f3f">
+          {{ isLogin ? "登录" : "注册" }}到物院学生会
+        </h2>
       </div>
       <el-form
         v-if="isLogin"
@@ -28,7 +72,7 @@
         <el-form-item prop="username">
           <el-input
             v-model="loginForm.username"
-            placeholder="请输入学号或用户名"
+            placeholder="请输入用户名"
             size="large"
             clearable
             prefix-icon="UserFilled"
@@ -48,16 +92,22 @@
         </el-form-item>
 
         <div class="form-options">
-          <el-checkbox v-model="rememberMe">记住我</el-checkbox>
+          <el-checkbox v-model="rememberMe" size="large">记住账号</el-checkbox>
         </div>
 
         <el-form-item>
           <el-button
-            type="primary"
+            class="tab-btn minor"
+            size="large"
+            @click="isLogin = false"
+          >
+            注册
+          </el-button>
+          <el-button
+            class="tab-btn major"
             size="large"
             native-type="submit"
             :loading="loading"
-            style="width: 100%"
           >
             {{ loading ? "登录中..." : "登 录" }}
           </el-button>
@@ -111,6 +161,7 @@
             native-type="submit"
             :loading="registering"
             style="width: 100%"
+            class="tab-btn minor"
           >
             {{ registering ? "注册中..." : "注 册" }}
           </el-button>
@@ -123,20 +174,18 @@
 <script setup>
 import { requestApi } from "../api/api";
 import { useUserStore } from "../stores/user";
+import { isDark } from "../composables/theme";
 
-// --- 组件引用 ---
 const loginFormRef = ref();
 const registerFormRef = ref();
 
-// --- 数据定义 ---
-const isLogin = ref(true); // true=登录，false=注册
+const isLogin = ref(true);
 const loading = ref(false);
 const registering = ref(false);
-const rememberMe = ref(true); // 默认记住
+const rememberMe = ref(true);
 const router = useRouter();
 const userStore = useUserStore();
 
-// --- 登录表单 ---
 const loginForm = reactive({
   username: "",
   password: "",
@@ -147,7 +196,6 @@ const loginRules = {
   password: [{ required: true, message: "请输入密码", trigger: "blur" }],
 };
 
-// --- 注册表单 ---
 const registerForm = reactive({
   username: "",
   password: "",
@@ -175,7 +223,6 @@ const registerRules = {
   ],
 };
 
-// --- 登录逻辑 ---
 const handleLogin = async () => {
   await loginFormRef.value?.validate(async (valid) => {
     if (!valid) return;
@@ -214,7 +261,6 @@ const handleLogin = async () => {
   });
 };
 
-// --- 注册逻辑 ---
 const handleRegister = async () => {
   await registerFormRef.value?.validate(async (valid) => {
     if (!valid) return;
@@ -233,7 +279,6 @@ const handleRegister = async () => {
 
       if (res.ok) {
         ElMessage.success("注册成功！请登录");
-        // 自动切换到登录页
         isLogin.value = true;
         loginForm.username = registerForm.username;
         loginForm.password = registerForm.password;
@@ -259,9 +304,16 @@ const handleRegister = async () => {
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
+.auth-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
 .auth-card {
-  width: 300px;
-  padding: 40px;
+  width: 90%;
+  padding: 4px;
   border-radius: 16px;
   box-shadow: 0 10px 30px var(--c-box-shadow);
 }
@@ -282,10 +334,16 @@ const handleRegister = async () => {
   cursor: pointer;
 }
 
-.tab-btn.active {
-  color: #409eff;
-  font-weight: 600;
-  border-bottom: 3px solid #409eff;
+.tab-btn.major,
+.tab-btn.major * {
+  background: var(--red-1);
+  color: var(--red-9);
+}
+
+.tab-btn.minor,
+.tab-btn.minor * {
+  background: var(--pinkpurple-1);
+  color: var(--pinkpurple-9);
 }
 
 .auth-form {
@@ -302,9 +360,55 @@ const handleRegister = async () => {
 :deep(.el-input__wrapper) {
   box-shadow: none !important;
   border: 1px solid var(--c-border);
+  border-radius: 8px;
 }
 
 :deep(.el-input__wrapper:hover) {
   border-color: #409eff;
+}
+
+.login-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-color: #fbaca3;
+  overflow: hidden;
+}
+
+.dark .login-bg {
+  background-color: #770813;
+}
+
+.corner-top,
+.corner-bottom {
+  position: absolute;
+}
+
+.corner-top {
+  top: -1170px;
+}
+
+.corner-bottom {
+  left: -100px;
+  bottom: -760px;
+}
+
+@media (min-width: 768px) {
+  .auth-card {
+    width: 364px;
+  }
+
+  .corner-top {
+    right: -300px;
+    top: -900px;
+  }
+
+  .corner-bottom {
+    left: -200px;
+    bottom: -400px;
+  }
 }
 </style>

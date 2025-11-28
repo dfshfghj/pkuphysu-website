@@ -58,6 +58,10 @@
   --c-contrast-bg: rgba(0, 0, 0, 0.9);
 }
 
+* {
+  outline: none !important;
+}
+
 html {
   background: var(--c-background) !important;
 }
