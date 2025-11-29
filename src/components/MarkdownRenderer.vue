@@ -29,14 +29,12 @@ const renderedContent = ref("");
 
 // 数学公式插件 - 修正版本
 const mathPlugin = (md) => {
-  // 行间公式: $$...$$ (优先级更高)
   md.block.ruler.before(
     "paragraph",
     "math_block",
     (state, startLine, endLine, silent) => {
       const pos = state.bMarks[startLine] + state.tShift[startLine];
 
-      // 检查是否以 $$ 开头
       if (
         pos + 1 >= state.eMarks[startLine] ||
         state.src.slice(pos, pos + 2) !== "$$"
@@ -49,7 +47,6 @@ const mathPlugin = (md) => {
       let nextLine = startLine + 1;
       let foundEnd = false;
 
-      // 查找结束的 $$
       for (; nextLine < endLine; nextLine++) {
         const lineStart = state.bMarks[nextLine] + state.tShift[nextLine];
         const lineEnd = state.eMarks[nextLine];
@@ -65,7 +62,6 @@ const mathPlugin = (md) => {
 
       if (!foundEnd) return false;
 
-      // 提取公式内容
       let content = "";
       for (let i = startLine + 1; i < nextLine; i++) {
         const lineStart = state.bMarks[i] + state.tShift[i];
@@ -86,7 +82,6 @@ const mathPlugin = (md) => {
     },
   );
 
-  // 行内公式: $...$
   md.inline.ruler.before("text", "math_inline", (state, silent) => {
     const start = state.pos;
 
@@ -98,7 +93,6 @@ const mathPlugin = (md) => {
       return false;
     }
 
-    // 🆕 限制搜索范围为当前解析上下文
     let matchPos = -1;
     const maxSearch = Math.min(
       state.src.length,
@@ -125,13 +119,11 @@ const mathPlugin = (md) => {
     token.markup = "$";
     token.level = state.level;
 
-    // 🆕 确保不超出当前解析范围
     state.pos = matchPos + 1;
 
     return true;
   });
 
-  // 渲染器
   md.renderer.rules.math_inline = (tokens, idx) => {
     try {
       return katex.renderToString(tokens[idx].content, {
@@ -176,10 +168,8 @@ const renderMarkdown = () => {
       breaks: true,
     });
 
-    // 使用数学公式插件
     md.use(mathPlugin);
 
-    // 渲染内容
     renderedContent.value = md.render(props.content);
   } catch (error) {
     console.error("Markdown rendering error:", error);
@@ -187,10 +177,8 @@ const renderMarkdown = () => {
   }
 };
 
-// 监听内容变化
 watch(() => props.content, renderMarkdown, { immediate: true });
 
-// 组件挂载时渲染
 onMounted(renderMarkdown);
 </script>
 
@@ -201,7 +189,6 @@ onMounted(renderMarkdown);
   --bgColor-default: var(--c-card);
 }
 
-/* KaTeX 相关样式 */
 .markdown-body:deep(.katex-block) {
   overflow: auto;
 }

@@ -6,7 +6,6 @@
 
 <script setup>
 import Vditor from "vditor";
-//import '../styles/github-markdown.css';
 
 const vditorRef = ref(null);
 const vditor = ref(null);
@@ -65,8 +64,8 @@ onBeforeUnmount(() => {
   --bgColor-default: transparent;
 }
 
-/* KaTeX 相关样式 */
 .markdown-body:deep(.katex-display) {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 </style>

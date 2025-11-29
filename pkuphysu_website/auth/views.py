@@ -152,8 +152,7 @@ def update_profile(current_user):
     new_username = data.get("username")
     new_bio = data.get("bio")
     if new_username:
-        username_success = User.update_username(
-            current_user.username, new_username)
+        username_success = User.update_username(current_user.username, new_username)
     else:
         username_success = True
 
@@ -165,7 +164,10 @@ def update_profile(current_user):
     if username_success and bio_success:
         return respond_success(message="更新成功")
     else:
-        return respond_error(400, f"{'用户名不合法' if not username_success else ''}  {'简介不合法' if not bio_success else ''}")
+        return respond_error(
+            400,
+            f"{'用户名不合法' if not username_success else ''}  {'简介不合法' if not bio_success else ''}",
+        )
 
 
 @bp.route("/upload-avatar", methods=["POST"])

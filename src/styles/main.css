@@ -100,6 +100,12 @@ html {
   backdrop-filter: blur(8px) saturate(120%);
 }
 
+.unselectable {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 h2,
 h3 {
   color: var(--c-title);
@@ -111,6 +117,14 @@ code {
 
 ::-webkit-scrollbar {
   display: none;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  height: 100%;
+  padding: 10px;
 }
 
 @font-face {
@@ -130,6 +144,24 @@ code {
     opacity: 1;
     -webkit-transform: none;
     transform: none;
+  }
+}
+
+@keyframes UpTransition { 
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes LeftTransition { 
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 

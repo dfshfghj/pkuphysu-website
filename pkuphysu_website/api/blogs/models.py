@@ -1,18 +1,22 @@
 from datetime import datetime
 
+from sqlalchemy.orm import relationship
+
 from pkuphysu_website import db
 
 
 class Posts(db.Model):
     __tablename__ = "posts"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     text = db.Column(db.Text, nullable=False)
     type = db.Column(db.String(32), nullable=False)
     timestamp = db.Column(db.Integer, nullable=False)
     reply = db.Column(db.Integer, default=0)
     likenum = db.Column(db.Integer, default=0)
     tag = db.Column(db.String(32), default="")
+
+    user = relationship("User", backref="posts")
 
     @classmethod
     def insert_post(cls, user_id, text, type, tag):

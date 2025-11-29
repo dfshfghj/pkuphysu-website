@@ -7,6 +7,12 @@
 <script setup>
 import MarkdownIt from "markdown-it";
 import { katex } from "@mdit/plugin-katex";
+import { imgLazyload } from "@mdit/plugin-img-lazyload";
+import { obsidianImgSize } from "@mdit/plugin-img-size";
+import { ins } from "@mdit/plugin-ins";
+import { mark } from "@mdit/plugin-mark";
+import { tasklist } from "@mdit/plugin-tasklist";
+import { full as emoji } from 'markdown-it-emoji';
 import "katex/dist/katex.min.css";
 import "../styles/github-markdown.css";
 
@@ -20,7 +26,7 @@ const props = defineProps({
     default: () => ({
       throwOnError: false,
       errorColor: "#cc0000",
-      macros: {},
+      delimiters: 'all',
     }),
   },
 });
@@ -38,12 +44,11 @@ const renderMarkdown = () => {
       linkify: true,
       typographer: true,
       breaks: true,
+      
     });
 
-    // 使用数学公式插件
-    md.use(katex);
+    md.use(katex, props.katexOptions).use(emoji).use(imgLazyload).use(obsidianImgSize).use(ins).use(mark).use(tasklist);
 
-    // 渲染内容
     renderedContent.value = md.render(props.content);
   } catch (error) {
     console.error("Markdown rendering error:", error);
@@ -51,10 +56,8 @@ const renderMarkdown = () => {
   }
 };
 
-// 监听内容变化
 watch(() => props.content, renderMarkdown, { immediate: true });
 
-// 组件挂载时渲染
 onMounted(renderMarkdown);
 </script>
 
@@ -65,7 +68,6 @@ onMounted(renderMarkdown);
   --bgColor-default: var(--c-card);
 }
 
-/* KaTeX 相关样式 */
 .markdown-body:deep(.katex-block) {
   overflow: auto;
 }

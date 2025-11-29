@@ -30,7 +30,7 @@ const handleCommand = (command) => {
 </script>
 
 <template>
-  <div :class="['menu-wrapper acrylic', { scrolled: isScrolled }]">
+  <div :class="['menu-wrapper acrylic unselectable', { scrolled: isScrolled }]">
     <el-menu :class="{ scrolled: isScrolled }" mode="horizontal" :ellipsis="false" router popper-class="acrylic">
       <el-menu-item index="/">
         <div class="flex items-center justify-center gap-2" style="display: flex; align-items: center">
@@ -87,7 +87,7 @@ const handleCommand = (command) => {
 <style>
 .menu-wrapper {
   position: sticky;
-  border: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--c-border);
   width: 100%;
   top: 0;
   z-index: 999;

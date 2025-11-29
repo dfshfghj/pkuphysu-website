@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import MarkdownRendererV3 from "./MarkdownRenderer-v3.vue";
+import MarkdownRendererV3 from "./MarkdownRenderer-v1.vue";
 
 const model = defineModel();
 const props = defineProps({

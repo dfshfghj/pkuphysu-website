@@ -1,6 +1,6 @@
 <template>
-  <div class="bb" @click="changeBodyDown">&#xe737;</div>
-  <div class="body body-home show" ref="homeRef" @wheel="onScrollDown">
+  <div class="bb unselectable" @click="changeBodyDown">&#xe737;</div>
+  <div class="body body-home show unselectable" ref="homeRef" @wheel="onScrollDown">
     <div class="pictureContainer">
       <el-carousel
         height="calc(100vh - var(--el-menu-item-height) - 4px)"

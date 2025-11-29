@@ -16,6 +16,7 @@ def get_user(f):
 
     return func
 
+
 class CJParticipant(db.Model):
     __tablename__ = "CJParticipant"
     event = db.Column(db.String(32), default=settings.eveparty.EVENT, primary_key=True)
@@ -47,6 +48,7 @@ class CJParticipant(db.Model):
     @get_user
     def get_user_name(cls, user):
         return user.name
+
     @classmethod
     def to_cj_json(cls):
         return {

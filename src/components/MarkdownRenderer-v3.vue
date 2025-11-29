@@ -20,7 +20,6 @@ const props = defineProps({
 
 const renderedContent = ref("");
 
-// 唯一的占位符标识
 const INLINE_PLACEHOLDER = "INLINE_MATH_";
 const BLOCK_PLACEHOLDER = "BLOCK_MATH_";
 
@@ -35,7 +34,6 @@ const renderMarkdown = () => {
     const inlineFormulas = [];
     const blockFormulas = [];
 
-    // 1. 提取行间公式 $$...$$
     content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
       const index = blockFormulas.length;
       blockFormulas.push(formula.trim());
@@ -48,7 +46,6 @@ const renderMarkdown = () => {
       return `${BLOCK_PLACEHOLDER}${index}`;
     });
 
-    // 2. 提取行内公式 $...$
     content = content.replace(/\$([^$]+?)\$/g, (match, formula) => {
       const index = inlineFormulas.length;
       inlineFormulas.push(formula.trim());
@@ -61,7 +58,6 @@ const renderMarkdown = () => {
       return `${INLINE_PLACEHOLDER}${index}`;
     });
 
-    // 3. 使用 markdown-it 渲染处理后的文本
     const md = new MarkdownIt({
       html: false,
       linkify: true,
@@ -71,7 +67,6 @@ const renderMarkdown = () => {
 
     let rendered = md.render(content);
 
-    // 4. 替换行间公式占位符
     rendered = rendered.replace(
       new RegExp(`${BLOCK_PLACEHOLDER}(\\d+)`, "g"),
       (match, index) => {
@@ -91,7 +86,6 @@ const renderMarkdown = () => {
       },
     );
 
-    // 5. 替换行内公式占位符
     rendered = rendered.replace(
       new RegExp(`${INLINE_PLACEHOLDER}(\\d+)`, "g"),
       (match, index) => {
@@ -130,7 +124,6 @@ onMounted(renderMarkdown);
   position: relative;
 }
 
-/* KaTeX 相关样式 */
 .markdown-body:deep(.katex-block) {
   overflow: auto;
 }
