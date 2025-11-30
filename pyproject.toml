@@ -1,7 +1,42 @@
 [project]
-name = "pkuphysu_website"
-version = "0.0.0"
-description = "PKU Physics Union Website"
+name = "pkuphysu-website"
+version = "0.1.0"
+description = "PKU Physics Students Union Website"
+authors = [
+    {name = "dfshfghj",email = "2400011461@stu.pku.edu.cn"}
+]
+license = {text = "GPL-3.0"}
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "Flask (>=3.1.2,<4.0.0)",
+    "Flask-Bcrypt (>=1.0.1,<2.0.0)",
+    "flask-cors (>=6.0.1,<7.0.0)",
+    "Flask-SQLAlchemy (>=3.1.1,<4.0.0)",
+    "html2text (>=2025.4.15,<2026.0.0)",
+    "identicons (>=0.1.0,<0.2.0)",
+    "playwright (>=1.55.0,<2.0.0)",
+    "psycopg2-binary (>=2.9.10,<3.0.0)",
+    "PyJWT (>=2.10.1,<3.0.0)",
+    "pytz (>=2025.2,<2026.0)",
+    "requests (>=2.32.5,<3.0.0)",
+    "dynaconf (>=3.2.11,<4.0.0)",
+    "WeRoBot (>=1.13.1,<2.0.0)",
+    "APScheduler (>=3.11.0,<4.0.0)",
+    "command4bot (>=0.4.1,<0.5.0)",
+    "alembic (>=1.16.5,<2.0.0)"
+]
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.14.6,<0.15.0)",
+    "black (>=25.11.0,<26.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
