@@ -67,9 +67,6 @@ def help(payload, message: TextMessage):
     方、尖括号表示一个参数，<尖括号> 表示必填参数，[方括号] 表示可选参数。
 
     """
-    import sys
-
-    print("User ask for help", file=sys.stderr)
     if payload:
         command = wechat_mgr.command_reg.get(payload)
         if command and wechat_command_reg.resolve_command_status(command):
@@ -89,9 +86,6 @@ def help(payload, message: TextMessage):
 @wechat_mgr.command
 def openid(message: TextMessage) -> str:
     "openid | 返回您的 openid，debug 用"
-    import sys
-
-    print("User get openid", file=sys.stderr)
     return message.source
 
 

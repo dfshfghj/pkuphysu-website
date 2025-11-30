@@ -19,6 +19,7 @@ def respond_error(status_code: int, errid: str, message: str = None) -> Response
     :return: jsonified response
     :rtype: Response
     """
+    logger.info(f"Respond error {errid}: {message}")
     response = jsonify(
         {
             "status": status_code,

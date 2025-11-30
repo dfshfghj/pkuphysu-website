@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
+from logging import getLogger
 
 from flask_bcrypt import Bcrypt
 
 from pkuphysu_website import db
 
 bcrypt = Bcrypt()
+logger = getLogger(__name__)
 
 
 class User(db.Model):
@@ -26,8 +28,8 @@ class User(db.Model):
             user.username = new_username
             db.session.commit()
             return True
-        except Exception as e:
-            print(e)
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return False
 
@@ -38,8 +40,8 @@ class User(db.Model):
             user.bio = bio
             db.session.commit()
             return True
-        except Exception as e:
-            print(e)
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return False
 

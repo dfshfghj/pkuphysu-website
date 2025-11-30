@@ -3,6 +3,7 @@ import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from logging import getLogger
 
 from ..config import settings
 
@@ -12,6 +13,8 @@ IMAP_SERVER = settings.emails.IMAP_SERVER
 IMAP_PORT = settings.emails.IMAP_PORT
 SENDER_EMAIL = settings.emails.SENDER_EMAIL
 SENDER_PASSWORD = settings.emails.SENDER_PASSWORD
+
+logger = getLogger(__name__)
 
 context = ssl.create_default_context()
 
@@ -32,9 +35,9 @@ def send_email(to, subject, body):
         text = msg.as_string()
         server.sendmail(SENDER_EMAIL, to, text)
         server.quit()
-        print("邮件发送成功！")
-    except Exception as e:
-        print(f"发送失败：{e}")
+        logger.info(f"Send email to {to} successfully")
+    except Exception:
+        logger.exception(f"Send email to {to} failed")
 
 
 if __name__ == "__main__":

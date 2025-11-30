@@ -1,4 +1,3 @@
-import sys
 import traceback
 from logging import getLogger
 from textwrap import dedent
@@ -12,15 +11,14 @@ logger = getLogger(__name__)
 
 def text_handler(message):
     try:
-        # print(f"Update status ...", file=sys.stderr)
         """
         wechat_mgr.batch_update_status(
             wechat_mgr.command_reg.calc_status_diff(CommandStatus.get_all_status())
         )
         """
-        print(f"exec {message.content} ...", file=sys.stderr)
+        logger.info(f"WeRobot: exec {message.content}")
         response = wechat_mgr.exec(message.content, message=message)
-        print(f"exec {message.content} DONE", file=sys.stderr)
+        logger.info(f"WeRobot: exec {message.content} done")
         return dedent(response) if isinstance(response, str) else response
     except:  # noqa
         logger.error(traceback.format_exc())

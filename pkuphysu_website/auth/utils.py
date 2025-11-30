@@ -77,7 +77,6 @@ def master_before_request():
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
         current_user_id = payload["user_id"]
         current_user = User.query.get(current_user_id)
-        print(current_user.username, current_user.is_admin)
         if not current_user:
             return jsonify({"code": 401, "message": "用户不存在"}), 401
         g.current_user = current_user

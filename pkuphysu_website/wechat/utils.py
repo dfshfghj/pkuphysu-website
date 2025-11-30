@@ -5,6 +5,7 @@ import re
 import threading
 from datetime import datetime, timedelta, timezone
 from functools import wraps
+from logging import getLogger
 
 import requests
 
@@ -15,12 +16,12 @@ state_dir = os.path.join(current_dir, "data")
 qr_path = os.path.join(state_dir, "qrcode.png")
 state_path = os.path.join(state_dir, "login_state.json")
 lock_path = os.path.join(state_dir, ".wxrunner.lock")
+logger = getLogger(__name__)
 
 
 def with_lock(func):
     """
-    装饰器：确保被装饰的方法在整个系统中（跨 worker）只运行一个实例
-    使用 fcntl 文件锁实现
+    by fcntl : only on linux
     """
 
     @wraps(func)
@@ -28,24 +29,24 @@ def with_lock(func):
         lock_file = open(lock_path, "w")
         try:
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            print(f"✅ 进程 {os.getpid()} 获取锁成功，开始执行任务")
+            logger.info(f"{os.getpid()} Acquired lock, task started")
         except BlockingIOError:
-            print("⚠️ 任务已在其他进程运行（PID未知），本次跳过")
+            logger.exception(f"{os.getpid()} Acquire lock failed")
             lock_file.close()
             return None
 
         try:
             return func(self, *args, **kwargs)
-        except Exception as e:
-            print(f"🚨 任务执行出错: {e}")
+        except Exception:
+            logger.exception(f"{os.getpid()} error occured")
             raise
         finally:
             try:
                 fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
                 lock_file.close()
-            except Exception as e:
-                print(f"❌ 释放锁失败: {e}")
-            print(f"👋 进程 {os.getpid()} 已释放锁")
+            except Exception:
+                logger.exception(f"{os.getpid()} failed to release lock")
+            logger.info(f"{os.getpid()} Released lock")
 
     return wrapper
 
@@ -64,9 +65,9 @@ class WxRunner:
                 body = response.body()
                 with open(qr_path, "wb") as f:
                     f.write(body)
-                print(f"✅ 二维码已更新: {qr_path}")
-            except Exception as e:
-                print(f"❌ 保存二维码失败: {e}")
+                logger.info(f"Saved QR code to {qr_path}")
+            except Exception:
+                logger.exception("Failed to save QR code")
 
     def _poll_for_token(self, page):
         max_retry = 1000
@@ -75,7 +76,7 @@ class WxRunner:
             try:
                 retry += 1
                 if retry > max_retry:
-                    print("登录超时")
+                    logger.warning("Timeout for token")
                     try:
                         os.remove(qr_path)
                     except FileNotFoundError:
@@ -91,10 +92,10 @@ class WxRunner:
                             os.remove(qr_path)
                         except FileNotFoundError:
                             pass
-                        print(f"🔑 成功获取 token: {self.token}")
+                        logger.info(f"Got token: {self.token}")
                         return
-            except Exception as e:
-                print(str(e))
+            except Exception:
+                logger.exception("Failed to poll for token")
             page.wait_for_timeout(200)
 
     @with_lock
@@ -103,7 +104,7 @@ class WxRunner:
             return
         self.running = True
 
-        print("🔧 启动微信登录自动化...")
+        logger.info("Starting automation for Wechat")
         browser = None
         context = None
         page = None
@@ -118,7 +119,7 @@ class WxRunner:
                     headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
                 )
                 if os.path.exists(state_path):
-                    print("USE STATE")
+                    logger.info("Use existing login state")
                     context = browser.new_context(
                         storage_state=state_path,
                         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -142,27 +143,26 @@ class WxRunner:
 
                 if self.token:
                     context.storage_state(path=state_path)
-                    print(f"💾 登录态已保存: {state_path}")
+                    logger.info("Successfully logged in")
                 else:
-                    print("❌ 登录未完成")
+                    logger.error("Failed to login")
 
-        except Exception as e:
-            print(f"🚨 自动化出错: {e}")
+        except Exception:
+            logger.exception("Failed to run automation")
         finally:
             if context:
                 context = None
             if browser:
                 browser = None
             self.running = False
-            print("👋 自动化流程结束")
+            logger.info("Stopped automation")
 
     def start_thread(self):
-        """启动独立线程运行自动化"""
         with self._lock:
             if not self.thread or not self.thread.is_alive():
                 self.thread = threading.Thread(target=self.run, daemon=True)
                 self.thread.start()
-                print("🧵 自动化线程已启动")
+                logger.info("Starting thread for Wechat")
 
 
 wx = WxRunner()

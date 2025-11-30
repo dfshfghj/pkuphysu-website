@@ -1,5 +1,4 @@
 import re
-import sys
 from logging import getLogger
 
 from werobot.messages.messages import TextMessage
@@ -33,7 +32,7 @@ def alter_puzzle(payload: str, message: TextMessage):
         PuzzleDependence.clear()
         PuzzleDependence.put_in(dependence)
     except Exception as e:  # noqa
-        print(f"{e}", file=sys.stderr)
+        logger.error(e)
         return "更改失败，请重试"
     PuzzleUnlock.clear()
     return "更改成功"
@@ -103,8 +102,8 @@ def get(payload: str, message: TextMessage):
                         return Puzzle.get_clue(payloads[0], payloads[1])
 
             return f"您的输入是「{payload}」，输入有误"
-        except Exception as e:  # noqa
-            print(f"{e}\n RETRY...\n", file=sys.stderr)
+        except Exception:  # noqa
+            logger.exception("Need retry")
         retry -= 1
         Puzzle.rollback()
     return "出问题了呢，请重试一下~"

@@ -38,5 +38,6 @@ def dev():
     )
     try:
         return response.json()
-    except:
+    except Exception:
+        logger.exception("Failed to get token")
         return {}

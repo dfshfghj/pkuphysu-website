@@ -1,8 +1,11 @@
 from datetime import datetime
+from logging import getLogger
 
 from sqlalchemy.orm import relationship
 
 from pkuphysu_website import db
+
+logger = getLogger(__name__)
 
 
 class Posts(db.Model):
@@ -33,8 +36,8 @@ class Posts(db.Model):
             db.session.commit()
             return new_post
 
-        except Exception as e:
-            print(f"An error occurred in insert_post: {e}")
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return None
 
@@ -53,7 +56,7 @@ class Comments(db.Model):
         try:
             post = Posts.query.filter_by(id=pid).first()
             if not post:
-                print("Post not found")
+                logger.error("Post not found")
                 return None
             post.reply += 1
 
@@ -69,8 +72,8 @@ class Comments(db.Model):
             db.session.commit()
             return new_comment
 
-        except Exception as e:
-            print(f"An error occurred in insert_comment: {e}")
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return None
 
@@ -91,7 +94,6 @@ class Follow(db.Model):
         try:
             post = Posts.query.filter_by(id=post_id).first()
             if not post:
-                print("Post not found")
                 return None
             post.likenum += 1
 
@@ -105,8 +107,8 @@ class Follow(db.Model):
             db.session.commit()
             return new_follow
 
-        except Exception as e:
-            print(f"An error occurred in insert_follow: {e}")
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return None
 
@@ -115,20 +117,18 @@ class Follow(db.Model):
         try:
             post = Posts.query.filter_by(id=post_id).first()
             if not post:
-                print("Post not found")
                 return None
             post.likenum -= 1
 
             follow = cls.query.filter_by(user_id=user_id, post_id=post_id).first()
             if not follow:
-                print("Follow not found")
                 return None
             db.session.delete(follow)
             db.session.commit()
             return follow
 
-        except Exception as e:
-            print(f"An error occurred in delete_follow: {e}")
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return None
 
@@ -166,8 +166,8 @@ class Articles(db.Model):
             db.session.commit()
             return new_article
 
-        except Exception as e:
-            print(f"An error occurred in insert_article: {e}")
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return None
 
@@ -196,7 +196,7 @@ class Replies(db.Model):
             db.session.commit()
             return new_comment
 
-        except Exception as e:
-            print(f"An error occurred in Replies.insert_comment: {e}")
+        except Exception:
+            logger.exception("Database operation failed")
             db.session.rollback()
             return None

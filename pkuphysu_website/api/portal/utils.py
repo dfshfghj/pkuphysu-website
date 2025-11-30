@@ -2,12 +2,15 @@ import json
 import random
 import re
 from datetime import datetime
+from logging import getLogger
 from os.path import dirname, join
 
 import html2text
 import requests
 
 from pkuphysu_website.wechat.utils import load_posts
+
+logger = getLogger(__name__)
 
 
 class DataManager:
@@ -65,7 +68,7 @@ class DataManager:
         return self._news_data["data"]
 
     def fetch_news_data(self):
-        print("fetching news data...")
+        logger.info("Start fetching news data")
         news_data = []
         posts = load_posts(offset=0, limit=20)["data"]
         for post in posts:

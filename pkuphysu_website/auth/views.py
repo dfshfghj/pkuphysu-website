@@ -1,6 +1,7 @@
 import datetime
 import os
 import subprocess
+from logging import getLogger
 
 import jwt
 from flask import Blueprint, request, send_from_directory
@@ -11,7 +12,7 @@ from .models import Email, User, db
 from .utils import JWT_SECRET_KEY, generate_token, get_info, token_required
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-
+logger = getLogger(__name__)
 bp = Blueprint("auth", __name__)
 
 
@@ -37,6 +38,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
+    logger.info(f"User registered: {username}")
     return respond_success(message="注册成功")
 
 
@@ -54,6 +56,7 @@ def login():
     if user is None or not user.check_password(password):
         return respond_error(401, "WrongCode", "账户或密码错误")
 
+    logger.info(f"User logged in: {username}")
     return respond_success(
         message="登录成功", token=generate_token(user.id), username=user.username
     )
@@ -173,9 +176,6 @@ def update_profile(current_user):
 @bp.route("/upload-avatar", methods=["POST"])
 @token_required
 def upload_avatar(current_user):
-
-    print(request.files)
-
     if "file" not in request.files:
         return respond_error(400, "ExchangeNoCode", "未选择文件")
 
@@ -194,7 +194,6 @@ def upload_avatar(current_user):
 
     try:
         file.save(tmp_path)
-        print(tmp_path, final_filepath)
         cmd = [
             "ffmpeg",
             "-i",
@@ -215,11 +214,12 @@ def upload_avatar(current_user):
         os.remove(tmp_path)
         if result.returncode != 0:
             error_msg = result.stderr.decode("utf-8")
-            print("FFmpeg 错误:", error_msg)
+            logger.error(f"Convert avatar failed: {error_msg}")
             return respond_error(
                 500, "ConvertFailed", f"图像转换失败: {error_msg[:100]}"
             )
         avatar_url = f"/static/uploads/avatars/{final_filename}"
+        logger.info(f"User {current_user.username} uploaded a new avatar")
         return respond_success(
             message="头像上传成功",
             avatarUrl=avatar_url,
@@ -227,6 +227,7 @@ def upload_avatar(current_user):
         )
 
     except Exception as e:
+        logger.error(f"Failed to save avatar: {str(e)}")
         return respond_error(500, "Failed", f"保存失败：{str(e)}")
 
 
@@ -251,11 +252,9 @@ def send_verify(current_user):
         from pkuphysu_website.email import send_email
 
         email = request.args.get("email")
-        print(email)
         if not re.match(r"^[a-zA-Z0-9._%+-]+@(?:stu\.)?pku\.edu\.cn$", email):
             return respond_error(400, "InvalidEmail", "邮箱无效, 请使用北京大学邮箱")
         code = random.randint(100000, 999999)
-        print(code)
         Email.insert_email(current_user.id, email, str(code))
         send_email(email, "验证码", f"您正在使用邮箱注册。\n 您的验证码是：{code}")
         return respond_success(message="验证码已发送")
