@@ -435,6 +435,14 @@ function toggleAnimation() {
   if (method === "click_control") {
     if (isAnimating.value) {
       stopAnimation();
+      if (allStudents && allStudents[selectedName.value]) {
+        console.log(
+          `抽中学生: ${selectedName.value}, 投点信息:`,
+          allStudents[selectedName.value],
+        );
+      } else {
+        console.log(`抽中学生: ${selectedName.value}, 无投点信息`);
+      }
       luckyDogs.value.push(selectedName.value);
       setTimeout(() => {
         textColor.value = "#1d73c9";
@@ -498,6 +506,9 @@ import { requestApi } from "../../api/api";
 </template>
 
 <style scoped>
+:deep(.el-menu) {
+  height: 100vh;
+}
 .browsehappy {
   margin: 0.2em 0;
   background: #ccc;
@@ -507,6 +518,7 @@ import { requestApi } from "../../api/api";
 #play-zone {
   background: top center no-repeat;
   background-size: cover;
+  height: 100vh;
 }
 .footer,
 .header,

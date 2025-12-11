@@ -81,7 +81,10 @@ const routes = [
     path: "/admin/random-draw",
     name: "RandomDraw",
     component: () => import("../pages/admin/RandomDraw.vue"),
-    meta: { admin: true },
+    meta: {
+      noHeader: true,
+      admin: true,
+    },
   },
   {
     path: "/admin",
@@ -113,7 +116,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
 
-  if (!to.meta.login) {
+  if (!to.meta.login && !to.meta.admin) {
     return next();
   }
 
@@ -124,11 +127,11 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.meta.admin) {
-    if (result.is_admin) {
-      next();
+    if (result.user.is_admin) {
+      return next();
     } else {
       // 可以跳转到无权限页面，或首页，或登录页
-      next("/"); // 或 '/login'
+      return next("/"); // 或 '/login'
     }
   }
   return next();

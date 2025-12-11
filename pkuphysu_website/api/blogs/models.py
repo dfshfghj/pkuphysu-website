@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 class Posts(db.Model):
     __tablename__ = "posts"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete='CASCADE'), nullable=False)
     text = db.Column(db.Text, nullable=False)
     type = db.Column(db.String(32), nullable=False)
     timestamp = db.Column(db.Integer, nullable=False)
@@ -19,7 +19,7 @@ class Posts(db.Model):
     likenum = db.Column(db.Integer, default=0)
     tag = db.Column(db.String(32), default="")
 
-    user = relationship("User", backref="posts")
+    user = relationship("User", foreign_keys=[user_id], backref="posts")
 
     @classmethod
     def insert_post(cls, user_id, text, type, tag):
@@ -43,13 +43,17 @@ class Posts(db.Model):
 
 
 class Comments(db.Model):
-    __tablename__ = "Comments"
+    __tablename__ = "comments"
     cid = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    pid = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    pid = db.Column(db.Integer, db.ForeignKey("posts.id", ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete='CASCADE'), nullable=False)
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.Integer, nullable=False)
-    quote = db.Column(db.Integer)
+    quote = db.Column(db.Integer, db.ForeignKey("comments.cid", ondelete='SET NULL'), nullable=True)
+
+    user = relationship("User", foreign_keys=[user_id], backref="comments")
+
+    quoted_comment = relationship("Comments", remote_side=[cid], foreign_keys=[quote], uselist=False)
 
     @classmethod
     def insert_comment(cls, user_id, pid, text, quote):
@@ -81,8 +85,8 @@ class Comments(db.Model):
 class Follow(db.Model):
     __tablename__ = "follow"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    post_id = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete='CASCADE'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey("posts.id", ondelete='CASCADE'), nullable=False)
     timestamp = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (

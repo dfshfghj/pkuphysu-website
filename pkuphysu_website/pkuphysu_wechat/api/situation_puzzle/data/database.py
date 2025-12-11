@@ -198,7 +198,7 @@ class Puzzle(db.Model):  # 存储当前谜语
         ).all()
         questions = []
         for column in columns:
-            questions.append("%s %s:%s" % (keyword, column.ques_id, column.content))
+            questions.append(f"{keyword} {column.ques_id}:{column.content}")
         return questions
 
     @classmethod

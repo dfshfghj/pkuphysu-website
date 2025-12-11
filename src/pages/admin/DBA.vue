@@ -4,6 +4,12 @@
   <div class="mb-4 flex flex-wrap gap-2">
     <el-button type="primary" plain @click="loadTables">刷新表列表</el-button>
     <el-button type="success" @click="createAllTables">创建所有表</el-button>
+    <el-button @click="toggleDisplayMode" v-if="!currentTable">
+      <component
+        :is="displayMode === 'card' ? Grid : List"
+        style="width: 16px; height: 16px"
+      />
+    </el-button>
     <el-button
       type="warning"
       @click="showMigratePlan"
@@ -14,7 +20,8 @@
       >执行迁移</el-button
     >
   </div>
-  <el-row v-if="!currentTable" :gutter="16">
+
+  <el-row v-if="!currentTable && displayMode === 'card'" :gutter="16">
     <el-col
       v-for="(info, name) in tables"
       :key="name"
@@ -55,7 +62,35 @@
     </el-col>
   </el-row>
 
-  <div v-else>
+  <el-table
+    v-if="!currentTable && displayMode === 'list'"
+    :data="Object.entries(tables).map(([name, info]) => ({ name, ...info }))"
+    stripe
+    @row-click="handleRowClick"
+  >
+    <el-table-column prop="name" label="表名" />
+    <el-table-column prop="exists" label="状态">
+      <template #default="{ row }">
+        <el-tag :type="row.exists ? 'success' : 'danger'">
+          {{ row.exists ? "存在" : "不存在" }}
+        </el-tag>
+      </template>
+    </el-table-column>
+    <el-table-column prop="rows" label="数据行数" />
+    <el-table-column fixed="right" label="操作">
+      <template #default="{ row }">
+        <el-button
+          size="small"
+          type="danger"
+          @click="truncateTable(row.name)"
+          :disabled="!row.exists || row.rows === 0"
+          >清空</el-button
+        >
+      </template>
+    </el-table-column>
+  </el-table>
+
+  <div v-if="currentTable">
     <el-breadcrumb separator="/" class="mb-3">
       <el-breadcrumb-item @click.prevent="backToTables" style="cursor: pointer">
         全部表
@@ -161,11 +196,12 @@
 </template>
 
 <script setup>
-import { Refresh } from "@element-plus/icons-vue";
+import { Refresh, Grid, List } from "@element-plus/icons-vue";
 import { requestApi } from "../../api/api";
 
 // --- Refs ---
 const tables = ref({});
+const displayMode = ref("list");
 const currentTable = ref(null);
 const currentData = ref({ count: 0, data: [], columns: [] });
 const migrateOutput = ref("");
@@ -269,7 +305,10 @@ const truncateTable = async (tableName) => {
   });
 
   try {
-    await request(`/db-tables/${tableName}`, { method: "DELETE" });
+    await request(`/db-tables/${tableName}`, {
+      method: "DELETE",
+      body: JSON.stringify({ data: "all" }),
+    });
     ElMessage.success("已清空");
     await loadTables();
     if (currentTable.value === tableName) {
@@ -406,6 +445,15 @@ const applyMigrate = async () => {
   }
 };
 
+const toggleDisplayMode = () => {
+  displayMode.value = displayMode.value === "card" ? "list" : "card";
+};
+
+// 添加处理函数
+const handleRowClick = (row) => {
+  viewTable(row.name);
+};
+
 onMounted(() => {
   loadTables();
 });
@@ -491,5 +539,10 @@ onMounted(() => {
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.5;
+}
+
+/* 设置表格行的鼠标悬停样式 */
+.el-table__row {
+  cursor: pointer;
 }
 </style>

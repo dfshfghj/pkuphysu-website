@@ -1,40 +1,72 @@
 <template>
-  <el-scrollbar distance="500" @end-reached="loadMorePosts" style="height: 100vh">
+  <el-scrollbar
+    distance="500"
+    @end-reached="loadMorePosts"
+    style="height: 100vh"
+  >
     <div class="title-bar unselectable">
       <div class="aux-margin">
         <div class="title">
-          <img src="../assets/logo_white.svg" class="logo" v-if="isDark" @click="router.push('/')" />
-          <img src="../assets/logo_black.svg" class="logo" v-else @click="router.push('/')" />
-          <h4>TreeHole</h4>
+          <img
+            src="../assets/logo_white.svg"
+            class="logo"
+            v-if="isDark"
+            @click="router.push('/')"
+          />
+          <img
+            src="../assets/logo_black.svg"
+            class="logo"
+            v-else
+            @click="router.push('/')"
+          />
+          <h4>交流论坛</h4>
         </div>
       </div>
       <div class="control-bar">
-        <div class="control-btn" @click="
-          browseType = 'posts';
-        endOfPosts = false;
-        fetchPosts();
-        ">
+        <div
+          class="control-btn"
+          @click="
+            browseType = 'posts';
+            endOfPosts = false;
+            fetchPosts();
+          "
+        >
           <el-icon :size="20">
             <Refresh />
           </el-icon>
           <span class="control-btn-label">最新</span>
         </div>
-        <div class="control-btn" @click="
-          browseType = 'follow';
-        fetchPosts();
-        ">
+        <div
+          class="control-btn"
+          @click="
+            browseType = 'follow';
+            fetchPosts();
+          "
+        >
           <el-icon :size="20">
             <Star />
           </el-icon>
           <span class="control-btn-label">关注</span>
         </div>
         <div class="control-search">
-          <el-select v-model="searchConfig.tag" placeholder="选择分类" style="padding-left: 10px; width: 50%">
+          <el-select
+            v-model="searchConfig.tag"
+            placeholder="选择分类"
+            style="padding-left: 10px; width: 50%"
+          >
             <el-option label="全部" value=""></el-option>
-            <el-option v-for="tag in tags" :label="tag.tag_name" :value="tag.tag_name" :key="tag.id">
+            <el-option
+              v-for="tag in tags"
+              :label="tag.tag_name"
+              :value="tag.tag_name"
+              :key="tag.id"
+            >
             </el-option>
           </el-select>
-          <el-input v-model="searchConfig.query" placeholder="搜索内容 或 #PID" />
+          <el-input
+            v-model="searchConfig.query"
+            placeholder="搜索内容 或 #PID"
+          />
           <el-icon :size="20" @click="fetchPosts((config = searchConfig))">
             <Search />
           </el-icon>
@@ -63,14 +95,25 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人资料</el-dropdown-item>
-                <el-dropdown-item command="logout" divided style="color: #f56c6c">
+                <el-dropdown-item
+                  command="logout"
+                  divided
+                  style="color: #f56c6c"
+                >
                   退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
-        <el-button v-else link type="primary" plain @click="$router.push('/login')" class="border-none">
+        <el-button
+          v-else
+          link
+          type="primary"
+          plain
+          @click="$router.push('/login')"
+          class="border-none"
+        >
           登录
         </el-button>
       </div>
@@ -78,41 +121,56 @@
     <div class="posts-container">
       <div v-for="post in posts" class="card" :key="post.id">
         <CollapsibleDiv max-height="500">
-          <div @click="
-            fetchComments(post.id);
-          currentPost = post;
-          content = '';
-          ">
-            <div class="card-header unselectable">
-              <div class="header-badge" v-if="post.likenum">
-                {{ post.likenum }}
-                <el-icon :size="12">
-                  <StarFilled v-if="post.is_follow" />
-                  <Star v-else />
-                </el-icon>
-              </div>
-              <div class="header-badge" v-if="post.reply">
-                {{ post.reply }}
-                <el-icon :size="12">
-                  <ChatLineRound />
-                </el-icon>
-              </div>
+          <div class="card-header unselectable">
+            <el-avatar
+              :size="40"
+              :src="`${API_BASE}/api/avatars/${post.username}`"
+            />
+            <div style="flex: 1">
+              <span> {{ post.username }} </span>
               <code class="card-id"> #{{ post.id }} </code>
-              &nbsp;
-              <span>
-                {{ formatTime(post.timestamp).relativeTime }}
-                {{ formatTime(post.timestamp).formattedTime }}
-              </span>
-              &nbsp;
-              <el-tag v-if="post.tag"> {{ post.tag }} </el-tag>
+              <el-icon :size="16" class="copy-btn" @click="copyText(post.text)">
+                <CopyDocument />
+              </el-icon>
+              <div>
+                <div class="header-badge" v-if="post.likenum">
+                  {{ post.likenum }}
+                  <el-icon :size="12">
+                    <StarFilled v-if="post.is_follow" />
+                    <Star v-else />
+                  </el-icon>
+                </div>
+                <div class="header-badge" v-if="post.reply">
+                  {{ post.reply }}
+                  <el-icon :size="12">
+                    <ChatLineRound />
+                  </el-icon>
+                </div>
+                <span>
+                  {{ formatTime(post.timestamp).relativeTime }}
+                  {{ formatTime(post.timestamp).formattedTime }}
+                </span>
+                &nbsp;
+                <el-tag v-if="post.tag"> {{ post.tag }} </el-tag>
+              </div>
             </div>
-            <MarkdownRenderer :dark-mode="isDark" :content="post.text" />
           </div>
+          <MarkdownRenderer
+            :dark-mode="isDark"
+            :content="post.text"
+            @click="
+              fetchComments(post.id);
+              currentPost = post;
+              content = '';
+              quote = null;
+              quoteName = null;
+            "
+          />
         </CollapsibleDiv>
       </div>
       <div v-if="endOfPosts" class="end-flag">
-          <span> 加载完毕 </span>
-        </div>
+        <span> 加载完毕 </span>
+      </div>
     </div>
   </el-scrollbar>
 
@@ -120,9 +178,16 @@
     <div class="editor">
       <MarkdownEditor v-model="content">
         <div style="display: flex; align-items: baseline">
-          <el-upload style="padding-top: 20px; flex: 1" v-model:file-list="fileList" action="/api/files/upload"
-            :on-preview="handlePreview" :on-success="handleUploadSuccess" :on-remove="handleRemove" :limit="50"
-            :on-exceed="handleExceed">
+          <el-upload
+            style="padding-top: 20px; flex: 1"
+            v-model:file-list="fileList"
+            action="/api/files/upload"
+            :on-preview="handlePreview"
+            :on-success="handleUploadSuccess"
+            :on-remove="handleRemove"
+            :limit="50"
+            :on-exceed="handleExceed"
+          >
             <el-button>
               <el-icon>
                 <Link />
@@ -137,11 +202,19 @@
           </el-upload>
           <div class="btn-panel">
             <el-button @click="editing = false"> 取消编辑 </el-button>
-            <el-button @click="editing = false" :disabled="content ? false : true">
+            <el-button
+              @click="editing = false"
+              :disabled="content ? false : true"
+            >
               保存草稿
             </el-button>
             <el-select v-model="tag" placeholder="选择tag" style="width: 100px">
-              <el-option v-for="tag in tags" :label="tag.tag_name" :value="tag.tag_name" :key="tag.id">
+              <el-option
+                v-for="tag in tags"
+                :label="tag.tag_name"
+                :value="tag.tag_name"
+                :key="tag.id"
+              >
               </el-option>
             </el-select>
             <el-button @click="submitPost" :disabled="content ? false : true">
@@ -154,32 +227,42 @@
   </div>
   <transition name="slide-from-side">
     <div v-if="currentPost" class="comment-panel acrylic">
-      <div class="shadow" @click="
-        currentPost = null;
-      comments = [];
-      endOfComments = false;
-      editReply = false;">
-      </div>
-      <div style="
-        width: 100%;
-        background-color: var(--c-card);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px;
-        border-radius: 0 0 0 5px;
-        border: 1px solid var(--c-border);
-      " class="unselectable">
-        <div>
-          <el-icon @click="
-            currentPost = null;
+      <div
+        class="shadow"
+        @click="
+          currentPost = null;
           comments = [];
           endOfComments = false;
           editReply = false;
-          ">
+        "
+      ></div>
+      <div
+        style="
+          width: 100%;
+          background-color: var(--c-card);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px;
+          border-radius: 0 0 0 5px;
+          border: 1px solid var(--c-border);
+        "
+        class="unselectable"
+      >
+        <div>
+          <el-icon
+            @click="
+              currentPost = null;
+              comments = [];
+              endOfComments = false;
+              editReply = false;
+            "
+          >
             <Close />
           </el-icon>
-          <b><code> POST #{{ currentPost.id }}</code></b>
+          <b
+            ><code> POST #{{ currentPost.id }}</code></b
+          >
         </div>
         <div style="display: flex; align-items: center; margin-right: 20px">
           <div class="control-btn" @click="fetchComments(currentPost.id)">
@@ -188,20 +271,26 @@
             </el-icon>
             <span> 刷新 </span>
           </div>
-          <div class="control-btn" @click="
-            handleFollow(currentPost.id);
-          currentPost.is_follow = !currentPost.is_follow;
-          ">
+          <div
+            class="control-btn"
+            @click="
+              handleFollow(currentPost.id);
+              currentPost.is_follow = !currentPost.is_follow;
+            "
+          >
             <el-icon>
               <StarFilled v-if="currentPost.is_follow" />
               <Star v-else />
             </el-icon>
             <span> 关注 </span>
           </div>
-          <div class="control-btn" @click="
-            AscSort = !AscSort;
-          fetchComments(currentPost.id);
-          ">
+          <div
+            class="control-btn"
+            @click="
+              AscSort = !AscSort;
+              fetchComments(currentPost.id);
+            "
+          >
             <el-icon>
               <Histogram />
             </el-icon>
@@ -209,18 +298,64 @@
           </div>
         </div>
       </div>
-      <el-scrollbar class="card-list" distance="300" @end-reached="loadMoreComments($event, currentPost.id)">
-        <div v-for="comment in comments" class="card comment-card" :key="comment.cid">
+      <el-scrollbar
+        class="card-list"
+        distance="300"
+        @end-reached="loadMoreComments($event, currentPost.id)"
+      >
+        <div
+          v-for="comment in comments"
+          class="card comment-card"
+          :key="comment.cid"
+        >
           <CollapsibleDiv max-height="300">
             <div class="card-header unselectable">
-              <code class="card-id"> #{{ comment.cid }} </code>
-              &nbsp;
-              <span>
-                {{ formatTime(comment.timestamp).relativeTime }}
-                {{ formatTime(comment.timestamp).formattedTime }}
-              </span>
+              <el-avatar
+                :size="40"
+                :src="`${API_BASE}/api/avatars/${comment.username}`"
+              />
+              <div style="flex: 1">
+                <span> {{ comment.username }} </span>
+                <el-icon
+                  :size="16"
+                  class="copy-btn"
+                  @click="copyText(comment.text)"
+                >
+                  <CopyDocument />
+                </el-icon>
+                <div>
+                  <span>
+                    {{ formatTime(comment.timestamp).relativeTime }}
+                    {{ formatTime(comment.timestamp).formattedTime }}
+                  </span>
+                </div>
+              </div>
             </div>
-            <MarkdownRenderer :dark-mode="isDark" :content="comment.text" />
+            <span
+              v-if="comment.quote"
+              style="
+                margin-left: 20px;
+                font-size: 14px;
+                color: var(--c-secondary);
+              "
+            >
+              {{ `@${comment.quote.username}: ` }}
+            </span>
+            <MarkdownRenderer
+              :dark-mode="isDark"
+              :content="comment.text"
+              @click="
+                () => {
+                  if (quote !== comment.cid) {
+                    quote = comment.cid;
+                    quoteName = comment.username;
+                  } else {
+                    quote = null;
+                    quoteName = null;
+                  }
+                }
+              "
+            />
           </CollapsibleDiv>
         </div>
         <div v-if="endOfComments" class="end-flag">
@@ -229,19 +364,31 @@
       </el-scrollbar>
       <transition name="slide" mode="out-in">
         <div class="reply-simp" v-if="!editReply" key="simp">
-          <div class="reply-btn unselectable" @click="editReply = true">
-            <span> 评论 </span>
+          <div style="flex: 1">
+            <div v-if="quote">
+              <span> {{ `@${quoteName}: ` }} </span>
+            </div>
+            <div class="reply-btn unselectable" @click="editReply = true">
+              <span> {{ content ? content : "评论" }} </span>
+            </div>
           </div>
           <el-icon @click="editReply = true">
             <ArrowUpBold />
           </el-icon>
         </div>
         <div class="reply unselectable" v-else key="full">
-          <div style="width: 100%; display: flex; flex-direction: column-reverse">
+          <div
+            style="width: 100%; display: flex; flex-direction: column-reverse"
+          >
             <MarkdownEditor v-model="content">
               <div style="display: flex; align-items: baseline; padding: 5px">
-                <el-upload v-model:file-list="fileList" action="/api/files/upload" :show-file-list="false"
-                  :on-success="handleUploadSuccess" style="flex: 1">
+                <el-upload
+                  v-model:file-list="fileList"
+                  action="/api/files/upload"
+                  :show-file-list="false"
+                  :on-success="handleUploadSuccess"
+                  style="flex: 1"
+                >
                   <el-button>
                     <el-icon>
                       <Link />
@@ -249,12 +396,15 @@
                     上传文件
                   </el-button>
                 </el-upload>
-                <el-button style="width: 100px; background: var(--c-card)" @click="submitComment(currentPost.id)">
+                <el-button
+                  style="width: 100px; background: var(--c-card)"
+                  @click="submitComment(currentPost.id)"
+                >
                   <el-icon>
                     <Promotion />
                   </el-icon>
                 </el-button>
-                <el-icon @click="editReply = false" style="padding-left: 20px;">
+                <el-icon @click="editReply = false" style="padding-left: 20px">
                   <ArrowDownBold />
                 </el-icon>
               </div>
@@ -283,6 +433,7 @@ import {
   Link,
   ArrowUpBold,
   ArrowDownBold,
+  CopyDocument,
 } from "@element-plus/icons-vue";
 import MarkdownEditor from "../components/MarkdownEditor-v2.vue";
 import MarkdownRenderer from "../components/MarkdownRenderer-v1.vue";
@@ -291,6 +442,7 @@ import { isDark } from "../composables/theme";
 import { useUserStore } from "../stores/user";
 import { requestApi } from "../api/api";
 import { onBeforeMount } from "vue";
+import { ElMessage } from "element-plus";
 
 const router = useRouter();
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -298,6 +450,16 @@ const userStore = useUserStore();
 const username = computed(() => userStore.username);
 
 const tags = ref([]);
+
+const copyText = async (text) => {
+  if (!navigator.clipboard) return alert("当前浏览器环境不支持复制");
+  try {
+    await navigator.clipboard.writeText(text);
+    ElMessage.success("复制成功");
+  } catch {
+    ElMessage.error("复制失败");
+  }
+};
 
 const searchConfig = ref({
   mode: "page",
@@ -318,6 +480,8 @@ const editing = ref(false);
 const currentPost = ref(null);
 const endOfPosts = ref(false);
 const endOfComments = ref(false);
+const quote = ref(null);
+const quoteName = ref("");
 
 const editReply = ref(false);
 
@@ -418,7 +582,8 @@ const handleUploadSuccess = (response, uploadFile, uploadFiles) => {
 
 const handleExceed = (files, uploadFiles) => {
   ElMessage.warning(
-    `you selected ${files.length} files this time, add up to ${files.length + uploadFiles.length
+    `you selected ${files.length} files this time, add up to ${
+      files.length + uploadFiles.length
     } totally`,
   );
 };
@@ -465,8 +630,8 @@ const fetchPosts = async (
     const data = await res.json();
 
     if (data.data.length < 10) {
-        endOfPosts.value = true;
-      }
+      endOfPosts.value = true;
+    }
 
     posts.value = data.data;
   } catch (err) {
@@ -483,8 +648,8 @@ const fetchComments = async (id) => {
     const data = await res.json();
 
     if (data.data.length < 10) {
-        endOfComments.value = true;
-      }
+      endOfComments.value = true;
+    }
 
     comments.value = data.data;
   } catch (err) {
@@ -566,7 +731,7 @@ const submitComment = async (id) => {
       body: JSON.stringify({
         text: content.value,
         pid: id,
-        quote: null,
+        quote: quote.value,
       }),
     });
     if (!res.ok) throw new Error("上传失败");
@@ -582,12 +747,11 @@ const submitComment = async (id) => {
 
 // 引用外部图片绕过防盗链
 onBeforeMount(() => {
-  const meta = document.createElement('meta');
+  const meta = document.createElement("meta");
   meta.name = "referrer";
   meta.content = "no-referrer";
   document.head.appendChild(meta);
-}
-);
+});
 onMounted(() => {
   window.addEventListener("resize", handleResize);
   fetchPosts();
@@ -741,6 +905,17 @@ onUnmounted(() => {
   padding-bottom: 20px;
 }
 
+.copy-btn {
+  float: right;
+  text-align: center;
+  color: transparent;
+  cursor: pointer;
+}
+
+.card:hover .copy-btn {
+  color: var(--c-text);
+}
+
 .comment-panel {
   user-select: text;
   position: fixed;
@@ -751,6 +926,11 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   z-index: 150;
+}
+
+.comment-panel :deep(.markdown-body) {
+  padding-left: 30px;
+  padding-right: 30px;
 }
 
 .shadow {
@@ -806,7 +986,6 @@ onUnmounted(() => {
   padding-left: 15px;
   margin-right: 30px;
   background: var(--c-background);
-  width: 100%;
   border: 1px solid var(--c-border);
   border-radius: 9999px;
   -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.12);
@@ -851,7 +1030,13 @@ onUnmounted(() => {
 
 .card-header {
   font-size: 14px;
-  padding: 10px 50px 10px 50px;
+  padding: 15px 20px 5px 20px;
+  margin-bottom: 10px;
+  display: flex;
+}
+
+.el-avatar {
+  margin-right: 10px;
 }
 
 .card:hover {

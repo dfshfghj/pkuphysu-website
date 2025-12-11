@@ -28,10 +28,13 @@ __pycache__
 tmp
 release
 tools
+migrations
 
 *.jpg
 *.jpeg
+*.webp
 *.json
+*.pem
 !package-lock.json
 !package.json
 .secrets.toml

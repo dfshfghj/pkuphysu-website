@@ -31,9 +31,18 @@ const handleCommand = (command) => {
 
 <template>
   <div :class="['menu-wrapper acrylic unselectable', { scrolled: isScrolled }]">
-    <el-menu :class="{ scrolled: isScrolled }" mode="horizontal" :ellipsis="false" router popper-class="acrylic">
+    <el-menu
+      :class="{ scrolled: isScrolled }"
+      mode="horizontal"
+      :ellipsis="false"
+      router
+      popper-class="acrylic"
+    >
       <el-menu-item index="/">
-        <div class="flex items-center justify-center gap-2" style="display: flex; align-items: center">
+        <div
+          class="flex items-center justify-center gap-2"
+          style="display: flex; align-items: center"
+        >
           <img src="../../assets/logo_white.svg" class="logo" v-if="isDark" />
           <img src="../../assets/logo_black.svg" class="logo" v-else />
           <b id="title">物院学生会</b>
@@ -45,19 +54,25 @@ const handleCommand = (command) => {
             <More />
           </el-icon>
         </template>
+        <!---
         <el-menu-item index="/chat/articles"> BBS </el-menu-item>
+        --->
         <el-menu-item index="/chat/blogs"> 论坛 </el-menu-item>
         <el-menu-item index="/doc"> 文档 </el-menu-item>
         <el-menu-item index="/posts"> Posts </el-menu-item>
       </el-sub-menu>
+      <!---
       <el-menu-item index="/chat/articles" id="document"> BBS </el-menu-item>
+      -->
       <el-menu-item index="/chat/blogs" id="document"> 论坛 </el-menu-item>
       <el-menu-item index="/doc" id="document"> 文档 </el-menu-item>
       <el-menu-item index="/posts" id="posts"> Posts </el-menu-item>
 
       <el-menu-item h="full" @click="toggleDark()" id="toggleDark">
-        <button class="cursor-pointer border-none bg-transparent"
-          style="height: var(--ep-menu-item-height); padding: 0;">
+        <button
+          class="cursor-pointer border-none bg-transparent"
+          style="height: var(--ep-menu-item-height); padding: 0"
+        >
           <el-icon-sunny v-if="!isDark" width="20px" height="20px" />
           <el-icon-moon v-else width="20px" height="20px" />
         </button>
@@ -69,14 +84,25 @@ const handleCommand = (command) => {
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人资料</el-dropdown-item>
-                <el-dropdown-item command="logout" divided style="color: #f56c6c">
+                <el-dropdown-item
+                  command="logout"
+                  divided
+                  style="color: #f56c6c"
+                >
                   退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
-        <el-button v-else link type="primary" plain @click="$router.push('/login')" class="border-none">
+        <el-button
+          v-else
+          link
+          type="primary"
+          plain
+          @click="$router.push('/login')"
+          class="border-none"
+        >
           登录
         </el-button>
       </el-menu-item>
@@ -96,6 +122,10 @@ const handleCommand = (command) => {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.el-menu--horizontal.el-menu {
+  border: none;
+}
+
 .el-menu {
   border: none;
   background-color: transparent;
@@ -109,7 +139,7 @@ const handleCommand = (command) => {
   background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-.el-menu--horizontal>.el-menu-item:nth-child(1) {
+.el-menu--horizontal > .el-menu-item:nth-child(1) {
   margin-right: auto;
 }
 
@@ -151,6 +181,7 @@ const handleCommand = (command) => {
 
   .menu-wrapper.scrolled {
     width: 80%;
+    border: none;
     border-radius: 30px;
     top: 20px;
     margin: 0px 10%;

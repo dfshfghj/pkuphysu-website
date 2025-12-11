@@ -57,7 +57,11 @@ invest <{"> <".join(prize_letters[:prize_count])}> | 来进行投点
 其中{"、".join(prize_letters[:prize_count])}为非负整数，
 分别为{"、".join(prize_names[:prize_count])}
 投入的点数，且总和在0-99之间。
-    如："invest{" 10"*prize_count}"'''
+    如："invest{" 10"*prize_count}"
+
+invest status | 查看当前投点状态
+
+invest reset | 重置姓名绑定及投点'''
 
     @name_required
     def invest(payload: str, message: TextMessage) -> str:
@@ -65,6 +69,20 @@ invest <{"> <".join(prize_letters[:prize_count])}> | 来进行投点
 
         value_invalid = "点数总和应在0-99之间！"
         success = "投点成功，在投点时间结束前再次输入invest指令可更改投点。"
+
+        if "status" in payload:
+            name = CJParticipant.get_user_name(message.source)
+            if not name:
+                return "未设置姓名"
+            investment = CJParticipant.get_user_invest(message.source)
+            if investment:
+                return f"当前投点状态为：\n姓名：{name}\n投点：{investment}"
+            else:
+                return f"当前投点状态为：\n姓名：{name}\n未投点"
+
+        if "reset" in payload:
+            CJParticipant.delete_user(message.source)
+            return "姓名绑定及投点已重置，使用 name 命令重新绑定姓名"
 
         investments = payload.split()
         if len(investments) != prize_count:

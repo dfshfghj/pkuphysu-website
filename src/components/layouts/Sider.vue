@@ -57,20 +57,31 @@ const themeClass = computed(() => `sider--${props.theme}`);
     </el-menu-item>
     <el-sub-menu index="/admin/random-draw">
       <template #title>
-        <el-icon><Tickets /></el-icon>
+        <el-icon>
+          <Tickets />
+        </el-icon>
         <span>抽奖管理</span>
       </template>
       <el-menu-item
-        index="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0"
-        >一等奖</el-menu-item
+        ><a
+          href="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0"
+          class="menu-link"
+          >一等奖</a
+        ></el-menu-item
       >
       <el-menu-item
-        index="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1"
-        >二等奖</el-menu-item
+        ><a
+          href="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1"
+          class="menu-link"
+          >二等奖</a
+        ></el-menu-item
       >
       <el-menu-item
-        index="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2"
-        >三等奖</el-menu-item
+        ><a
+          href="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2"
+          class="menu-link"
+          >三等奖</a
+        ></el-menu-item
       >
     </el-sub-menu>
   </el-menu>
@@ -82,6 +93,7 @@ const themeClass = computed(() => `sider--${props.theme}`);
   height: calc(100vh - var(--el-menu-item-height) - 4px);
   background-color: transparent;
 }
+
 .el-menu.dark {
   background: rgba(255, 255, 255, 0.2);
 }
@@ -89,6 +101,7 @@ const themeClass = computed(() => `sider--${props.theme}`);
 .el-menu.dark:deep(*) {
   color: #ffffff;
 }
+
 .el-menu :deep(.el-menu-item:hover) {
   background-color: rgba(230, 247, 255, 0.2) !important;
 }

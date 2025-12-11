@@ -12,7 +12,7 @@ import { obsidianImgSize } from "@mdit/plugin-img-size";
 import { ins } from "@mdit/plugin-ins";
 import { mark } from "@mdit/plugin-mark";
 import { tasklist } from "@mdit/plugin-tasklist";
-import { full as emoji } from 'markdown-it-emoji';
+import { full as emoji } from "markdown-it-emoji";
 import "katex/dist/katex.min.css";
 import "../styles/github-markdown.css";
 
@@ -26,7 +26,7 @@ const props = defineProps({
     default: () => ({
       throwOnError: false,
       errorColor: "#cc0000",
-      delimiters: 'all',
+      delimiters: "all",
     }),
   },
 });
@@ -44,10 +44,15 @@ const renderMarkdown = () => {
       linkify: true,
       typographer: true,
       breaks: true,
-      
     });
 
-    md.use(katex, props.katexOptions).use(emoji).use(imgLazyload).use(obsidianImgSize).use(ins).use(mark).use(tasklist);
+    md.use(katex, props.katexOptions)
+      .use(emoji)
+      .use(imgLazyload)
+      .use(obsidianImgSize)
+      .use(ins)
+      .use(mark)
+      .use(tasklist);
 
     renderedContent.value = md.render(props.content);
   } catch (error) {
@@ -65,7 +70,7 @@ onMounted(renderMarkdown);
 .markdown-body {
   padding-left: 50px;
   padding-right: 50px;
-  --bgColor-default: var(--c-card);
+  --bgColor-default: transparent;
 }
 
 .markdown-body:deep(.katex-block) {

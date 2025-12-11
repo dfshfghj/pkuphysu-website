@@ -83,7 +83,7 @@ def get(payload: str, message: TextMessage):
             elif len(payloads) == 2:
                 if Puzzle.get_locked(payloads[0]) is False:
                     dependence_id = PuzzleDependence.get_Qid(
-                        "%s %s" % (payloads[0], payloads[1])
+                        f"{payloads[0]} {payloads[1]}"
                     )
                     if dependence_id is not None:
                         PuzzleUnlock.add(openid, dependence_id)
@@ -94,7 +94,7 @@ def get(payload: str, message: TextMessage):
                     if PuzzleUnlock.check(openid, dependence_id) is True:
 
                         dependence_id = PuzzleDependence.get_Qid(
-                            "%s %s" % (payloads[0], payloads[1])
+                            f"{payloads[0]} {payloads[1]}"
                         )
                         if dependence_id is not None:
                             PuzzleUnlock.add(openid, dependence_id)

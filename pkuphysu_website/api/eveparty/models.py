@@ -50,6 +50,17 @@ class CJParticipant(db.Model):
         return user.name
 
     @classmethod
+    @get_user
+    def get_user_invest(cls, user):
+        return user.investment
+
+    @classmethod
+    @get_user
+    def delete_user(cls, user):
+        db.session.delete(user)
+        db.session.commit()
+
+    @classmethod
     def to_cj_json(cls):
         return {
             user.name: json.loads(user.investment)

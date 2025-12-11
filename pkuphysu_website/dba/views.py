@@ -1,7 +1,7 @@
 from logging import getLogger
 
 from flask import Blueprint, request
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import DataError
 
 from pkuphysu_website import db
@@ -65,6 +65,14 @@ def manage_table(table_name):
         # 删除特定记录（通过 body 指定要删的行）
         payload = request.get_json(force=True)
         records = payload.get("data")
+
+        if records == "all":
+            # 清空整个表
+            result = db.session.execute(text(f'TRUNCATE TABLE "{table_name}" RESTART IDENTITY CASCADE;'))
+            db.session.commit()
+            logger.info("Cleared all rows from %s", table_name)
+            return respond_success(deleted=table_name)
+
         if not isinstance(records, list) or len(records) == 0:
             return respond_error(400, "DBADeleteNoData")
 
