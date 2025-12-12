@@ -3,20 +3,14 @@ import { computed } from "vue";
 import { toggleDark, isDark } from "../../composables/theme";
 import { useUserStore } from "../../stores/user";
 import { More } from "@element-plus/icons-vue";
+import UserAvatar from "../UserAvatar.vue";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const router = useRouter();
 const userStore = useUserStore();
-const username = computed(() => userStore.username);
 
 const scrollTop = inject("scrollTop");
 
 const isScrolled = computed(() => scrollTop.value > 50);
-
-const userAvatar = computed(() => {
-  const path = `${API_BASE}/api/avatars/${username.value}`;
-  return path + "?t=" + Date.now();
-});
 
 const handleCommand = (command) => {
   if (command === "logout") {
@@ -80,7 +74,7 @@ const handleCommand = (command) => {
       <el-menu-item>
         <div v-if="userStore.isLoggedIn" style="display: flex">
           <el-dropdown @command="handleCommand">
-            <el-avatar :size="40" :src="userAvatar" />
+            <UserAvatar />
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人资料</el-dropdown-item>

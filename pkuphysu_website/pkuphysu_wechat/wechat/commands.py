@@ -22,6 +22,7 @@ def close(payload, message: TextMessage):
     ) in wechat_command_reg._status.items():
         logger.info("Closing %s", payload)
         wechat_mgr.close(payload)
+        logger.info(wechat_command_reg._status, wechat_command_reg._default_status)
         return "成功关闭 " + payload
     else:
         return f'看起来命令"{payload}"已关闭或不存在？连长得像的命令都没有'
@@ -37,6 +38,7 @@ def open(payload, message: TextMessage):
     ) in wechat_command_reg._status.items():
         logger.info("Opening %s", payload)
         wechat_mgr.open(payload)
+        logger.info(wechat_command_reg._status, wechat_command_reg._default_status)
         return "成功打开 " + payload
     else:
         return f'看起来命令"{payload}"已打开或不存在？连长得像的命令都没有'
@@ -46,6 +48,7 @@ def open(payload, message: TextMessage):
 @master
 def status(message):
     "status/cst | 显示命令开关状态"
+    logger.info(wechat_command_reg._status, wechat_command_reg._default_status)
     return "\n".join(
         (
             "Default",

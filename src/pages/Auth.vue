@@ -243,6 +243,7 @@ const handleLogin = async () => {
         userStore.login({
           token: result.token || "dummy-token",
           username: result.username || loginForm.username,
+          userid: result.userid,
         });
 
         ElMessage.success("登录成功！");

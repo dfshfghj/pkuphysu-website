@@ -78,6 +78,7 @@ def get_posts(current_user):
             "reply": post.reply,
             "tag": post.tag,
             "is_follow": 1 if post.id in followed_post_ids else 0,
+            "userid": post.user.id,
             "username": post.user.username
         }
         for post in posts
@@ -200,6 +201,7 @@ def get_comments(current_user, id):
                 "text": comment.quoted_comment.text,
                 } if comment.quoted_comment else None,
             "timestamp": comment.timestamp,
+            "userid": comment.user.id,
             "username": comment.user.username
         }
         for comment in comments

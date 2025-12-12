@@ -33,11 +33,15 @@ declare module 'vue' {
     ElInput: typeof import('element-plus/es')['ElInput']
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
+    ElOption: typeof import('element-plus/es')['ElOption']
     ElRow: typeof import('element-plus/es')['ElRow']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
+    ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
+    ElTabPane: typeof import('element-plus/es')['ElTabPane']
+    ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElUpload: typeof import('element-plus/es')['ElUpload']
@@ -51,5 +55,6 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sider: typeof import('./components/layouts/Sider.vue')['default']
+    UserAvatar: typeof import('./components/UserAvatar.vue')['default']
   }
 }

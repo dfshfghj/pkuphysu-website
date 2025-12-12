@@ -91,7 +91,7 @@
         </div>
         <div v-if="userStore.isLoggedIn" style="display: flex">
           <el-dropdown @command="handleCommand">
-            <el-avatar :size="40" :src="userAvatar" />
+            <UserAvatar />
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人资料</el-dropdown-item>
@@ -122,10 +122,7 @@
       <div v-for="post in posts" class="card" :key="post.id">
         <CollapsibleDiv max-height="500">
           <div class="card-header unselectable">
-            <el-avatar
-              :size="40"
-              :src="`${API_BASE}/api/avatars/${post.username}`"
-            />
+            <UserAvatar :userid="post.userid" />
             <div style="flex: 1">
               <span> {{ post.username }} </span>
               <code class="card-id"> #{{ post.id }} </code>
@@ -310,10 +307,7 @@
         >
           <CollapsibleDiv max-height="300">
             <div class="card-header unselectable">
-              <el-avatar
-                :size="40"
-                :src="`${API_BASE}/api/avatars/${comment.username}`"
-              />
+              <UserAvatar :userid="comment.userid" />
               <div style="flex: 1">
                 <span> {{ comment.username }} </span>
                 <el-icon
@@ -441,13 +435,13 @@ import CollapsibleDiv from "../components/CollapsibleDiv.vue";
 import { isDark } from "../composables/theme";
 import { useUserStore } from "../stores/user";
 import { requestApi } from "../api/api";
+import { formatTime } from "../utils";
 import { onBeforeMount } from "vue";
 import { ElMessage } from "element-plus";
+import UserAvatar from "../components/UserAvatar.vue";
 
 const router = useRouter();
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const userStore = useUserStore();
-const username = computed(() => userStore.username);
 
 const tags = ref([]);
 
@@ -502,51 +496,6 @@ const handleCommand = (command) => {
 const handleResize = () => {
   windowWidth.value = window.innerWidth;
 };
-
-const userAvatar = computed(() => {
-  const path = `${API_BASE}/api/avatars/${username.value}`;
-  return path + "?t=" + Date.now();
-});
-
-function formatTime(timestamp) {
-  const date = new Date(timestamp * 1000);
-
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  const formattedTime = `${month}-${day} ${hours}:${minutes}`;
-
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - date) / 1000);
-
-  let relativeTime;
-
-  if (diffInSeconds < 60) {
-    relativeTime = "刚刚";
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    relativeTime = `${minutes}分钟前`;
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    relativeTime = `${hours}小时前`;
-  } else if (diffInSeconds < 2592000) {
-    const days = Math.floor(diffInSeconds / 86400);
-    relativeTime = `${days}天前`;
-  } else if (diffInSeconds < 604800) {
-    const weeks = Math.floor(diffInSeconds / 604800);
-    relativeTime = `${weeks}周前`;
-  } else {
-    const months = Math.floor(diffInSeconds / 2592000);
-    relativeTime = `${months}月前`;
-  }
-
-  return {
-    formattedTime: formattedTime,
-    relativeTime: relativeTime,
-  };
-}
 
 const handleRemove = (file, uploadFiles) => {
   console.log(file, uploadFiles);

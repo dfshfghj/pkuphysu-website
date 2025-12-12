@@ -14,10 +14,10 @@
         :offset="10"
         :show-after="300"
       >
-        <el-avatar
+        <user-avatar
+          :userid="user.id"
           :size="60"
-          :src="avatarUrl(user)"
-          style="border: 2px solid #eee; margin-bottom: 10px"
+          style="border: 2px solid #eee; margin-bottom: 10px; background: #ddd"
         />
       </el-tooltip>
     </div>
@@ -38,10 +38,10 @@
         :offset="10"
         :show-after="300"
       >
-        <el-avatar
+        <user-avatar
+          :userid="admin.id"
           :size="60"
-          :src="avatarUrl(admin)"
-          style="border: 2px solid #eee; margin-bottom: 10px"
+          style="border: 2px solid #eee; margin-bottom: 10px; background: #ddd"
         />
       </el-tooltip>
     </div>
@@ -81,7 +81,7 @@
 
 <script setup>
 import { requestApi } from "../../api/api";
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import UserAvatar from "../../components/UserAvatar.vue";
 
 const users = ref({
   users: [],
@@ -96,11 +96,6 @@ const qrcodeUrl = ref("");
 const FormatTime = function (timestamp) {
   const date = new Date(timestamp);
   return date.toLocaleString("zh-CN");
-};
-
-const avatarUrl = function (user) {
-  const path = `${API_BASE}/api/avatars/${user.username}`;
-  return path;
 };
 
 const loadUserList = async (group) => {

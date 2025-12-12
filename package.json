@@ -49,6 +49,7 @@
     "markdown-it-ins": "^4.0.0",
     "markdown-it-mark": "^4.0.0",
     "marked": "^17.0.0",
+    "minidenticons": "^4.2.1",
     "pinia": "^3.0.3",
     "prettier": "^3.6.2",
     "unplugin-icons": "^22.3.0",

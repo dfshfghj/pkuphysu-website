@@ -58,7 +58,7 @@ def login():
 
     logger.info(f"User logged in: {username}")
     return respond_success(
-        message="登录成功", token=generate_token(user.id), username=user.username
+        message="登录成功", token=generate_token(user.id), username=user.username, userid=user.id
     )
 
 
@@ -187,8 +187,8 @@ def upload_avatar(current_user):
     if ext not in ["jpg", "png", "svg"]:
         return respond_error(400, "InvalidFile", "不支持的文件类型")
 
-    filename = f"{current_user.username}.{ext}"
-    final_filename = f"{current_user.username}.jpg"
+    filename = f"{current_user.id}.{ext}"
+    final_filename = f"{current_user.id}.jpg"
     tmp_path = f"/tmp/{filename}"
     final_filepath = os.path.join(current_dir, "avatars", final_filename)
 
@@ -219,7 +219,7 @@ def upload_avatar(current_user):
                 500, "ConvertFailed", f"图像转换失败: {error_msg[:100]}"
             )
         avatar_url = f"/static/uploads/avatars/{final_filename}"
-        logger.info(f"User {current_user.username} uploaded a new avatar")
+        logger.info(f"User {current_user.id} uploaded a new avatar")
         return respond_success(
             message="头像上传成功",
             avatarUrl=avatar_url,
@@ -231,15 +231,12 @@ def upload_avatar(current_user):
         return respond_error(500, "Failed", f"保存失败：{str(e)}")
 
 
-@bp.route("/avatars/<username>")
-def serve_avatar(username):
+@bp.route("/avatars/<userid>")
+def serve_avatar(userid):
     avatar_path = os.path.join(current_dir, "avatars")
-    if not os.path.exists(os.path.join(avatar_path, f"{username}.jpg")):
-        from identicons import generate, save
-
-        icon = generate(username)
-        save(icon, os.path.join(avatar_path, f"{username}.jpg"), 500, 500)
-    return send_from_directory(avatar_path, f"{username}.jpg")
+    if not os.path.exists(os.path.join(avatar_path, f"{userid}.jpg")):
+        return respond_error(404, "Not Found", "无上传头像")
+    return send_from_directory(avatar_path, f"{userid}.jpg")
 
 
 @bp.route("/verify_email", methods=["GET", "POST"])

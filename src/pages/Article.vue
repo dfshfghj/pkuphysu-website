@@ -1,12 +1,15 @@
 <template>
-  <el-scrollbar style="height: calc(100vh - var(--el-menu-item-height) - 5px);">
+  <el-scrollbar style="height: calc(100vh - var(--el-menu-item-height) - 5px)">
     <div class="container">
       <div class="main-panel">
         <h2>{{ data.title }}</h2>
         <div class="author-info">
           <div style="display: flex; align-items: center; margin-bottom: 10px">
             <div class="card-info">
-              <el-avatar :size="40" :src="`${API_BASE}/api/avatars/${data.author}`" />
+              <el-avatar
+                :size="40"
+                :src="`${API_BASE}/api/avatars/${data.author}`"
+              />
             </div>
             <div style="display: flex; flex-direction: column">
               <span> {{ data.author }} </span>
@@ -16,7 +19,11 @@
             </div>
           </div>
         </div>
-        <MarkdownRenderer_V2 :content="data.content" :dark-mode="isDark" v-if="data.content" />
+        <MarkdownRenderer_V2
+          :content="data.content"
+          :dark-mode="isDark"
+          v-if="data.content"
+        />
         <div class="action-panel">
           <div class="control-btn">
             <span> {{ data.likenum }} </span>
@@ -44,10 +51,10 @@
       </div>
       <div class="reply-panel" v-show="displayReply">
         <div class="reply-title">
-        <span>回复 {{ data.reply }}</span>
-        <el-icon @click="displayReply = false" class="cursor-pointer">
-          <Close />
-        </el-icon>
+          <span>回复 {{ data.reply }}</span>
+          <el-icon @click="displayReply = false" class="cursor-pointer">
+            <Close />
+          </el-icon>
         </div>
       </div>
     </div>
@@ -59,6 +66,7 @@ import { ChatRound, Close, Star } from "@element-plus/icons-vue";
 import MarkdownRenderer_V2 from "../components/MarkdownRenderer-v2.vue";
 import { isDark } from "../composables/theme";
 import { requestApi } from "../api/api";
+import { formatTime } from "../utils";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const data = ref({});
 
@@ -82,46 +90,6 @@ const fetchData = async () => {
   }
 };
 
-function formatTime(timestamp) {
-  const date = new Date(timestamp * 1000);
-
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  const formattedTime = `${month}-${day} ${hours}:${minutes}`;
-
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - date) / 1000);
-
-  let relativeTime;
-
-  if (diffInSeconds < 60) {
-    relativeTime = "刚刚";
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    relativeTime = `${minutes}分钟前`;
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    relativeTime = `${hours}小时前`;
-  } else if (diffInSeconds < 2592000) {
-    const days = Math.floor(diffInSeconds / 86400);
-    relativeTime = `${days}天前`;
-  } else if (diffInSeconds < 604800) {
-    const weeks = Math.floor(diffInSeconds / 604800);
-    relativeTime = `${weeks}周前`;
-  } else {
-    const months = Math.floor(diffInSeconds / 2592000);
-    relativeTime = `${months}月前`;
-  }
-
-  return {
-    formattedTime: formattedTime,
-    relativeTime: relativeTime,
-  };
-}
-
 onMounted(() => {
   fetchData();
 });
@@ -144,7 +112,7 @@ onMounted(() => {
   border-radius: 0 0 0 10px;
 }
 
-.reply-title { 
+.reply-title {
   display: flex;
   align-items: center;
   justify-content: space-between;

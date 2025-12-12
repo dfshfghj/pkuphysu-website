@@ -11,8 +11,13 @@
               <el-input v-model="currentUser.username" />
             </el-form-item>
             <el-form-item label="个性签名">
-              <el-input v-model="currentUser.bio" type="textarea" :maxlength="100" show-word-limit
-                word-limit-position="outside" />
+              <el-input
+                v-model="currentUser.bio"
+                type="textarea"
+                :maxlength="100"
+                show-word-limit
+                word-limit-position="outside"
+              />
             </el-form-item>
             <!---
             <el-form-item label="公开的邮箱">
@@ -31,10 +36,17 @@
         <el-col :span="8">
           <div style="margin-top: 16px; display: flex; flex-direction: column">
             <label> 头像 </label>
-            <el-avatar :size="120" :src="avatarUrl" />
-            <el-upload :action="avatarUpload" :headers="{ Authorization: 'Bearer ' + userStore.token }"
-              :show-file-list="false" :on-success="handleUploadSuccess" :before-upload="beforeUpload" :limit="1"
-              :auto-upload="true" accept=".jpg,.jpeg,.png,.gif">
+            <UserAvatar :userid="userStore.userid" :size="120" />
+            <el-upload
+              :action="avatarUpload"
+              :headers="{ Authorization: 'Bearer ' + userStore.token }"
+              :show-file-list="false"
+              :on-success="handleUploadSuccess"
+              :before-upload="beforeUpload"
+              :limit="1"
+              :auto-upload="true"
+              accept=".jpg,.jpeg,.png,.gif"
+            >
               <el-button size="small">
                 <el-icon>
                   <Edit />
@@ -73,23 +85,36 @@
         <el-tag :type="currentUser.is_admin ? 'success' : 'info'" round>
           {{ currentUser.is_admin ? "管理员" : "用户" }}
         </el-tag>
-        <el-button v-if="currentUser.is_admin" @click="router.push('/admin/dashboard')" style="float: right"
-          size="small">
+        <el-button
+          v-if="currentUser.is_admin"
+          @click="router.push('/admin/dashboard')"
+          style="float: right"
+          size="small"
+        >
           后台入口
         </el-button>
-        <el-button v-if="!currentUser.verified" style="margin-left: 20px"
-          @click="VerifyDialogVisible = true">前往认证</el-button>
+        <el-button
+          v-if="!currentUser.verified"
+          style="margin-left: 20px"
+          @click="VerifyDialogVisible = true"
+          >前往认证</el-button
+        >
       </div>
       <span v-if="currentUser.verified">{{ currentUser.realname }}</span>
       &nbsp;
       <span label="学号" v-if="currentUser.verified">{{
         currentUser.real_id
-        }}</span>
+      }}</span>
       &nbsp;
       <span label="邮箱" v-if="currentUser.email">{{ currentUser.email }}</span>
     </div>
   </div>
-  <el-dialog v-model="VerifyDialogVisible" title="认证" width="500" align-center>
+  <el-dialog
+    v-model="VerifyDialogVisible"
+    title="认证"
+    width="500"
+    align-center
+  >
     <span>输入北京大学门户网站cookies中的SESSION:</span>
     <el-form :model="verifyForm" label-width="auto">
       <el-input v-model="verifyForm.token" />
@@ -108,6 +133,7 @@ import { ElMessage } from "element-plus";
 import { useUserStore } from "../stores/user";
 import { requestApi } from "../api/api";
 import { Edit } from "@element-plus/icons-vue";
+import UserAvatar from "../components/UserAvatar.vue";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const router = useRouter();
@@ -115,11 +141,6 @@ const userStore = useUserStore();
 const currentUser = ref(null);
 const avatarUpload = `${API_BASE}/api/upload-avatar`;
 const VerifyDialogVisible = ref(false);
-
-const avatarUrl = computed(() => {
-  const path = `${API_BASE}/api/avatars/${currentUser.value.username}`;
-  return path + "?t=" + Date.now();
-});
 
 const verifyForm = reactive({
   token: "",
@@ -144,8 +165,8 @@ const updateProfile = async () => {
   const res = await requestApi("/api/user/profile", {
     method: "POST",
     body: JSON.stringify({
-      "username": currentUser.value.username,
-      "bio": currentUser.value.bio,
+      username: currentUser.value.username,
+      bio: currentUser.value.bio,
     }),
   });
   const result = await res.json();
