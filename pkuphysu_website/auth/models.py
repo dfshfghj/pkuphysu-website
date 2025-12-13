@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from logging import getLogger
 
 from flask_bcrypt import Bcrypt
+from sqlalchemy.orm import backref, relationship
 
 from pkuphysu_website import db
 
@@ -20,6 +21,13 @@ class User(db.Model):
     bio = db.Column(db.String(100))
     is_admin = db.Column(db.Integer)
     verified = db.Column(db.Integer)
+
+    emails = relationship(
+        "Email",
+        backref=backref("user", lazy="joined"),
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+    )
 
     @classmethod
     def update_username(cls, old_username, new_username):
@@ -56,6 +64,7 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "is_admin": True if self.is_admin else False,
+            "emails": [email.email for email in self.emails if email.verified],
         }
 
 
@@ -64,40 +73,30 @@ class Email(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    email = db.Column(db.String(255), nullable=False)
     code = db.Column(db.String(6))
     verified = db.Column(db.Boolean, nullable=False, default=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     @classmethod
     def insert_email(cls, user_id, email, code, expiry_minutes=120):
-        """
-        为用户插入或更新邮箱记录，生成新验证码。
-        - 如果该 email 已被其他用户 verified，拒绝操作。
-        - 否则，删除所有未验证的旧记录（包括其他用户的），为当前用户创建新记录。
-        """
         now = datetime.utcnow()
         expiry_threshold = now - timedelta(minutes=expiry_minutes)
 
-        # 检查是否已被其他用户 verified
         existing_verified = cls.query.filter_by(email=email, verified=True).first()
         if existing_verified and existing_verified.user_id != user_id:
-            return False  # 邮箱已被别人绑定
+            return False
 
-        # 删除该 email 所有未验证的记录（防止垃圾数据）
         cls.query.filter_by(email=email).filter(
-            (not cls.verified) | (cls.timestamp < expiry_threshold)
+            (not cls.verified) or (cls.timestamp < expiry_threshold)
         ).delete()
 
-        # 检查当前用户是否已有该邮箱（理论上已被删，但保险起见）
         item = cls.query.filter_by(user_id=user_id, email=email).first()
         if item:
-            # 更新验证码和时间
             item.code = code
             item.verified = False
             item.timestamp = now
         else:
-            # 创建新记录
             item = cls(
                 user_id=user_id, email=email, code=code, verified=False, timestamp=now
             )
@@ -108,11 +107,6 @@ class Email(db.Model):
 
     @classmethod
     def verify(cls, user_id, email, code, expiry_minutes=120):
-        """
-        验证邮箱验证码。
-        - 验证码必须匹配且未过期。
-        - 验证成功后设置 verified=True，并清除 code。
-        """
         now = datetime.utcnow()
         expiry_threshold = now - timedelta(minutes=expiry_minutes)
 
@@ -121,27 +115,24 @@ class Email(db.Model):
         if not item:
             return False
 
-        # 检查是否过期
         if item.timestamp < expiry_threshold:
             db.session.delete(item)
             db.session.commit()
             return False
 
-        if item.code == str(code):  # 确保类型一致
+        if item.code == str(code):
             item.verified = True
             item.code = None
-            item.timestamp = now  # 可选：更新为验证时间
+            item.timestamp = now
             db.session.commit()
             return True
         else:
-            # 验证码错误，可选择保留记录或删除（这里选择保留但清除 code）
             item.code = None
             db.session.commit()
             return False
 
     @classmethod
     def is_verified(cls, email):
-        """检查邮箱是否已被任何用户 verified"""
         return cls.query.filter_by(email=email, verified=True).first() is not None
 
     @classmethod

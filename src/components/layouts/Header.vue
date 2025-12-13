@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { toggleDark, isDark } from "../../composables/theme";
 import { useUserStore } from "../../stores/user";
-import { More } from "@element-plus/icons-vue";
+import { Delete, More, Setting } from "@element-plus/icons-vue";
 import UserAvatar from "../UserAvatar.vue";
 
 const router = useRouter();
@@ -17,8 +17,8 @@ const handleCommand = (command) => {
     userStore.logout();
     ElMessage.success("已退出登录");
     router.push("/login");
-  } else if (command === "profile") {
-    router.push("/profile");
+  } else if (command === "settings") {
+    router.push("/settings");
   }
 };
 </script>
@@ -77,13 +77,21 @@ const handleCommand = (command) => {
             <UserAvatar />
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                <el-dropdown-item command="settings">
+                  <el-icon>
+                    <Setting />
+                  </el-icon>
+                  <span>个人设置</span>
+                </el-dropdown-item>
                 <el-dropdown-item
                   command="logout"
                   divided
                   style="color: #f56c6c"
                 >
-                  退出登录
+                  <el-icon>
+                    <Delete />
+                  </el-icon>
+                  <span>退出登录</span>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>

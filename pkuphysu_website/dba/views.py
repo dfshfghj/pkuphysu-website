@@ -68,7 +68,9 @@ def manage_table(table_name):
 
         if records == "all":
             # 清空整个表
-            result = db.session.execute(text(f'TRUNCATE TABLE "{table_name}" RESTART IDENTITY CASCADE;'))
+            result = db.session.execute(
+                text(f'TRUNCATE TABLE "{table_name}" RESTART IDENTITY CASCADE;')
+            )
             db.session.commit()
             logger.info("Cleared all rows from %s", table_name)
             return respond_success(deleted=table_name)

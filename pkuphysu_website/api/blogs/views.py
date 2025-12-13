@@ -52,7 +52,7 @@ def get_posts(current_user):
         if tag:
             query = query.filter_by(tag=tag)
         if keyword:
-            query = query.filter(Posts.text.op('&@~')(keyword))
+            query = query.filter(Posts.text.op("&@~")(keyword))
         if begin:
             begin = int(begin)
             query = query.filter(Posts.id < begin)
@@ -79,7 +79,7 @@ def get_posts(current_user):
             "tag": post.tag,
             "is_follow": 1 if post.id in followed_post_ids else 0,
             "userid": post.user.id,
-            "username": post.user.username
+            "username": post.user.username,
         }
         for post in posts
     ]
@@ -108,7 +108,11 @@ def get_follows(current_user):
     page = int(request.args.get("page", 1))
     begin = request.args.get("begin")
 
-    query = Follow.query_follow(current_user.id).order_by(Posts.id.desc()).options(joinedload(Posts.user))
+    query = (
+        Follow.query_follow(current_user.id)
+        .order_by(Posts.id.desc())
+        .options(joinedload(Posts.user))
+    )
     if begin:
         begin = int(begin)
         query = query.filter(Posts.id < begin)
@@ -127,7 +131,7 @@ def get_follows(current_user):
             "reply": post.reply,
             "tag": post.tag,
             "is_follow": 1,
-            "username": post.user.username
+            "username": post.user.username,
         }
         for post in posts
     ]
@@ -174,7 +178,11 @@ def get_comments(current_user, id):
     page = int(request.args.get("page", 1))
     begin = request.args.get("begin")
 
-    query = Comments.query.options(joinedload(Comments.user)).options(joinedload(Comments.quoted_comment)).filter_by(pid=id)
+    query = (
+        Comments.query.options(joinedload(Comments.user))
+        .options(joinedload(Comments.quoted_comment))
+        .filter_by(pid=id)
+    )
 
     order_func = Comments.cid.desc() if sort == "desc" else Comments.cid.asc()
     query = query.order_by(order_func)
@@ -195,14 +203,18 @@ def get_comments(current_user, id):
             "cid": comment.cid,
             "pid": comment.pid,
             "text": comment.text,
-            "quote": {
-                "cid": comment.quoted_comment.cid,
-                "username": comment.quoted_comment.user.username,
-                "text": comment.quoted_comment.text,
-                } if comment.quoted_comment else None,
+            "quote": (
+                {
+                    "cid": comment.quoted_comment.cid,
+                    "username": comment.quoted_comment.user.username,
+                    "text": comment.quoted_comment.text,
+                }
+                if comment.quoted_comment
+                else None
+            ),
             "timestamp": comment.timestamp,
             "userid": comment.user.id,
-            "username": comment.user.username
+            "username": comment.user.username,
         }
         for comment in comments
     ]

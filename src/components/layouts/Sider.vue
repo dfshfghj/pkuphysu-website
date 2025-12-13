@@ -33,7 +33,6 @@ const themeClass = computed(() => `sider--${props.theme}`);
 <template>
   <el-menu
     router
-    class="el-menu-vertical-demo"
     :collapse="isCollapsed"
     :class="[themeClass, { 'sider--collapsed': collapsed }]"
   >

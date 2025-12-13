@@ -51,7 +51,7 @@ def create_invest():
     prize_names = settings.eveparty.PRIZE_NAMES
     prize_letters = list(string.ascii_uppercase[:prize_count])
 
-    help_str = f'''\
+    help_str = f"""\
 invest <{"> <".join(prize_letters[:prize_count])}> | 来进行投点
 
 其中{"、".join(prize_letters[:prize_count])}为非负整数，
@@ -61,7 +61,7 @@ invest <{"> <".join(prize_letters[:prize_count])}> | 来进行投点
 
 invest status | 查看当前投点状态
 
-invest reset | 重置姓名绑定及投点'''
+invest reset | 重置姓名绑定及投点"""
 
     @name_required
     def invest(payload: str, message: TextMessage) -> str:

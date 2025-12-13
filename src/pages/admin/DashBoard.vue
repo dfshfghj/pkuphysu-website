@@ -73,9 +73,16 @@
       {{ refreshing ? "更新中..." : "更新文章" }}
     </el-button>
 
-    <div class="qrcodeContainer" v-if="qrcodeUrl">
+    <el-dialog
+      v-model="QRcodeDialogVisible"
+      title="扫码登录"
+      width="500"
+      align-center
+    >
       <img :src="qrcodeUrl" />
-    </div>
+    </el-dialog>
+
+    <div class="qrcodeContainer" v-if="qrcodeUrl"></div>
   </div>
 </template>
 
@@ -92,6 +99,7 @@ const checking = ref(false);
 const refreshing = ref(false);
 const cookies_expire = ref(0);
 const qrcodeUrl = ref("");
+const QRcodeDialogVisible = ref(false);
 
 const FormatTime = function (timestamp) {
   const date = new Date(timestamp);
@@ -156,6 +164,7 @@ const checkWechatEngine = async () => {
             URL.revokeObjectURL(qrcodeUrl.value);
           }
           qrcodeUrl.value = URL.createObjectURL(blob);
+          QRcodeDialogVisible.value = true;
           qrcodeDone = true;
           break;
         }
@@ -169,6 +178,7 @@ const checkWechatEngine = async () => {
           isLogged = true;
           URL.revokeObjectURL(qrcodeUrl.value);
           qrcodeUrl.value = "";
+          QRcodeDialogVisible.value = false;
           break;
         }
         await new Promise((resolve) => setTimeout(resolve, 200));

@@ -58,7 +58,10 @@ def login():
 
     logger.info(f"User logged in: {username}")
     return respond_success(
-        message="登录成功", token=generate_token(user.id), username=user.username, userid=user.id
+        message="登录成功",
+        token=generate_token(user.id),
+        username=user.username,
+        userid=user.id,
     )
 
 
@@ -144,6 +147,7 @@ def get_user(current_user):
             "real_id": current_user.real_id,
             "verified": current_user.verified,
             "is_admin": current_user.is_admin,
+            "emails": [email.email for email in current_user.emails],
         }
     )
 
@@ -235,7 +239,7 @@ def upload_avatar(current_user):
 def serve_avatar(userid):
     avatar_path = os.path.join(current_dir, "avatars")
     if not os.path.exists(os.path.join(avatar_path, f"{userid}.jpg")):
-        return respond_error(404, "Not Found", "无上传头像")
+        return respond_error(400, "Not Found", "无上传头像")
     return send_from_directory(avatar_path, f"{userid}.jpg")
 
 
@@ -262,3 +266,37 @@ def send_verify(current_user):
             return respond_success(message="验证成功")
         else:
             return respond_error(400, "InvalidCode", "验证码错误")
+
+
+@bp.route("/change-password", methods=["POST"])
+@token_required
+def change_password(current_user):
+    data = request.get_json()
+    old_password = data.get("oldPassword")
+    new_password = data.get("newPassword")
+
+    if not all([old_password, new_password]):
+        return respond_error(400, "ExchangeNoCode", "缺少必要字段")
+
+    if len(new_password) < 6:
+        return respond_error(400, "InvalidPassword", "新密码至少6位")
+
+    if not current_user.check_password(old_password):
+        return respond_error(401, "WrongCode", "旧密码错误")
+
+    current_user.set_password(new_password)
+    db.session.add(current_user)
+    db.session.commit()
+
+    logger.info(f"User changed password: {current_user.username}")
+    return respond_success(message="密码修改成功")
+
+
+@bp.route("/delete-account", methods=["POST"])
+@token_required
+def delete_account(current_user):
+    db.session.delete(current_user)
+    db.session.commit()
+
+    logger.info(f"User deleted account: {current_user.username}")
+    return respond_success(message="账号已注销")

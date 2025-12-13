@@ -54,7 +54,7 @@ export const useUserStore = defineStore("user", {
           Authorization: `Bearer ${this.token}`,
         },
       });
-      if (!res.ok) {
+      if (res.status === 401) {
         this.logout();
         return {};
       } else {

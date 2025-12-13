@@ -74,3 +74,43 @@ button:focus-visible {
   height: 100%;
   color: var(--el-text-color-primary);
 }
+
+.el-menu .el-menu-item {
+  background: transparent !important;
+  border: none !important;
+}
+
+.el-menu.el-menu--vertical .el-menu-item,
+.el-menu.el-menu--vertical .el-sub-menu .el-sub-menu__title {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  height: 40px;
+  line-height: 1.5;
+}
+
+.el-menu.el-menu--vertical .el-menu-item.is-active {
+  background: var(--gray-2);
+}
+
+.el-menu.el-menu--vertical .el-menu-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--el-menu-active-color);
+}
+
+.el-menu .el-menu-item.collapse-toggle {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.el-menu .el-menu-item.collapse-toggle:hover {
+  background: transparent;
+}

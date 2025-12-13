@@ -12,6 +12,7 @@ from .utils import CustomQuery, respond_error
 db = SQLAlchemy(query_class=CustomQuery)
 migrate = Migrate()
 
+
 def create_app():
     app = Flask(__name__)
     logger = getLogger(__name__)
