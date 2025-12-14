@@ -42,8 +42,8 @@ const routes = [
   },
   {
     path: "/settings",
-    name: "Profile",
-    component: () => import("../pages/Profile.vue"),
+    name: "Settings",
+    component: () => import("../pages/Settings.vue"),
     meta: { login: true },
   },
   {
