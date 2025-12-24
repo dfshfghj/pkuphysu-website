@@ -430,7 +430,7 @@ import {
   CopyDocument,
 } from "@element-plus/icons-vue";
 import MarkdownEditor from "../components/MarkdownEditor-v2.vue";
-import MarkdownRenderer from "../components/MarkdownRenderer-v1.vue";
+import MarkdownRenderer from "../components/MarkdownRenderer.vue";
 import CollapsibleDiv from "../components/CollapsibleDiv.vue";
 import { isDark } from "../composables/theme";
 import { useUserStore } from "../stores/user";

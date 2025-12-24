@@ -12,7 +12,7 @@ from pkuphysu_website.pkuphysu_wechat.wechat.core import wechat_mgr
 # from .models import CJParticipant
 
 logger = getLogger(__name__)
-# wechat_mgr.command_reg.mark_default_closed("eveparty")
+wechat_mgr.command_reg.mark_default_closed("eveparty")
 
 
 def name_required(f):

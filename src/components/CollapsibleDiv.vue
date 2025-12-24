@@ -8,9 +8,8 @@
     >
       <slot></slot>
     </div>
-    <div class="ctl-panel">
+    <div class="ctl-panel" v-if="shouldShowButton">
       <span
-        v-if="shouldShowButton"
         @click="toggleExpanded"
         style="cursor: pointer; color: var(--c-primary)"
       >

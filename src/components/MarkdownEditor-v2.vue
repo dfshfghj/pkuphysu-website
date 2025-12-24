@@ -12,17 +12,17 @@
       ></el-input>
     </el-tab-pane>
     <el-tab-pane label="预览">
-      <MarkdownRenderer-v3
+      <MarkdownRenderer
         :content="model"
         :darkMode="darkMode"
-      ></MarkdownRenderer-v3>
+      ></MarkdownRenderer>
     </el-tab-pane>
   </el-tabs>
   <slot></slot>
 </template>
 
 <script setup>
-import MarkdownRendererV3 from "./MarkdownRenderer-v1.vue";
+import MarkdownRenderer from "./MarkdownRenderer.vue";
 
 const model = defineModel();
 const props = defineProps({

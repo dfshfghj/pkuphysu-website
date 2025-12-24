@@ -19,7 +19,7 @@
             </div>
           </div>
         </div>
-        <MarkdownRenderer_V2
+        <MarkdownRenderer
           :content="data.content"
           :dark-mode="isDark"
           v-if="data.content"
@@ -63,7 +63,7 @@
 
 <script setup>
 import { ChatRound, Close, Star } from "@element-plus/icons-vue";
-import MarkdownRenderer_V2 from "../components/MarkdownRenderer-v2.vue";
+import MarkdownRenderer from "../components/MarkdownRenderer.vue";
 import { isDark } from "../composables/theme";
 import { requestApi } from "../api/api";
 import { formatTime } from "../utils";

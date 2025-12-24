@@ -53,6 +53,14 @@ const routes = [
     meta: { login: true },
   },
   {
+    path: "/forum",
+    name: "ForumDashBoard",
+    component: () => import("../pages/forum/DashBoard.vue"),
+    meta: {
+      login: true,
+    },
+  },
+  {
     path: "/chat/articles",
     name: "ArticleCenter",
     component: () => import("../pages/ArticleCenter.vue"),

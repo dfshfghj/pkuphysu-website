@@ -7,7 +7,6 @@ import App from "./App.vue";
 import { createPinia } from "pinia";
 // import 'element-plus/dist/index.css'
 import "element-plus/theme-chalk/dark/css-vars.css";
-import "./styles/github-markdown.css";
 
 import router from "./router";
 
