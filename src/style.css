@@ -114,3 +114,7 @@ button:focus-visible {
 .el-menu .el-menu-item.collapse-toggle:hover {
   background: transparent;
 }
+
+.el-table {
+  border-radius: 6px;
+}

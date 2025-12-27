@@ -8,7 +8,6 @@
     <div class="pictureContainer">
       <el-carousel
         height="calc(100vh - var(--el-menu-item-height) - 4px)"
-        motion-blur
         indicator-position="none"
       >
         <el-carousel-item
@@ -88,7 +87,7 @@
     <!-- 通知部分 -->
     <div class="activityContainer">
       <div class="containerHeader">
-        <span>Posts</span>
+        <span>文章</span>
       </div>
       <div id="cardList">
         <a
@@ -208,11 +207,11 @@ const showWechatQRCode = ref(false);
 
 const fetchNews = async () => {
   try {
-    const res = await requestApi("/api/news");
+    const res = await requestApi("/api/v2/news");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    news.value = data.map((item) => ({
+    news.value = data.data.map((item) => ({
       ...item,
       startTime: new Date(item.start_time).getTime(),
       endTime: new Date(item.end_time).getTime(),
@@ -226,11 +225,11 @@ const fetchNews = async () => {
 
 const fetchActivities = async () => {
   try {
-    const res = await requestApi("/api/activities");
+    const res = await requestApi("/api/v2/activity");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    activities.value = data.map((item) => ({
+    activities.value = data.data.map((item) => ({
       ...item,
       startTime: new Date(item.start_time).getTime(),
       endTime: new Date(item.end_time).getTime(),
@@ -244,7 +243,7 @@ const fetchActivities = async () => {
 
 const fetchPosts = async () => {
   try {
-    const res = await requestApi("/api/wechat/posts?limit=10&page=1");
+    const res = await requestApi("/api/v2/posts?limit=10&page=1");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -368,7 +367,7 @@ strong {
 .bottom {
   display: flex;
   justify-content: center;
-  margin: 20px 80px;
+  margin: 20px auto;
   font-size: 20px;
 }
 
@@ -481,6 +480,8 @@ strong {
 
   .el-carousel {
     height: 200px;
+    border-radius: 6px;
+    margin: 15px;
   }
 
   .carousel-title {

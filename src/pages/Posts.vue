@@ -1,6 +1,6 @@
 <template>
   <div class="posts-container">
-    <h2 class="page-title">Post</h2>
+    <h2 class="page-title">文章</h2>
 
     <!-- 加载状态 -->
     <el-skeleton v-if="loading" :rows="6" animated style="margin: 20px" />
@@ -63,7 +63,7 @@ const currentPage = ref(1);
 const fetchPosts = async (page = 1) => {
   try {
     const res = await requestApi(
-      `/api/wechat/posts?limit=${pageSize}&page=${page}`,
+      `/api/v2/posts?limit=${pageSize}&page=${page}`,
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();

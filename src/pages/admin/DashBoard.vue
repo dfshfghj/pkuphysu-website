@@ -89,17 +89,25 @@
 <script setup>
 import { requestApi } from "../../api/api";
 import UserAvatar from "../../components/UserAvatar.vue";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 const users = ref({
   users: [],
   admins: [],
 });
+const fingerprint = ref("");
 const loading = ref(false);
 const checking = ref(false);
 const refreshing = ref(false);
 const cookies_expire = ref(0);
 const qrcodeUrl = ref("");
 const QRcodeDialogVisible = ref(false);
+
+const getBrowserFingerprint = async () => {
+  const fp = await FingerprintJS.load();
+  const result = await fp.get();
+  fingerprint.value = result.visitorId;
+};
 
 const FormatTime = function (timestamp) {
   const date = new Date(timestamp);
@@ -154,34 +162,34 @@ const checkWechatEngine = async () => {
       ElMessage.success("登录状态有效");
     } else {
       ElMessage.error(result.message || "登录状态失效");
-      await requestApi("/api/wechat/refresh-login");
-      let qrcodeDone = false;
-      while (!qrcodeDone) {
-        const res = await requestApi("/api/wechat/cgi-bin/scanloginqrcode");
-        if (res.ok) {
-          const blob = await res.blob();
-          if (qrcodeUrl.value) {
-            URL.revokeObjectURL(qrcodeUrl.value);
-          }
-          qrcodeUrl.value = URL.createObjectURL(blob);
-          QRcodeDialogVisible.value = true;
-          qrcodeDone = true;
-          break;
+      const res = await requestApi(
+        `/api/wechat/scanloginqrcode?action=getqrcode&fingerprint=${fingerprint.value}`,
+      );
+      if (res.ok) {
+        const blob = await res.blob();
+        if (qrcodeUrl.value) {
+          URL.revokeObjectURL(qrcodeUrl.value);
         }
-
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        qrcodeUrl.value = URL.createObjectURL(blob);
+        QRcodeDialogVisible.value = true;
       }
       let isLogged = false;
       while (!isLogged) {
-        const res = await requestApi("/api/wechat/");
-        if (res.ok) {
+        const res = await requestApi(
+          `/api/wechat/scanloginqrcode?action=ask&fingerprint=${fingerprint.value}`,
+        );
+        const result = await res.json();
+        if (result.status == 1) {
           isLogged = true;
           URL.revokeObjectURL(qrcodeUrl.value);
           qrcodeUrl.value = "";
           QRcodeDialogVisible.value = false;
+          await requestApi(
+            `/api/wechat/login&fingerprint=${fingerprint.value}`,
+          );
           break;
         }
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
   } catch (err) {
@@ -216,6 +224,7 @@ onMounted(() => {
   loadUserList("admins");
   loadUserList("users");
   cookiesExpire();
+  getBrowserFingerprint();
 });
 </script>
 

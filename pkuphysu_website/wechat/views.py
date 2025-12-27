@@ -1,4 +1,3 @@
-import io
 import json
 import os
 
@@ -7,13 +6,23 @@ from flask import Blueprint, Response, request
 from pkuphysu_website.auth.utils import admin_required
 from pkuphysu_website.utils import respond_error, respond_success
 
-from .utils import get_state, get_token, load_posts, update_posts, wx
+from .utils import (
+    ask_qrcode,
+    get_qrcode,
+    get_state,
+    get_token,
+    load_posts,
+    login,
+    session,
+    update_posts,
+)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 state_dir = os.path.join(current_dir, "data")
 
 bp = Blueprint("wechat", __name__, url_prefix="/wechat")
-headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 
 @bp.route("/posts")
@@ -27,20 +36,29 @@ def get_posts():
 @bp.route("/")
 @admin_required
 def _(current_user):
-    token, session = get_token()
+    token = get_token()
     if token:
-        return respond_success(success=True)
+        return respond_success(success=True, token=token)
     else:
         return respond_error(400, "TokenExpired", "token已失效")
 
 
-@bp.route("/refresh-login")
+@bp.route("/login")
 @admin_required
 def refresh_login(current_user):
-    if not wx.running:
-        wx.start_thread()
+    fingerprint = request.args.get("fingerprint")
+    return login(fingerprint)
 
-    return {"message": "start wechat engine, please wait"}, 200
+@bp.route("/scanloginqrcode")
+@admin_required
+def qrcode(current_user):
+    fingerprint = request.args.get("fingerprint")
+    action = request.args.get("action")
+    if action == "getqrcode":
+        response = get_qrcode(fingerprint)
+        return Response(response.content, mimetype="image/png")
+    elif action == "ask":
+        return ask_qrcode(fingerprint)
 
 
 @bp.route("/update-posts")
@@ -55,32 +73,10 @@ def update(current_user):
         return respond_error(400, "TokenExpired")
     return respond_success(data=posts)
 
-
-@bp.route("/cgi-bin/scanloginqrcode")
-@admin_required
-def get_qrcode(current_user):
-    if os.path.exists(os.path.join(state_dir, "qrcode.png")):
-        with open(os.path.join(state_dir, "qrcode.png"), mode="rb") as qrcode:
-            qrcode_io = io.BytesIO(qrcode.read())
-
-        return Response(
-            qrcode_io.read(),
-            mimetype="image/png",
-            headers={
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0",
-            },
-        )
-
-    else:
-        return {"message": "not found"}, 404
-
-
 @bp.route("/cgi-bin/appmsgpublish")
 @admin_required
 def get_msg(current_user):
-    token, session = get_token()
+    token = get_token()
     begin = request.args.get("begin", 0)
     count = request.args.get("count", 10)
 
@@ -117,8 +113,8 @@ def check():
 
     expires = [
         cookie["expires"]
-        for cookie in state.get("cookies", [])
-        if cookie["expires"] > 0
+        for cookie in state
+        if cookie["expires"] and cookie["expires"] > 0
     ]
 
     return {"expire": min(expires)}, 200

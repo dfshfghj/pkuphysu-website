@@ -53,14 +53,14 @@ const handleCommand = (command) => {
         --->
         <el-menu-item index="/chat/blogs"> 论坛 </el-menu-item>
         <el-menu-item index="/doc"> 文档 </el-menu-item>
-        <el-menu-item index="/posts"> Posts </el-menu-item>
+        <el-menu-item index="/posts"> 文章 </el-menu-item>
       </el-sub-menu>
       <!---
       <el-menu-item index="/chat/articles" id="document"> BBS </el-menu-item>
       -->
       <el-menu-item index="/chat/blogs" id="document"> 论坛 </el-menu-item>
       <el-menu-item index="/doc" id="document"> 文档 </el-menu-item>
-      <el-menu-item index="/posts" id="posts"> Posts </el-menu-item>
+      <el-menu-item index="/posts" id="posts"> 文章 </el-menu-item>
 
       <el-menu-item h="full" @click="toggleDark()" id="toggleDark">
         <button

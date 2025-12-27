@@ -10,7 +10,7 @@ def get_news():
     return news_data(), 200
 
 
-@bp.route("/activities")
+@bp.route("/activity")
 def get_activities():
     return activity_data(), 200
 

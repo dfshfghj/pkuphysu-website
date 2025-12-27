@@ -1,10 +1,9 @@
-import fcntl
 import json
 import os
+import random
 import re
-import threading
 from datetime import datetime, timedelta, timezone
-from functools import wraps
+from http.cookiejar import Cookie
 from logging import getLogger
 
 import requests
@@ -13,168 +12,125 @@ from .models import Post
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 state_dir = os.path.join(current_dir, "data")
-qr_path = os.path.join(state_dir, "qrcode.png")
-state_path = os.path.join(state_dir, "login_state.json")
-lock_path = os.path.join(state_dir, ".wxrunner.lock")
+cookie_path = os.path.join(state_dir, "cookies.json")
 logger = getLogger(__name__)
 
 
-def with_lock(func):
-    """
-    by fcntl : only on linux
-    """
+def save_cookies(session):
+    cookies_list = []
+    for cookie in session.cookies:
+        cookie_dict = {
+            'name': cookie.name,
+            'value': cookie.value,
+            'domain': cookie.domain,
+            'path': cookie.path,
+            'expires': cookie.expires if cookie.expires else None,
+            'secure': cookie.secure,
+            'rest': {'HttpOnly': cookie.has_nonstandard_attr('HttpOnly')}
+        }
+        cookies_list.append(cookie_dict)
 
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        lock_file = open(lock_path, "w")
-        try:
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            logger.info(f"{os.getpid()} Acquired lock, task started")
-        except BlockingIOError:
-            logger.exception(f"{os.getpid()} Acquire lock failed")
-            lock_file.close()
-            return None
-
-        try:
-            return func(self, *args, **kwargs)
-        except Exception:
-            logger.exception(f"{os.getpid()} error occured")
-            raise
-        finally:
-            try:
-                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
-                lock_file.close()
-            except Exception:
-                logger.exception(f"{os.getpid()} failed to release lock")
-            logger.info(f"{os.getpid()} Released lock")
-
-    return wrapper
+    with open(cookie_path, 'w') as f:
+        json.dump(cookies_list, f, indent=4)
 
 
-class WxRunner:
-    def __init__(self):
-        self._lock = threading.Lock()
-        self.token = None
-        self.running = False
-        self.thread = None
+def load_cookies(session):
+    try:
+        with open(cookie_path) as f:
+            cookies_list = json.load(f)
+        session.cookies.clear()
+        for cookie_dict in cookies_list:
+            cookie = Cookie(
+                version=0,
+                name=cookie_dict['name'],
+                value=cookie_dict['value'],
+                port=None,
+                port_specified=False,
+                domain=cookie_dict['domain'],
+                domain_specified=bool(cookie_dict['domain']),
+                domain_initial_dot=cookie_dict['domain'].startswith('.'),
+                path=cookie_dict['path'],
+                path_specified=bool(cookie_dict['path']),
+                secure=cookie_dict['secure'],
+                expires=cookie_dict['expires'],
+                discard=False,
+                comment=None,
+                comment_url=None,
+                rest=cookie_dict['rest']
+            )
+            session.cookies.set_cookie(cookie)
 
-    def _on_response(self, response):
-        url = response.url
-        if "cgi-bin/scanloginqrcode?action=getqrcode" in url:
-            try:
-                body = response.body()
-                with open(qr_path, "wb") as f:
-                    f.write(body)
-                logger.info(f"Saved QR code to {qr_path}")
-            except Exception:
-                logger.exception("Failed to save QR code")
-
-    def _poll_for_token(self, page):
-        max_retry = 1000
-        retry = 0
-        while self.running:
-            try:
-                retry += 1
-                if retry > max_retry:
-                    logger.warning("Timeout for token")
-                    try:
-                        os.remove(qr_path)
-                    except FileNotFoundError:
-                        pass
-                    return
-
-                url = page.url
-                if "home" in url and "token=" in url:
-                    match = re.search(r"token=([^&]+)", url)
-                    if match:
-                        self.token = match.group(1)
-                        try:
-                            os.remove(qr_path)
-                        except FileNotFoundError:
-                            pass
-                        logger.info(f"Got token: {self.token}")
-                        return
-            except Exception:
-                logger.exception("Failed to poll for token")
-            page.wait_for_timeout(200)
-
-    @with_lock
-    def run(self):
-        if self.running:
-            return
-        self.running = True
-
-        logger.info("Starting automation for Wechat")
-        browser = None
-        context = None
-        page = None
-
-        try:
-            from playwright.sync_api import sync_playwright
-
-            with sync_playwright() as p:
-                os.makedirs(state_dir, exist_ok=True)
-
-                browser = p.chromium.launch(
-                    headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
-                )
-                if os.path.exists(state_path):
-                    logger.info("Use existing login state")
-                    context = browser.new_context(
-                        storage_state=state_path,
-                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                    )
-                else:
-                    context = browser.new_context(
-                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-                    )
-                context.add_init_script(
-                    """
-                        Object.defineProperty(navigator, 'webdriver', { get: () => false });
-                    """
-                )
-                page = context.new_page()
-
-                page.on("response", self._on_response)
-
-                page.goto("https://mp.weixin.qq.com/")
-
-                self._poll_for_token(page)
-
-                if self.token:
-                    context.storage_state(path=state_path)
-                    logger.info("Successfully logged in")
-                else:
-                    logger.error("Failed to login")
-
-        except Exception:
-            logger.exception("Failed to run automation")
-        finally:
-            if context:
-                context = None
-            if browser:
-                browser = None
-            self.running = False
-            logger.info("Stopped automation")
-
-    def start_thread(self):
-        with self._lock:
-            if not self.thread or not self.thread.is_alive():
-                self.thread = threading.Thread(target=self.run, daemon=True)
-                self.thread.start()
-                logger.info("Starting thread for Wechat")
+    except Exception as e:
+        print(e)
 
 
-wx = WxRunner()
+session = requests.Session()
+load_cookies(session)
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
+    "origin": "https://mp.weixin.qq.com",
+    "referer": "https://mp.weixin.qq.com/",
+}
 
-headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+def get_qrcode(fingerprint):
+    session.get("https://mp.weixin.qq.com")
+    session.post("https://mp.weixin.qq.com/cgi-bin/bizlogin",
+                 data={
+                     "action": "prelogin",
+                     "fingerprint": fingerprint,
+                     "token": None,
+                     "lang": "zh_CN",
+                     "f": "json",
+                     "ajax": 1,
+                 },
+                 headers=headers)
+    session.post("https://mp.weixin.qq.com/cgi-bin/bizlogin?action=startlogin",
+                 data={
+                     "userlang": "zh_CN",
+                     "redirect_url": None,
+                     "login_type": 3,
+                     "sessionid": f"{int(datetime.now().timestamp() * 1000)}{int(random.randint(10, 99) * 100)}",
+                     "fingerprint": fingerprint,
+                     "token": None,
+                     "lang": "zh_CN",
+                     "f": "json",
+                     "ajax": 1,
+                 },
+                 headers=headers)
+    getqrcode = session.get(f"https://mp.weixin.qq.com/cgi-bin/scanloginqrcode?action=getqrcode&random={int(datetime.now().timestamp() * 1000)}&login_appid=",
+                            headers=headers)
+
+    return getqrcode
+
+
+def ask_qrcode(fingerprint):
+    askqrcode = session.get(
+        f"https://mp.weixin.qq.com/cgi-bin/scanloginqrcode?action=ask&fingerprint={fingerprint}&token=&lang=zh_CN&f=json&ajax=1", headers=headers)
+    return askqrcode.json()
+
+
+def login(fingerprint):
+    login = session.post("https://mp.weixin.qq.com/cgi-bin/bizlogin?action=login",
+                         data={
+                             "userlang": "zh_CN",
+                             "redirect_url": '',
+                             "cookie_forbidden": '0',
+                             "cookie_cleaned": '1',
+                             "plugin_used": '0',
+                             "login_type": '3',
+                             "fingerprint": fingerprint,
+                             "token": None,
+                             "lang": "zh_CN",
+                             "f": "json",
+                             "ajax": 1,
+                         }, headers=headers)
+    return login.json()
 
 
 def get_state():
-    if os.path.exists(os.path.join(state_dir, "login_state.json")):
-        with open(
-            os.path.join(state_dir, "login_state.json"), encoding="utf-8"
-        ) as file:
+    if os.path.exists(cookie_path):
+        with open(cookie_path, encoding="utf-8") as file:
             state = json.load(file)
 
         return state
@@ -183,17 +139,6 @@ def get_state():
 
 
 def get_token():
-    state = get_state()
-    if not state:
-        return None
-    session = requests.Session()
-    for cookie in state.get("cookies", []):
-        session.cookies.set(
-            name=cookie["name"],
-            value=cookie["value"],
-            domain=cookie["domain"],
-            path=cookie["path"],
-        )
     response = session.get(
         "https://mp.weixin.qq.com", headers=headers, allow_redirects=True
     )
@@ -203,7 +148,8 @@ def get_token():
         match = re.search(r"token=([^&]+)", url)
         if match:
             token = match.group(1)
-    return token, session
+        save_cookies(session)
+    return token
 
 
 def load_posts(offset=0, limit=10, mp_name="物院学生会"):
@@ -230,7 +176,7 @@ def load_posts(offset=0, limit=10, mp_name="物院学生会"):
         matches = re.match("【(.*)】", item["title"])
         item["tag"] = matches.group(1) if matches else "其它"
         item["title"] = re.sub("【.*】", "", item["title"]).strip()
-        item["description"] = item["description"].split("/n")[0]
+        item["description"] = item["description"].split("\n")[0]
         item["publish_time"] = datetime.fromtimestamp(
             item["publish_time"], tz=timezone(timedelta(hours=8))
         ).strftime("%Y-%m-%d %H:%M:%S")
@@ -239,7 +185,7 @@ def load_posts(offset=0, limit=10, mp_name="物院学生会"):
 
 
 def update_posts(begin, count):
-    token, session = get_token()
+    token = get_token()
     if not token:
         return
     api_url = f"https://mp.weixin.qq.com/cgi-bin/appmsgpublish?sub=list&begin={begin}&count={count}&token={token}&lang=zh_CN&f=json"
