@@ -19,8 +19,8 @@
 ## develop
 
 ```bash
-npm install
+pnpm install
 ```
 ```bash
-npm run dev
+pnpm run dev
 ```

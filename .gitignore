@@ -35,7 +35,6 @@ migrations
 *.webp
 *.json
 *.pem
-!package-lock.json
 !package.json
 .secrets.toml
 .env
