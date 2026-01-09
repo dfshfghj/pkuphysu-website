@@ -11,7 +11,9 @@
           flex: 1;
         "
       >
-        <span style="font-weight: 600"> {{ currentUser.username }} </span>
+        <span style="font-weight: 600" class="font-serif">
+          {{ currentUser.username }}
+        </span>
         <el-tag round type="info"> id: {{ currentUser.id }} </el-tag>
       </div>
       <div>
@@ -34,7 +36,7 @@
       </div>
       <div class="profile-container" v-if="userStore.isLoggedIn && currentUser">
         <div class="subHead" v-if="currentPage === 'publicProfile'">
-          <h2 class="subhead-heading">个人资料</h2>
+          <h2 class="subhead-heading font-serif">个人资料</h2>
         </div>
         <div v-if="currentPage === 'publicProfile'">
           <el-row>
@@ -99,7 +101,7 @@
           </el-row>
         </div>
         <div class="subHead" v-if="currentPage === 'account'">
-          <h2 class="subhead-heading">认证</h2>
+          <h2 class="subhead-heading font-serif">认证</h2>
         </div>
         <div v-if="currentPage === 'account'">
           <span v-if="currentUser.verified">{{ currentUser.realname }}</span>
@@ -133,7 +135,7 @@
           </div>
         </div>
         <div class="subHead" v-if="currentPage === 'account'">
-          <h2 class="subhead-heading">账户绑定</h2>
+          <h2 class="subhead-heading font-serif">账户绑定</h2>
         </div>
         <div class="item-card" v-if="currentPage === 'account'">
           <el-icon>
@@ -153,7 +155,7 @@
           </el-button>
         </div>
         <div class="subHead" v-if="currentPage === 'security'">
-          <h2 class="subhead-heading">安全设置</h2>
+          <h2 class="subhead-heading font-serif">安全设置</h2>
         </div>
         <div class="item-card" v-if="currentPage === 'security'">
           <el-icon>
@@ -506,7 +508,7 @@ const deleteAccount = async () => {
 
 .subhead-heading {
   font-size: 22px;
-  font-weight: 400;
+  font-weight: bold;
   margin: 0px;
 }
 

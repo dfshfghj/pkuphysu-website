@@ -39,7 +39,7 @@ const handleCommand = (command) => {
         >
           <img src="../../assets/logo_white.svg" class="logo" v-if="isDark" />
           <img src="../../assets/logo_black.svg" class="logo" v-else />
-          <b id="title">物院学生会</b>
+          <b id="title" class="font-serif">物院学生会</b>
         </div>
       </el-menu-item>
       <el-sub-menu index="1" id="more">
@@ -48,17 +48,11 @@ const handleCommand = (command) => {
             <More />
           </el-icon>
         </template>
-        <!---
-        <el-menu-item index="/chat/articles"> BBS </el-menu-item>
-        --->
-        <el-menu-item index="/chat/blogs"> 论坛 </el-menu-item>
+        <el-menu-item index="/forum"> 论坛 </el-menu-item>
         <el-menu-item index="/doc"> 文档 </el-menu-item>
         <el-menu-item index="/posts"> 文章 </el-menu-item>
       </el-sub-menu>
-      <!---
-      <el-menu-item index="/chat/articles" id="document"> BBS </el-menu-item>
-      -->
-      <el-menu-item index="/chat/blogs" id="document"> 论坛 </el-menu-item>
+      <el-menu-item index="/forum" id="document"> 论坛 </el-menu-item>
       <el-menu-item index="/doc" id="document"> 文档 </el-menu-item>
       <el-menu-item index="/posts" id="posts"> 文章 </el-menu-item>
 

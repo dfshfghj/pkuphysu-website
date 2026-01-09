@@ -1,17 +1,25 @@
 <template>
   <div class="container">
-    <div class="sidebar"></div>
+    <div class="sidebar" style="border-right: 1px solid var(--c-border)">
+      <div style="padding: 20px">
+        <h3>热门话题</h3>
+      </div>
+      <div style="padding: 20px">
+        <h3>最近更新</h3>
+      </div>
+    </div>
     <el-scrollbar
-      distance="500"
+      :distance="500"
       @end-reached="loadMorePosts"
-      style="height: calc(100vh - 64px)"
+      style="height: calc(100vh - 64px); flex: 1"
     >
       <div
-        v-for="post in posts"
-        :key="post.id"
-        ref="postRefs"
-        class="post-item card"
+        style="display: flex; justify-content: space-around; padding-top: 10px"
       >
+        <span> Explore </span>
+        <span> Topics </span>
+      </div>
+      <div v-for="post in posts" :key="post.id" class="post-item card">
         <div class="card-header unselectable">
           <UserAvatar :userid="post.userid" />
           <div style="flex: 1">
@@ -30,37 +38,77 @@
             </div>
           </div>
         </div>
-        <CollapsibleDiv max-height="500">
-          <MarkdownRenderer :dark-mode="isDark" :content="post.text" />
-        </CollapsibleDiv>
-        <el-row style="text-align: center; margin-bottom: 12px">
-          <el-col :span="12">
-            <el-button text size="small" @click="handleFollow(post.id)">
-              <el-icon>
-                <StarFilled v-if="post.is_follow" />
-                <Star v-else />
-              </el-icon>
-              &nbsp; {{ post.likenum }} 点赞
-            </el-button>
-          </el-col>
-          <el-col :span="12">
-            <el-button
-              text
-              size="small"
-              type="info"
+        <div>
+          <CollapsibleDiv :max-height="500">
+            <MarkdownRenderer :content="post.text" />
+          </CollapsibleDiv>
+          <el-row
+            style="
+              text-align: center;
+              padding-bottom: 12px;
+              padding-top: 6px;
+              position: sticky;
+              bottom: 0;
+              background: var(--c-card);
+              border-top: 1px solid var(--c-border);
+            "
+          >
+            <el-col :span="12">
+              <el-button text size="small" @click="handleFollow(post.id)">
+                <el-icon>
+                  <StarFilled v-if="post.is_follow" />
+                  <Star v-else />
+                </el-icon>
+                &nbsp; {{ post.likenum }} 点赞
+              </el-button>
+            </el-col>
+            <el-col :span="12">
+              <el-button
+                text
+                size="small"
+                type="info"
+                @click="
+                  fetchComments(post.id);
+                  toggleComments(post.id);
+                "
+              >
+                <el-icon>
+                  <ChatDotRound />
+                </el-icon>
+                &nbsp; {{ post.reply }} 评论
+              </el-button>
+            </el-col>
+          </el-row>
+        </div>
+        <div v-show="activeCommentPanel == post.id" class="card-list">
+          <div style="display: flex; align-items: center">
+            <h3>评论</h3>
+            <div
+              class="control-btn"
               @click="
-                fetchComments(post.id);
-                toggleComments(post.id);
+                AscSort = !AscSort;
+                fetchComments(currentPost.id);
               "
             >
               <el-icon>
-                <ChatDotRound />
+                <Histogram />
               </el-icon>
-              &nbsp; {{ post.reply }} 评论
-            </el-button>
-          </el-col>
-        </el-row>
-        <div v-if="activeCommentPanel == post.id">
+              <span> {{ AscSort ? "顺序" : "逆序" }} </span>
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              align-items: stretch;
+              padding: 5px 20px 20px 20px;
+            "
+          >
+            <UserAvatar :size="50" />
+            <div style="flex: 1">
+              <MarkdownEditorV2 :placeholder="'请输入评论...'" />
+            </div>
+          </div>
           <div
             v-for="comment in comments[post.id]"
             :key="comment.cid"
@@ -85,14 +133,10 @@
                 </div>
               </div>
             </div>
-            <CollapsibleDiv max-height="300">
+            <CollapsibleDiv :max-height="300">
               <span
                 v-if="comment.quote"
-                style="
-                  margin-left: 20px;
-                  font-size: 14px;
-                  color: var(--c-secondary);
-                "
+                style="font-size: 14px; color: var(--c-secondary)"
               >
                 {{ `@${comment.quote.username}: ` }}
               </span>
@@ -113,6 +157,12 @@
               />
             </CollapsibleDiv>
           </div>
+          <div
+            v-if="comments[post.id] && comments[post.id].length === 0"
+            style="text-align: center; padding-bottom: 10px"
+          >
+            <span> 没有更多评论 </span>
+          </div>
         </div>
       </div>
 
@@ -121,6 +171,22 @@
         <p style="margin-top: 12px">加载中...</p>
       </div>
     </el-scrollbar>
+    <div class="sidebar" style="background: transparent">
+      <div class="card">
+        <div class="card-header">
+          <h3>公告</h3>
+        </div>
+        <el-timeline>
+          <el-timeline-item
+            v-for="notice in notices"
+            :key="notice.title"
+            :timestamp="notice.timestamp"
+          >
+            <span> {{ notice.content }} </span>
+          </el-timeline-item>
+        </el-timeline>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -130,17 +196,18 @@ import {
   Star,
   StarFilled,
   CopyDocument,
+  Histogram,
 } from "@element-plus/icons-vue";
 import { requestApi } from "../../api/api";
 import { formatTime } from "../../utils";
 import CollapsibleDiv from "../../components/CollapsibleDiv.vue";
 import UserAvatar from "../../components/UserAvatar.vue";
 import MarkdownRenderer from "../../components/MarkdownRenderer.vue";
+import MarkdownEditorV2 from "../../components/MarkdownEditor-v2.vue";
 
 // State
 const posts = ref([]);
 const loading = ref(false);
-const postRefs = ref([]);
 const activeCommentPanel = ref("");
 const comments = ref({});
 const AscSort = ref(true);
@@ -149,6 +216,19 @@ const endOfPosts = ref(false);
 const endOfComments = ref(false);
 const quote = ref(null);
 const quoteName = ref("");
+
+const notices = [
+  {
+    title: "公告",
+    content: "欢迎来到博客系统",
+    timestamp: "2026-01-01",
+  },
+  {
+    title: "公告",
+    content: "博客系统正在开发中",
+    timestamp: "2025-12-31",
+  },
+];
 
 const copyText = async (text) => {
   if (!navigator.clipboard) return alert("当前浏览器环境不支持复制");
@@ -214,9 +294,7 @@ const fetchComments = async (id) => {
     if (data.data.length < 10) {
       endOfComments.value = true;
     }
-    console.log(comments.value);
     comments.value[id] = data.data;
-    console.log(comments.value);
   } catch (err) {
     console.error("Fetch posts failed:", err);
   }
@@ -224,12 +302,7 @@ const fetchComments = async (id) => {
 const toggleComments = (id) => {
   const post = posts.value.find((p) => p.id === id);
   if (post) {
-    post.showComments = !post.showComments;
-    if (post.showComments) {
-      activeCommentPanel.value = id.toString();
-    } else if (activeCommentPanel.value === id.toString()) {
-      activeCommentPanel.value = "";
-    }
+    activeCommentPanel.value = activeCommentPanel.value === id ? null : id;
   }
 };
 
@@ -259,6 +332,11 @@ onUnmounted(() => {
 .sidebar {
   min-width: 320px;
   background-color: var(--c-card);
+}
+
+.card-list {
+  padding-left: 20px;
+  margin-right: 20px;
 }
 
 .card {
@@ -420,13 +498,13 @@ onUnmounted(() => {
 }
 
 .dark .el-tag {
-  background: #3c108f;
-  border: #3c108f;
+  background: var(--gray-2);
+  border-color: #8c7a45;
 }
 
 .el-tag {
-  background: #c396ed;
-  border: #3c108f;
+  background: #ece6ce;
+  border-color: #ece6ce;
   font-weight: bold;
 }
 
@@ -441,7 +519,6 @@ onUnmounted(() => {
 .card-header {
   font-size: 14px;
   padding: 15px 20px 5px 20px;
-  margin-bottom: 10px;
   display: flex;
 }
 
@@ -482,6 +559,17 @@ onUnmounted(() => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .card {
+    margin-left: 6px;
+    margin-right: 6px;
   }
 }
 </style>

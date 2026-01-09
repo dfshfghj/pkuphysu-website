@@ -1,6 +1,6 @@
 <template>
   <div class="posts-container">
-    <h2 class="page-title">文章</h2>
+    <h2 class="page-title font-serif">文章</h2>
 
     <!-- 加载状态 -->
     <el-skeleton v-if="loading" :rows="6" animated style="margin: 20px" />
@@ -119,7 +119,6 @@ span {
   flex-direction: column;
   border-radius: 5px;
   border: 1px solid var(--c-border);
-  box-shadow: var(--c-box-shadow);
   padding: 20px;
   text-align: left;
 }

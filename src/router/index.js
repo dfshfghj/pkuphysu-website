@@ -47,12 +47,6 @@ const routes = [
     meta: { login: true },
   },
   {
-    path: "/new-article",
-    name: "WriteArticle",
-    component: () => import("../pages/WriteArticle.vue"),
-    meta: { login: true },
-  },
-  {
     path: "/forum",
     name: "ForumDashBoard",
     component: () => import("../pages/forum/DashBoard.vue"),
@@ -68,13 +62,6 @@ const routes = [
       noHeader: true,
       login: true,
     },
-  },
-  {
-    path: "/chat/articles/:id",
-    name: "Article",
-    component: () => import("../pages/Article.vue"),
-    meta: { login: true },
-    props: true,
   },
   {
     path: "/chat/blogs",

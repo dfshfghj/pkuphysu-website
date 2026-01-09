@@ -23,12 +23,14 @@
           >
             <div
               :style="{
-                backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.9) 0% , transparent 20%), url(/api/images/${item.img})`,
+                backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.9) 0% , transparent 20%), url(${item.img})`,
               }"
               class="carousel-img"
             >
               <div class="carousel-title">
-                <span style="color: white"> {{ item.title }} </span>
+                <span style="color: white" class="font-serif">
+                  {{ item.title }}
+                </span>
               </div>
             </div>
           </a>
@@ -40,20 +42,20 @@
     <div class="space"></div>
     <div class="activityContainer">
       <div class="containerHeader">
-        <span>活动</span>
+        <span class="font-serif">活动</span>
       </div>
-      <div id="cardList">
-        <a
+      <el-row id="cardList" :gutter="16" style="margin: 0px">
+        <el-col
           v-for="(activity, index) in activities"
           :key="index"
-          :href="activity.href"
-          style="text-decoration: none"
+          :md="12"
+          :sm="12"
+          :xs="24"
         >
-          <div
-            class="card with_image"
-            :style="{ backgroundImage: `url(/api/images/${activity.img})` }"
-          >
-            <div class="card-info acrylic">
+          <a :href="activity.href" style="text-decoration: none">
+            <el-card shadow="hover" class="card post-card with-image">
+              <div class="card-info">
+                <!---
               <div class="time">
                 <span>{{ activity.start }} - {{ activity.end }}</span>
                 <span
@@ -62,6 +64,7 @@
                 >
                   进行中
                 </span>
+                
                 <span
                   v-else-if="now < activity.startTime"
                   style="color: var(--gray-4); font-weight: bold"
@@ -71,23 +74,27 @@
                 <span v-else style="color: var(--gray-4); font-weight: bold">
                   已结束
                 </span>
+                
               </div>
-              <div class="cardHeader">
-                <span>{{ activity.name }}</span>
+              -->
+
+                <div class="cardHeader">
+                  <span>{{ activity.name }}</span>
+                </div>
+                <div class="cardSubHeader">
+                  <span>{{ activity.detail }}</span>
+                </div>
               </div>
-              <div class="detail">
-                <span>{{ activity.detail }}</span>
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
+            </el-card>
+          </a>
+        </el-col>
+      </el-row>
     </div>
 
     <!-- 通知部分 -->
     <div class="activityContainer">
       <div class="containerHeader">
-        <span>文章</span>
+        <span class="font-serif">文章</span>
       </div>
       <div id="cardList">
         <a
@@ -334,17 +341,24 @@ onMounted(() => {
   padding-bottom: 5%;
   padding-left: 5%;
   text-align: left;
-  font-size: 18px;
+  font-size: 26px;
   font-weight: bold;
+  white-space: nowrap;
 }
 
-.with_image {
-  height: 200px;
-  background-size: cover;
+.with-image::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: 5px;
+  width: 80px;
+  height: 80%;
+  background-image: url("favicon.svg");
   background-position: center;
+  background-size: cover;
   background-repeat: no-repeat;
-  display: flex;
-  align-items: flex-end;
+  transition: transform 0.3s ease;
+  z-index: -1;
 }
 
 span,
@@ -372,6 +386,7 @@ strong {
 }
 
 .card {
+  position: relative;
   text-align: center;
   padding: 0px;
   margin: 40px;
@@ -386,6 +401,11 @@ strong {
   height: 50%;
   border-radius: 5px;
   padding-top: 10px;
+  line-height: 2;
+}
+
+.card-info * {
+  white-space: nowrap;
 }
 
 .card:not(.post-card):hover {
@@ -421,8 +441,8 @@ strong {
 
 .cardHeader * {
   font-weight: bold;
-  font-size: 17px;
-  color: var(--c-subtitle);
+  font-size: 18px;
+  color: var(--c-title);
 }
 
 .time {

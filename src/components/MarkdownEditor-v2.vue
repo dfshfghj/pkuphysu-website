@@ -9,6 +9,7 @@
         type="textarea"
         v-model="model"
         :placeholder="props.placeholder"
+        style="font-size: 16px"
       ></el-input>
     </el-tab-pane>
     <el-tab-pane label="预览">
@@ -49,12 +50,28 @@ const manageHeight = (name) => {
 
 <style scoped>
 .markdown-editor {
+  background: transparent;
   border-radius: 6px;
-  border-width: 2px;
 }
 
 .markdown-editor:focus-within {
-  border: 2px solid #0969da;
+  outline: 2px solid #0969da !important;
+}
+
+.markdown-editor :deep(.el-tabs__header) {
+  background: transparent;
+}
+
+.markdown-editor:not(:focus-within) :deep(textarea) {
+  line-height: 40px;
+}
+
+.markdown-editor:not(:focus-within) :deep(.el-tabs__header) {
+  display: none;
+}
+
+.markdown-body {
+  padding: 5px 11px 5px 11px;
 }
 
 :deep(.el-textarea__inner),
@@ -66,7 +83,6 @@ const manageHeight = (name) => {
 }
 
 :deep(.el-textarea__inner) {
-  min-height: 200px !important;
   max-height: calc(100vh - 300px);
   box-sizing: border-box;
   field-sizing: content;

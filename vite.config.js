@@ -34,6 +34,11 @@ export default defineConfig({
   ],
   server: {
     proxy: {
+      "/api/v2": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/v2/, ""),
+      },
       "/api": {
         target: target,
         changeOrigin: true,
@@ -43,6 +48,13 @@ export default defineConfig({
     https: {
       key: fs.readFileSync(keyPath),
       cert: fs.readFileSync(certPath),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        experimentalMinChunkSize: 20480,
+      },
     },
   },
 });

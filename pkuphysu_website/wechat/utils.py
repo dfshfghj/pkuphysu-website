@@ -144,6 +144,7 @@ def get_token():
     )
     url = response.url
     token = None
+    save_cookies(session)
     if "home" in url and "token=" in url:
         match = re.search(r"token=([^&]+)", url)
         if match:

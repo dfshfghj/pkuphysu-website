@@ -89,12 +89,32 @@ watch(
 
 <style scoped>
 .content {
+  padding-left: 50px;
+  padding-right: 50px;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.content {
   overflow: hidden;
   transition: max-height 0.3s ease;
 }
 
 .ctl-panel {
-  padding: 10px 20px 10px 10px;
+  padding: 10px;
   text-align: right;
+  position: sticky;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.ctl-panel span {
+  pointer-events: auto;
 }
 </style>

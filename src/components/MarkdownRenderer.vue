@@ -22,13 +22,19 @@ const props = defineProps({
 
 <style scoped>
 .markdown-body {
-  padding-left: 50px;
-  padding-right: 50px;
-  --bgColor-default: var(--c-card);
+  background-color: transparent;
 }
 
-:deep(.heading-1) {
-  font-weight: 700 !important;
+:deep(.node-slot:first-child *) {
+  margin-top: 0;
+}
+
+:deep(.heading-node) {
+  font-family: "KaTeX_Main", serif;
+}
+
+:deep(.admonition) {
+  background: transparent;
 }
 
 .math-markdown-content :deep(.katex-error) {

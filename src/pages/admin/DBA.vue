@@ -1,5 +1,5 @@
 <template>
-  <h2>数据库管理面板</h2>
+  <h2 class="font-serif">数据库管理面板</h2>
   <el-divider />
   <div class="mb-4 flex flex-wrap gap-2">
     <el-button type="primary" plain @click="loadTables">刷新表列表</el-button>
@@ -36,7 +36,7 @@
         style="margin: 10px 30px 10px 30px"
       >
         <template #header>
-          <div class="font-bold">{{ name }}</div>
+          <div class="font-bold font-serif">{{ name }}</div>
         </template>
         <div>
           <div>

@@ -1,8 +1,8 @@
 <template>
-  <h2>欢迎来到管理员面板！</h2>
+  <h2 class="font-serif">欢迎来到管理员面板！</h2>
   <div class="avatar-list">
     <div class="list-header">
-      <h3>用户</h3>
+      <h3 class="font-serif">用户</h3>
     </div>
     <div v-if="users.users.length > 0" class="avatar-container">
       <el-tooltip
@@ -26,7 +26,7 @@
   </div>
   <div class="avatar-list">
     <div class="list-header">
-      <h3>管理员</h3>
+      <h3 class="font-serif">管理员</h3>
     </div>
     <div v-if="users.admins.length > 0" class="avatar-container">
       <el-tooltip
@@ -51,7 +51,7 @@
   <el-divider />
   <div>
     <div class="list-header">
-      <h3>公众号后台管理</h3>
+      <h3 class="font-serif">公众号后台管理</h3>
     </div>
     <div>
       <span> cookies 失效时间：{{ FormatTime(cookies_expire) }}</span>
@@ -185,7 +185,7 @@ const checkWechatEngine = async () => {
           qrcodeUrl.value = "";
           QRcodeDialogVisible.value = false;
           await requestApi(
-            `/api/wechat/login&fingerprint=${fingerprint.value}`,
+            `/api/wechat/login?fingerprint=${fingerprint.value}`,
           );
           break;
         }

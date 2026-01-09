@@ -248,18 +248,6 @@
   margin: 1em var(--base-size-40);
 }
 
-.markdown-body hr {
-  box-sizing: content-box;
-  overflow: hidden;
-  background: transparent;
-  border-bottom: 1px solid var(--borderColor-muted);
-  height: 0.25em;
-  padding: 0;
-  margin: var(--base-size-24) 0;
-  background-color: var(--borderColor-default);
-  border: 0;
-}
-
 .markdown-body input {
   font: inherit;
   margin: 0;
