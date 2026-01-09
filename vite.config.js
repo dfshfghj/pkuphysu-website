@@ -52,11 +52,4 @@ export default defineConfig({
       cert: fs.readFileSync(certPath),
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        experimentalMinChunkSize: 20480,
-      },
-    },
-  },
 });
