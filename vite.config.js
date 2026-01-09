@@ -5,6 +5,7 @@ import vue from "@vitejs/plugin-vue";
 import vueDevTools from "vite-plugin-vue-devtools";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
+import tailwindcss from "@tailwindcss/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
 const target = process.env.VITE_PROXY_TARGET || "http://localhost:5200";
@@ -31,6 +32,7 @@ export default defineConfig({
       extensions: ["vue"],
       dts: "src/components.d.ts",
     }),
+    tailwindcss(),
   ],
   server: {
     proxy: {

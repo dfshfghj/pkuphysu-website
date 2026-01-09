@@ -475,26 +475,6 @@ onMounted(() => {
   background-color: transparent;
 }
 
-.p-4 {
-  padding: 1rem;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.mb-3 {
-  margin-bottom: 0.75rem;
-}
-
-.mt-1 {
-  margin-top: 0.25rem;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
 .el-card:hover {
   transform: scale(1.05);
 }

@@ -66,34 +66,6 @@ html {
   background: var(--c-background) !important;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.border-none {
-  border: none;
-}
-
-.bg-transparent {
-  background: transparent;
-}
-
-.flex {
-  display: flex;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.font-bold {
-  font-weight: bold;
-}
-
 .acrylic {
   background: var(--c-acrylic-bg);
   -webkit-backdrop-filter: blur(8px) saturate(120%);
@@ -104,11 +76,6 @@ html {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-}
-
-.font-serif {
-  font-family:
-    "Latin Modern", "Georgia", "Cambria", "Times New Roman", "Times", serif;
 }
 
 h2,
