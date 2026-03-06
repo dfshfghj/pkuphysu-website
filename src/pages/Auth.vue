@@ -173,6 +173,7 @@
 
 <script setup>
 import { requestApi } from "../api/api";
+import { sha256 } from "../utils";
 import { useUserStore } from "../stores/user";
 import { isDark } from "../composables/theme";
 
@@ -229,11 +230,11 @@ const handleLogin = async () => {
 
     loading.value = true;
     try {
-      const res = await requestApi("/api/login", {
+      const res = await requestApi("/api/v2/auth/login", {
         method: "POST",
         body: JSON.stringify({
           username: loginForm.username,
-          password: loginForm.password,
+          password: await sha256(loginForm.password, "hello_pkuphysu"),
         }),
       });
 
@@ -241,9 +242,9 @@ const handleLogin = async () => {
 
       if (res.ok) {
         userStore.login({
-          token: result.token || "dummy-token",
-          username: result.username || loginForm.username,
-          userid: result.userid,
+          token: result.data.token || "dummy-token",
+          username: result.data.username || loginForm.username,
+          userid: result.data.userid,
         });
 
         ElMessage.success("登录成功！");
@@ -268,11 +269,11 @@ const handleRegister = async () => {
 
     registering.value = true;
     try {
-      const res = await requestApi("/api/register", {
+      const res = await requestApi("/api/v2/user/register", {
         method: "POST",
         body: JSON.stringify({
           username: registerForm.username,
-          password: registerForm.password,
+          password: await sha256(registerForm.password, "hello_pkuphysu"),
         }),
       });
 

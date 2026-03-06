@@ -14,9 +14,9 @@ JWT_SECRET_KEY = settings.jwt.JWT_SECRET_KEY
 JWT_EXPIRATION_HOURS = settings.jwt.JWT_EXPIRATION_HOURS
 
 
-def generate_token(user_id):
+def generate_token(username):
     payload = {
-        "user_id": user_id,
+        "username": username,
         "exp": datetime.datetime.utcnow()
         + datetime.timedelta(hours=JWT_EXPIRATION_HOURS),
         "iat": datetime.datetime.utcnow(),
@@ -37,8 +37,8 @@ def token_required(f):
 
         try:
             payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-            current_user_id = payload["user_id"]
-            current_user = User.query.get(current_user_id)
+            current_username = payload["username"]
+            current_user = User.query.filter_by(username=current_username).first()
             if not current_user:
                 return jsonify({"code": 401, "message": "用户不存在"}), 401
         except jwt.ExpiredSignatureError:
@@ -75,8 +75,8 @@ def master_before_request():
 
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
-        current_user_id = payload["user_id"]
-        current_user = User.query.get(current_user_id)
+        current_username = payload["username"]
+        current_user = User.query.filter_by(username=current_username).first()
         if not current_user:
             return jsonify({"code": 401, "message": "用户不存在"}), 401
         g.current_user = current_user

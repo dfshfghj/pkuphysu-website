@@ -539,7 +539,7 @@ const handleExceed = (files, uploadFiles) => {
 
 const handleFollow = async (id) => {
   try {
-    const res = await requestApi(`/api/blogs/follow/${id}`, {
+    const res = await requestApi(`/api/v2/forum/follow/${id}`, {
       method: "POST",
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -561,19 +561,37 @@ const fetchConfig = async () => {
 };
 
 const fetchPosts = async (
-  config = { mode: "page", count: 1, tag: "", query: "" },
+  config = { tag: "", query: "" },
 ) => {
   try {
-    config.pid = "";
-    config.keyword = "";
+    const params = new URLSearchParams();
+    
+    // 处理搜索查询
     const trimmedQuery = config.query.trim();
     if (/^#\d+$/.test(trimmedQuery)) {
-      config.pid = trimmedQuery.slice(1);
+      // 查询单个帖子
+      const postId = trimmedQuery.slice(1);
+      const res = await requestApi(`/api/v2/forum/posts/${postId}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      posts.value = [data.data];
+      endOfPosts.value = true;
+      return;
     } else if (trimmedQuery) {
-      config.keyword = trimmedQuery;
+      // 关键词搜索
+      params.append('keyword', trimmedQuery);
     }
+    
+    // 添加标签参数
+    if (config.tag) {
+      params.append('tag', config.tag);
+    }
+    
+    // 默认不传 begin 参数（相当于第一页）
+    params.append('limit', '10');
+    
     const res = await requestApi(
-      `/api/blogs/${browseType.value}?limit=10&${config.mode}=${config.count}&tag=${config.tag}&pid=${config.pid}&keyword=${config.keyword}`,
+      `/api/v2/forum/posts?${params.toString()}`,
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -591,7 +609,7 @@ const fetchPosts = async (
 const fetchComments = async (id) => {
   try {
     const res = await requestApi(
-      `/api/blogs/comments/${id}?limit=10&page=1&sort=${AscSort.value ? "asc" : "desc"}`,
+      `/api/v2/forum/comments/${id}?limit=10&sort=${AscSort.value ? "asc" : "desc"}`,
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -609,8 +627,21 @@ const fetchComments = async (id) => {
 const loadMorePosts = async (direction) => {
   if (direction === "bottom" && !endOfPosts.value) {
     try {
+      const params = new URLSearchParams();
+      params.append('limit', '10');
+      params.append('begin', posts.value.at(-1).id);
+      
+      if (searchConfig.value.tag) {
+        params.append('tag', searchConfig.value.tag);
+      }
+      
+      const trimmedQuery = searchConfig.value.query.trim();
+      if (trimmedQuery && !/^#\d+$/.test(trimmedQuery)) {
+        params.append('keyword', trimmedQuery);
+      }
+
       const res = await requestApi(
-        `/api/blogs/${browseType.value}?limit=10&begin=${posts.value.at(-1).id}`,
+        `/api/v2/forum/posts?${params.toString()}`,
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -629,7 +660,7 @@ const loadMoreComments = async (direction, id) => {
   if (direction === "bottom" && !endOfComments.value) {
     try {
       const res = await requestApi(
-        `/api/blogs/comments/${id}?limit=10&begin=${comments.value.at(-1).cid}`,
+        `/api/v2/forum/comments/${id}?limit=10&begin=${comments.value.at(-1).cid}`,
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -651,11 +682,10 @@ const submitPost = async () => {
     return;
   }
   try {
-    const res = await requestApi("/api/blogs/submit", {
+    const res = await requestApi("/api/v2/forum/posts", {
       method: "POST",
       body: JSON.stringify({
         text: content.value,
-        type: "text",
         tag: tag.value,
       }),
     });
@@ -675,7 +705,7 @@ const submitPost = async () => {
 const submitComment = async (id) => {
   console.log(content.value);
   try {
-    const res = await requestApi("/api/blogs/comments", {
+    const res = await requestApi("/api/v2/forum/comments", {
       method: "POST",
       body: JSON.stringify({
         text: content.value,

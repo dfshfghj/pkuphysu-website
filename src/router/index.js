@@ -15,7 +15,7 @@ const routes = [
   {
     path: "/login",
     name: "Auth",
-    component: () => import("../pages/Auth.vue"),
+    component: () => import("../pages/AuthV2.vue"),
     meta: { noHeader: true },
   },
   {
@@ -122,7 +122,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.meta.admin) {
-    if (result.user.is_admin) {
+    if (result.role == 2) {
       return next();
     } else {
       // 可以跳转到无权限页面，或首页，或登录页

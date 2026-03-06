@@ -47,8 +47,7 @@ export const useUserStore = defineStore("user", {
     // 向后端验证 token 是否仍然有效
     async validateToken() {
       const API_BASE = import.meta.env.VITE_API_BASE_URL;
-      const res = await fetch(`${API_BASE}/api/verify`, {
-        method: "POST",
+      const res = await fetch(`${API_BASE}/api/v2/user/me`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.token}`,

@@ -20,7 +20,7 @@ const props = defineProps({
 });
 
 const userAvatar = ref(
-  `${API_BASE}/api/avatars/${props.userid || userStore.userid}`,
+  `${API_BASE}/api/v2/user/avatar/${props.userid || userStore.userid}`,
 );
 
 function onImageError() {

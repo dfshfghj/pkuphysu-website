@@ -5,17 +5,16 @@ from textwrap import dedent
 from werobot.replies import SuccessReply, TransferCustomerServiceReply
 
 from .core import wechat_mgr, wechat_robot
+from .models import CommandStatus
 
 logger = getLogger(__name__)
 
 
 def text_handler(message):
     try:
-        """
         wechat_mgr.batch_update_status(
             wechat_mgr.command_reg.calc_status_diff(CommandStatus.get_all_status())
         )
-        """
         logger.info(f"WeRobot: exec {message.content}")
         response = wechat_mgr.exec(message.content, message=message)
         logger.info(f"WeRobot: exec {message.content} done")

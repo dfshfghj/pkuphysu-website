@@ -214,11 +214,11 @@ const showWechatQRCode = ref(false);
 
 const fetchNews = async () => {
   try {
-    const res = await requestApi("/api/v2/news");
+    const res = await requestApi("/api/v2/news.json");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    news.value = data.data.map((item) => ({
+    news.value = data.map((item) => ({
       ...item,
       startTime: new Date(item.start_time).getTime(),
       endTime: new Date(item.end_time).getTime(),
@@ -232,11 +232,11 @@ const fetchNews = async () => {
 
 const fetchActivities = async () => {
   try {
-    const res = await requestApi("/api/v2/activity");
+    const res = await requestApi("/api/v2/activity.json");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    activities.value = data.data.map((item) => ({
+    activities.value = data.map((item) => ({
       ...item,
       startTime: new Date(item.start_time).getTime(),
       endTime: new Date(item.end_time).getTime(),
@@ -250,7 +250,7 @@ const fetchActivities = async () => {
 
 const fetchPosts = async () => {
   try {
-    const res = await requestApi("/api/v2/posts?limit=10&page=1");
+    const res = await requestApi("/api/wechat/posts?limit=10&page=1");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 

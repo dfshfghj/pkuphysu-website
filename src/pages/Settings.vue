@@ -283,6 +283,7 @@ import { useUserStore } from "../stores/user";
 import { requestApi } from "../api/api";
 import { Delete, Edit, Lock, Message } from "@element-plus/icons-vue";
 import UserAvatar from "../components/UserAvatar.vue";
+import { sha256 } from "../utils";
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const router = useRouter();
@@ -290,7 +291,7 @@ const userStore = useUserStore();
 const currentPage = ref("publicProfile");
 
 const currentUser = ref(null);
-const avatarUpload = `${API_BASE}/api/upload-avatar`;
+const avatarUpload = `${API_BASE}/api/v2/user/avatar`;
 const VerifyDialogVisible = ref(false);
 const EmailDialogVisible = ref(false);
 const PasswordDialogVisible = ref(false);
@@ -314,10 +315,10 @@ const DeleteAccountDialogVisible = ref(false);
 
 onBeforeMount(async () => {
   try {
-    const res = await requestApi("/api/user");
+    const res = await requestApi("/api/v2/user/me");
     const result = await res.json();
     if (res.ok) {
-      currentUser.value = result.user;
+      currentUser.value = result.data;
     } else {
       ElMessage.error("加载失败");
     }
@@ -328,8 +329,8 @@ onBeforeMount(async () => {
 });
 
 const updateProfile = async () => {
-  const res = await requestApi("/api/user/profile", {
-    method: "POST",
+  const res = await requestApi("/api/v2/user/me", {
+    method: "PUT",
     body: JSON.stringify({
       username: currentUser.value.username,
       bio: currentUser.value.bio,
@@ -440,11 +441,11 @@ const changePassword = async () => {
     return;
   }
 
-  const res = await requestApi("/api/change-password", {
+  const res = await requestApi("/api/v2/auth/change-password", {
     method: "POST",
     body: JSON.stringify({
-      oldPassword: passwordForm.oldPassword,
-      newPassword: passwordForm.newPassword,
+      oldPassword: await sha256(passwordForm.oldPassword, "hello_pkuphysu"),
+      newPassword: await sha256(passwordForm.newPassword, "hello_pkuphysu"),
     }),
   });
 
@@ -458,8 +459,8 @@ const changePassword = async () => {
 };
 
 const deleteAccount = async () => {
-  const res = await requestApi("/api/delete-account", {
-    method: "POST",
+  const res = await requestApi("/api/v2/user/me", {
+    method: "DELETE",
   });
 
   const result = await res.json();
