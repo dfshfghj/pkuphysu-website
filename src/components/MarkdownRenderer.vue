@@ -1,7 +1,7 @@
 <template>
   <div class="markdown-body">
     <div class="math-markdown-content">
-      <MarkdownRenderer :content="props.content" />
+      <MarkdownRenderer :content="props.content" :parse-options="parseOptions" />
     </div>
   </div>
 </template>
@@ -11,6 +11,7 @@ import MarkdownRenderer from "markstream-vue";
 import "markstream-vue/index.css";
 import "katex/dist/katex.min.css";
 import "../styles/github-markdown.css";
+import DOMPurify from "dompurify";
 
 const props = defineProps({
   content: {
@@ -18,6 +19,37 @@ const props = defineProps({
     default: "",
   },
 });
+
+const parseOptions = {
+  preTransformTokens: (tokens) => {
+    return tokens.map((token) => {
+      if (token.type === "html_block") {
+        token.content = DOMPurify.sanitize(token.content || "", {
+          ADD_TAGS: ["iframe"],
+          ALLOWED_ATTR: ["href", "src", "style", "class", "id"],
+          ADD_ATTR: ["sandbox"],
+          //ALLOWED_URI_REGEXP: /^(?:https?:\/\/|\/\/)(?:[\w-]+\.)?(?:bilibili\.com|(?:www\.)?youtube(?:-nocookie)?\.com)(?::[0-9]+)?(?:\/.*)?$/i,
+        });
+      } else if (token.type === "inline" && token.children) {
+        token.children = token.children.map((child) => {
+          if (child.type === "html_inline" || child.type === "html_block") {
+            return {
+              ...child,
+              content: DOMPurify.sanitize(child.content || "", {
+                ADD_TAGS: ["iframe"],
+                ALLOWED_ATTR: ["href", "src", "style", "class", "id"],
+                ADD_ATTR: ["sandbox"],
+                //ALLOWED_URI_REGEXP: /^(?:https?:\/\/|\/\/)(?:[\w-]+\.)?(?:bilibili\.com|(?:www\.)?youtube(?:-nocookie)?\.com)(?::[0-9]+)?(?:\/.*)?$/i,
+              }),
+            };
+          }
+          return child;
+        });
+      }
+      return token;
+    });
+  },
+};
 </script>
 
 <style scoped>
