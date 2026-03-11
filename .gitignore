@@ -40,3 +40,5 @@ migrations
 .env
 .env.development
 .env.production
+
+/public/docs

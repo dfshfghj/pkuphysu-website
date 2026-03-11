@@ -7,14 +7,21 @@ hero:
   tagline: 
   actions:
     - theme: brand
-      text: 什么是 VitePress?
-      link: ./guide/what-is-vitepress
+      text: 关于我们
+      link: ./what-is-pkuphysu
     - theme: alt
-      text: 快速开始
-      link: ./guide/getting-started
+      text: 部署指南
+      link: ./getting-started
     - theme: alt
       text: GitHub
       link: https://github.com/pkuphysu
 
+features:
+  - title: Feature A
+    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Feature B
+    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Feature C
+    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
 
 ---

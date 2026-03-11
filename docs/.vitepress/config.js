@@ -7,6 +7,10 @@ export default defineConfig({
   lang: 'zh-CN',
 
   themeConfig: {
-    // 主题级选项
+    outline: [2, 3],
+    nav: [
+      { text: '主页', link: '/' },
+      { text: 'API文档', link: '/api' }
+    ],
   }
 })
