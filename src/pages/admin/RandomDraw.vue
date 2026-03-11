@@ -121,12 +121,7 @@ function createText(textStr) {
   const spacedText = textStr.split("").join(String.fromCharCode(8202));
   context.fillText(spacedText, 0.5 * canvas.width, canvas.height - 50);
 
-  const imageData = context.getImageData(
-    0,
-    canvas.height - 250,
-    canvas.width,
-    250,
-  );
+  const imageData = context.getImageData(0, canvas.height - 250, canvas.width, 250);
   nextText[0] = [];
 
   for (let d = 0; d < imageData.width; d += 4) {
@@ -198,9 +193,7 @@ function updataTransition() {
     switch (currentLayout.value) {
       case 1: {
         shape.x = 0.5 * canvas.width + 100 * -Math.sin(reOrder[b]);
-        shape.y =
-          0.5 * canvas.height +
-          60 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
+        shape.y = 0.5 * canvas.height + 60 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
         break;
       }
       case 2: {
@@ -222,15 +215,12 @@ function updataTransition() {
         break;
       }
       case 4: {
-        shape.x =
-          0.5 * canvas.width +
-          90 * (1 - Math.sin(reOrder[b])) * Math.cos(reOrder[b]);
+        shape.x = 0.5 * canvas.width + 90 * (1 - Math.sin(reOrder[b])) * Math.cos(reOrder[b]);
         shape.y = 320 + 140 * (-Math.sin(reOrder[b]) - 1);
         break;
       }
       case 5: {
-        shape.x =
-          0.5 * canvas.width + 90 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
+        shape.x = 0.5 * canvas.width + 90 * Math.sin(reOrder[b]) * Math.cos(reOrder[b]);
         shape.y = 320 + 140 * (-Math.sin(reOrder[b]) - 1);
       }
     }
@@ -242,16 +232,8 @@ function updataTransition() {
   const isOpen = 0; // isTextOpen 是 0
   text.forEach((a, b) => {
     if (nextText[isOpen][b]) {
-      a.x +=
-        0.15 *
-        (nextText[isOpen][b].x +
-          Math.cos(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit -
-          a.x);
-      a.y +=
-        0.15 *
-        (nextText[isOpen][b].y +
-          Math.sin(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit -
-          a.y);
+      a.x += 0.15 * (nextText[isOpen][b].x + Math.cos(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit - a.x);
+      a.y += 0.15 * (nextText[isOpen][b].y + Math.sin(nextText[isOpen][b].angle + b) * nextText[isOpen][b].orbit - a.y);
       nextText[isOpen][b].angle += 0.08;
     }
   });
@@ -265,10 +247,7 @@ function update() {
       a.radius += (0 - a.radius) * a.bornSpeed;
       if (Math.round(a.radius) === 0) {
         const c = Math.floor((3 * particles.indexOf(a)) / mainNum);
-        a.color =
-          colors[randomNum.value[c]][
-            Math.floor(Math.random() * colors[currentLayout.value].length)
-          ];
+        a.color = colors[randomNum.value[c]][Math.floor(Math.random() * colors[currentLayout.value].length)];
         a.hasBorn = false;
       }
     } else {
@@ -389,12 +368,7 @@ function randomSelect() {
   }
 
   loopCounter++;
-  if (
-    loopCounter > ensureLoop &&
-    Math.random() < randomControl &&
-    isAnimating.value &&
-    method === "tradition"
-  ) {
+  if (loopCounter > ensureLoop && Math.random() < randomControl && isAnimating.value && method === "tradition") {
     stopAnimation();
     luckyDogs.value.push(selectedName.value);
     setTimeout(() => {
@@ -436,10 +410,7 @@ function toggleAnimation() {
     if (isAnimating.value) {
       stopAnimation();
       if (allStudents && allStudents[selectedName.value]) {
-        console.log(
-          `抽中学生: ${selectedName.value}, 投点信息:`,
-          allStudents[selectedName.value],
-        );
+        console.log(`抽中学生: ${selectedName.value}, 投点信息:`, allStudents[selectedName.value]);
       } else {
         console.log(`抽中学生: ${selectedName.value}, 无投点信息`);
       }

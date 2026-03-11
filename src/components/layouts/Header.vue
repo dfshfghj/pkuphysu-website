@@ -21,22 +21,17 @@ const handleCommand = (command) => {
     router.push("/settings");
   }
 };
+
+const gotoDocs = () => {
+  window.location.href = "/docs";
+};
 </script>
 
 <template>
   <div :class="['menu-wrapper acrylic unselectable', { scrolled: isScrolled }]">
-    <el-menu
-      :class="{ scrolled: isScrolled }"
-      mode="horizontal"
-      :ellipsis="false"
-      router
-      popper-class="acrylic"
-    >
+    <el-menu :class="{ scrolled: isScrolled }" mode="horizontal" :ellipsis="false" router popper-class="acrylic">
       <el-menu-item index="/">
-        <div
-          class="flex items-center justify-center gap-2"
-          style="display: flex; align-items: center"
-        >
+        <div class="flex items-center justify-center gap-2" style="display: flex; align-items: center">
           <img src="../../assets/logo_white.svg" class="logo" v-if="isDark" />
           <img src="../../assets/logo_black.svg" class="logo" v-else />
           <b id="title" class="font-serif">物院学生会</b>
@@ -48,12 +43,12 @@ const handleCommand = (command) => {
             <More />
           </el-icon>
         </template>
-        <el-menu-item index="/forum"> 论坛 </el-menu-item>
-        <el-menu-item index="/doc"> 文档 </el-menu-item>
+        <el-menu-item index="/"> 论坛 </el-menu-item>
+        <el-menu-item @click="window.location.href = '/docs'"> 文档 </el-menu-item>
         <el-menu-item index="/posts"> 文章 </el-menu-item>
       </el-sub-menu>
-      <el-menu-item index="/forum" id="document"> 论坛 </el-menu-item>
-      <el-menu-item index="/doc" id="document"> 文档 </el-menu-item>
+      <el-menu-item index="/" id="document"> 论坛 </el-menu-item>
+      <el-menu-item id="document" @click="gotoDocs"> 文档 </el-menu-item>
       <el-menu-item index="/posts" id="posts"> 文章 </el-menu-item>
 
       <el-menu-item h="full" @click="toggleDark()" id="toggleDark">
@@ -77,11 +72,7 @@ const handleCommand = (command) => {
                   </el-icon>
                   <span>个人设置</span>
                 </el-dropdown-item>
-                <el-dropdown-item
-                  command="logout"
-                  divided
-                  style="color: #f56c6c"
-                >
+                <el-dropdown-item command="logout" divided style="color: #f56c6c">
                   <el-icon>
                     <Delete />
                   </el-icon>
@@ -91,14 +82,7 @@ const handleCommand = (command) => {
             </template>
           </el-dropdown>
         </div>
-        <el-button
-          v-else
-          link
-          type="primary"
-          plain
-          @click="$router.push('/login')"
-          class="border-none"
-        >
+        <el-button v-else link type="primary" plain @click="$router.push('/login')" class="border-none">
           登录
         </el-button>
       </el-menu-item>

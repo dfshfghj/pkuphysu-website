@@ -2,15 +2,7 @@
   <div class="main">
     <div class="user-header">
       <UserAvatar :size="50" />
-      <div
-        style="
-          margin-left: 20px;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          flex: 1;
-        "
-      >
+      <div style="margin-left: 20px; display: flex; flex-direction: column; align-items: flex-start; flex: 1">
         <span style="font-weight: 600" class="font-serif">
           {{ currentUser.username }}
         </span>
@@ -64,16 +56,12 @@
             </el-form-item>
             -->
                 <el-form-item>
-                  <el-button @click="updateProfile" size="small">
-                    更新
-                  </el-button>
+                  <el-button @click="updateProfile" size="small"> 更新 </el-button>
                 </el-form-item>
               </el-form>
             </el-col>
             <el-col :span="8">
-              <div
-                style="margin-top: 16px; display: flex; flex-direction: column"
-              >
+              <div style="margin-top: 16px; display: flex; flex-direction: column">
                 <label> 头像 </label>
                 <UserAvatar :userid="userStore.userid" :size="120" />
                 <el-upload
@@ -106,9 +94,7 @@
         <div v-if="currentPage === 'account'">
           <span v-if="currentUser.verified">{{ currentUser.realname }}</span>
           &nbsp;
-          <span label="学号" v-if="currentUser.verified">{{
-            currentUser.real_id
-          }}</span>
+          <span label="学号" v-if="currentUser.verified">{{ currentUser.real_id }}</span>
           &nbsp;
           <div>
             <label> 权限 </label>
@@ -126,10 +112,7 @@
             >
               后台入口
             </el-button>
-            <el-button
-              v-if="!currentUser.verified"
-              style="margin-left: 20px"
-              @click="VerifyDialogVisible = true"
+            <el-button v-if="!currentUser.verified" style="margin-left: 20px" @click="VerifyDialogVisible = true"
               >前往认证</el-button
             >
           </div>
@@ -164,38 +147,23 @@
           <div style="flex: 1; margin-left: 20px">
             <label> 修改密码 </label>
           </div>
-          <el-button size="small" @click="PasswordDialogVisible = true">
-            修改
-          </el-button>
+          <el-button size="small" @click="PasswordDialogVisible = true"> 修改 </el-button>
         </div>
-        <div
-          class="item-card"
-          v-if="currentPage === 'security'"
-          style="color: var(--red-5)"
-        >
+        <div class="item-card" v-if="currentPage === 'security'" style="color: var(--red-5)">
           <el-icon>
             <Delete />
           </el-icon>
           <div style="flex: 1; margin-left: 20px">
             <label> 注销账户 </label>
           </div>
-          <el-button
-            size="small"
-            style="background: var(--red-5)"
-            @click="DeleteAccountDialogVisible = true"
-          >
+          <el-button size="small" style="background: var(--red-5)" @click="DeleteAccountDialogVisible = true">
             删除
           </el-button>
         </div>
       </div>
     </div>
   </div>
-  <el-dialog
-    v-model="VerifyDialogVisible"
-    title="认证"
-    width="500"
-    align-center
-  >
+  <el-dialog v-model="VerifyDialogVisible" title="认证" width="500" align-center>
     <span>输入北京大学门户网站cookies中的SESSION:</span>
     <el-form :model="verifyForm" label-width="auto">
       <el-input v-model="verifyForm.token" />
@@ -207,12 +175,7 @@
       </div>
     </template>
   </el-dialog>
-  <el-dialog
-    v-model="EmailDialogVisible"
-    title="绑定邮箱"
-    width="500"
-    align-center
-  >
+  <el-dialog v-model="EmailDialogVisible" title="绑定邮箱" width="500" align-center>
     <el-form :model="emailForm" label-width="auto">
       <el-form-item>
         <el-input
@@ -223,11 +186,7 @@
         <el-button @click="sendVerificationCode">发送验证码</el-button>
       </el-form-item>
       <el-form-item>
-        <el-input
-          v-model="emailForm.verificationCode"
-          placeholder="输入验证码"
-          style="margin-right: 10px"
-        />
+        <el-input v-model="emailForm.verificationCode" placeholder="输入验证码" style="margin-right: 10px" />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -237,12 +196,7 @@
       </div>
     </template>
   </el-dialog>
-  <el-dialog
-    v-model="PasswordDialogVisible"
-    title="修改密码"
-    width="500"
-    align-center
-  >
+  <el-dialog v-model="PasswordDialogVisible" title="修改密码" width="500" align-center>
     <el-form :model="passwordForm" label-width="auto">
       <el-form-item label="旧密码">
         <el-input v-model="passwordForm.oldPassword" type="password" />
@@ -261,12 +215,7 @@
       </div>
     </template>
   </el-dialog>
-  <el-dialog
-    v-model="DeleteAccountDialogVisible"
-    title="警告"
-    width="500"
-    align-center
-  >
+  <el-dialog v-model="DeleteAccountDialogVisible" title="警告" width="500" align-center>
     <span>您确定要删除您的账户吗？此操作不可逆。</span>
     <template #footer>
       <div class="dialog-footer">
@@ -361,12 +310,7 @@ const verify = async () => {
 };
 
 const beforeUpload = (file) => {
-  const isImage = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/gif",
-  ].includes(file.type);
+  const isImage = ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(file.type);
   const isLt5M = file.size / 1024 / 1024 < 5;
 
   if (!isImage) {
@@ -416,12 +360,9 @@ const bindEmail = async () => {
   }
 
   try {
-    const res = await requestApi(
-      `/api/verify_email?email=${emailForm.email}&code=${emailForm.verificationCode}`,
-      {
-        method: "POST",
-      },
-    );
+    const res = await requestApi(`/api/verify_email?email=${emailForm.email}&code=${emailForm.verificationCode}`, {
+      method: "POST",
+    });
     const result = await res.json();
     if (res.ok) {
       ElMessage.success("邮箱绑定成功");

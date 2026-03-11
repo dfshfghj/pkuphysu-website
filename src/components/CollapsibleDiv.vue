@@ -1,18 +1,10 @@
 <template>
   <div class="collapsible-container">
-    <div
-      ref="contentRef"
-      class="content"
-      :class="{ expanded: isExpanded }"
-      :style="{ maxHeight: currentMaxHeight }"
-    >
+    <div ref="contentRef" class="content" :class="{ expanded: isExpanded }" :style="{ maxHeight: currentMaxHeight }">
       <slot></slot>
     </div>
     <div class="ctl-panel" v-if="shouldShowButton">
-      <span
-        @click="toggleExpanded"
-        style="cursor: pointer; color: var(--c-primary)"
-      >
+      <span @click="toggleExpanded" style="cursor: pointer; color: var(--c-primary)">
         {{ isExpanded ? "收起" : "展开" }}
       </span>
     </div>
@@ -83,7 +75,7 @@ watch(
   () => props.maxHeight,
   async () => {
     await checkContentHeight();
-  },
+  }
 );
 </script>
 

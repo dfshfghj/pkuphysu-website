@@ -6,22 +6,11 @@
     <el-skeleton v-if="loading" :rows="6" animated style="margin: 20px" />
 
     <!-- 错误提示 -->
-    <el-alert
-      v-else-if="error"
-      :title="error"
-      type="error"
-      show-icon
-      style="margin: 20px"
-    />
+    <el-alert v-else-if="error" :title="error" type="error" show-icon style="margin: 20px" />
 
     <!-- 文章列表 -->
     <div v-else class="posts-list">
-      <a
-        v-for="(post, index) in posts"
-        :key="index"
-        :href="post.url"
-        style="text-decoration: none"
-      >
+      <a v-for="(post, index) in posts" :key="index" :href="post.url" style="text-decoration: none">
         <div shadow="hover" class="post-card">
           <div class="time">
             <span>{{ post.publish_time }}</span>
@@ -62,9 +51,7 @@ const currentPage = ref(1);
 
 const fetchPosts = async (page = 1) => {
   try {
-    const res = await requestApi(
-      `/api/v2/posts?limit=${pageSize}&page=${page}`,
-    );
+    const res = await requestApi(`/api/v2/posts?limit=${pageSize}&page=${page}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     posts.value = data.data;
@@ -99,8 +86,7 @@ span {
 .posts-container {
   max-width: 700px;
   margin: 0 auto;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .page-title {

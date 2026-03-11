@@ -8,14 +8,8 @@
         <h3>最近更新</h3>
       </div>
     </div>
-    <el-scrollbar
-      :distance="500"
-      @end-reached="loadMorePosts"
-      style="height: calc(100vh - 64px); flex: 1"
-    >
-      <div
-        style="display: flex; justify-content: space-around; padding-top: 10px"
-      >
+    <el-scrollbar :distance="500" @end-reached="loadMorePosts" style="height: calc(100vh - 64px); flex: 1">
+      <div style="display: flex; justify-content: space-around; padding-top: 10px">
         <span> Explore </span>
         <span> Topics </span>
       </div>
@@ -96,33 +90,18 @@
               <span> {{ AscSort ? "顺序" : "逆序" }} </span>
             </div>
           </div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              align-items: stretch;
-              padding: 5px 20px 20px 20px;
-            "
-          >
+          <div style="display: flex; align-items: center; align-items: stretch; padding: 5px 20px 20px 20px">
             <UserAvatar :size="50" />
             <div style="flex: 1">
               <MarkdownEditorV2 :placeholder="'请输入评论...'" />
             </div>
           </div>
-          <div
-            v-for="comment in comments[post.id]"
-            :key="comment.cid"
-            class="card comment-card"
-          >
+          <div v-for="comment in comments[post.id]" :key="comment.cid" class="card comment-card">
             <div class="card-header unselectable">
               <UserAvatar :userid="comment.userid" />
               <div style="flex: 1">
                 <span> {{ comment.username }} </span>
-                <el-icon
-                  :size="16"
-                  class="copy-btn"
-                  @click="copyText(comment.text)"
-                >
+                <el-icon :size="16" class="copy-btn" @click="copyText(comment.text)">
                   <CopyDocument />
                 </el-icon>
                 <div>
@@ -134,10 +113,7 @@
               </div>
             </div>
             <CollapsibleDiv :max-height="300">
-              <span
-                v-if="comment.quote"
-                style="font-size: 14px; color: var(--c-secondary)"
-              >
+              <span v-if="comment.quote" style="font-size: 14px; color: var(--c-secondary)">
                 {{ `@${comment.quote.username}: ` }}
               </span>
               <MarkdownRenderer
@@ -177,11 +153,7 @@
           <h3>公告</h3>
         </div>
         <el-timeline>
-          <el-timeline-item
-            v-for="notice in notices"
-            :key="notice.title"
-            :timestamp="notice.timestamp"
-          >
+          <el-timeline-item v-for="notice in notices" :key="notice.title" :timestamp="notice.timestamp">
             <span> {{ notice.content }} </span>
           </el-timeline-item>
         </el-timeline>
@@ -191,13 +163,7 @@
 </template>
 
 <script setup>
-import {
-  ChatDotRound,
-  Star,
-  StarFilled,
-  CopyDocument,
-  Histogram,
-} from "@element-plus/icons-vue";
+import { ChatDotRound, Star, StarFilled, CopyDocument, Histogram } from "@element-plus/icons-vue";
 import { requestApi } from "../../api/api";
 import { formatTime } from "../../utils";
 import CollapsibleDiv from "../../components/CollapsibleDiv.vue";
@@ -246,9 +212,7 @@ const loadMorePosts = async () => {
   try {
     const res =
       posts.value.length > 0
-        ? await requestApi(
-            `/api/blogs/posts?limit=10&begin=${posts.value.at(-1).id}`,
-          )
+        ? await requestApi(`/api/blogs/posts?limit=10&begin=${posts.value.at(-1).id}`)
         : await requestApi(`/api/blogs/posts?limit=10&page=1`);
     const data = await res.json();
     if (data.data.length === 0) {
@@ -285,9 +249,7 @@ const handleFollow = async (id) => {
 
 const fetchComments = async (id) => {
   try {
-    const res = await requestApi(
-      `/api/blogs/comments/${id}?limit=10&page=1&sort=${AscSort.value ? "asc" : "desc"}`,
-    );
+    const res = await requestApi(`/api/blogs/comments/${id}?limit=10&page=1&sort=${AscSort.value ? "asc" : "desc"}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -548,6 +510,14 @@ onUnmounted(() => {
 
 .post-item {
   animation: fadeIn 0.3s ease-out;
+}
+
+:deep(.markdown-editor:not(:focus-within) textarea) {
+  line-height: 40px;
+}
+
+:deep(.markdown-editor:not(:focus-within) .el-tabs__header) {
+  display: none;
 }
 
 @keyframes fadeIn {

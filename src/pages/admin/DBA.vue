@@ -5,36 +5,15 @@
     <el-button type="primary" plain @click="loadTables">刷新表列表</el-button>
     <el-button type="success" @click="createAllTables">创建所有表</el-button>
     <el-button @click="toggleDisplayMode" v-if="!currentTable">
-      <component
-        :is="displayMode === 'card' ? Grid : List"
-        style="width: 16px; height: 16px"
-      />
+      <component :is="displayMode === 'card' ? Grid : List" style="width: 16px; height: 16px" />
     </el-button>
-    <el-button
-      type="warning"
-      @click="showMigratePlan"
-      style="visibility: hidden"
-      >检查迁移</el-button
-    >
-    <el-button type="danger" @click="applyMigrate" style="visibility: hidden"
-      >执行迁移</el-button
-    >
+    <el-button type="warning" @click="showMigratePlan" style="visibility: hidden">检查迁移</el-button>
+    <el-button type="danger" @click="applyMigrate" style="visibility: hidden">执行迁移</el-button>
   </div>
 
   <el-row v-if="!currentTable && displayMode === 'card'" :gutter="16">
-    <el-col
-      v-for="(info, name) in tables"
-      :key="name"
-      :md="8"
-      :sm="12"
-      :xs="24"
-    >
-      <el-card
-        class="mb-3"
-        shadow="hover"
-        @click="viewTable(name)"
-        style="margin: 10px 30px 10px 30px"
-      >
+    <el-col v-for="(info, name) in tables" :key="name" :md="8" :sm="12" :xs="24">
+      <el-card class="mb-3" shadow="hover" @click="viewTable(name)" style="margin: 10px 30px 10px 30px">
         <template #header>
           <div class="font-bold font-serif">{{ name }}</div>
         </template>
@@ -79,11 +58,7 @@
     <el-table-column prop="rows" label="数据行数" />
     <el-table-column fixed="right" label="操作">
       <template #default="{ row }">
-        <el-button
-          size="small"
-          type="danger"
-          @click="truncateTable(row.name)"
-          :disabled="!row.exists || row.rows === 0"
+        <el-button size="small" type="danger" @click="truncateTable(row.name)" :disabled="!row.exists || row.rows === 0"
           >清空</el-button
         >
       </template>
@@ -92,9 +67,7 @@
 
   <div v-if="currentTable">
     <el-breadcrumb separator="/" class="mb-3">
-      <el-breadcrumb-item @click.prevent="backToTables" style="cursor: pointer">
-        全部表
-      </el-breadcrumb-item>
+      <el-breadcrumb-item @click.prevent="backToTables" style="cursor: pointer"> 全部表 </el-breadcrumb-item>
       <el-breadcrumb-item>{{ currentTable }}</el-breadcrumb-item>
     </el-breadcrumb>
 
@@ -103,12 +76,7 @@
       <div style="display: ruby">
         <h4>数据预览 ({{ currentData.count }} 条记录)</h4>
         <el-tooltip content="刷新" placement="top">
-          <el-button
-            size="small"
-            circle
-            :icon="Refresh"
-            @click="refreshCurrentTable"
-          />
+          <el-button size="small" circle :icon="Refresh" @click="refreshCurrentTable" />
         </el-tooltip>
       </div>
     </div>
@@ -125,25 +93,13 @@
       <el-table-column fixed type="index" width="50" />
 
       <!-- 动态列：每个字段都变成可编辑单元格 -->
-      <el-table-column
-        v-for="(col, index) in columns"
-        :key="col"
-        min-width="150"
-        show-overflow-tooltip
-      >
+      <el-table-column v-for="(col, index) in columns" :key="col" min-width="150" show-overflow-tooltip>
         <template #header>
           <div class="table-header-cell">
             <!-- 列名 -->
             <span>{{ col }}&nbsp;</span>
             <!-- 数据类型 -->
-            <span
-              style="
-                text-overflow: ellipsis;
-                font-style: italic;
-                font-size: 12px;
-              "
-              >{{ info[index] }}</span
-            >
+            <span style="text-overflow: ellipsis; font-style: italic; font-size: 12px">{{ info[index] }}</span>
           </div>
         </template>
 
@@ -171,13 +127,7 @@
 
       <el-table-column fixed="right" label="操作">
         <template #default="{ row }">
-          <el-button
-            link
-            size="small"
-            type="primary"
-            @click="confirmDelete(row)"
-            >删除</el-button
-          >
+          <el-button link size="small" type="primary" @click="confirmDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -294,13 +244,9 @@ const createAllTables = async () => {
 };
 
 const truncateTable = async (tableName) => {
-  await ElMessageBox.confirm(
-    `确定要清空表 ${tableName} 的所有数据吗？`,
-    "警告",
-    {
-      type: "error",
-    },
-  ).catch(() => {
+  await ElMessageBox.confirm(`确定要清空表 ${tableName} 的所有数据吗？`, "警告", {
+    type: "error",
+  }).catch(() => {
     return Promise.reject(new Error("cancel"));
   });
 
@@ -423,15 +369,11 @@ const showMigratePlan = async () => {
 
 // 执行迁移
 const applyMigrate = async () => {
-  await ElMessageBox.confirm(
-    "确定要应用以上迁移操作吗？此操作不可逆！",
-    "危险操作",
-    {
-      type: "error",
-      confirmButtonText: "确认执行",
-      cancelButtonText: "取消",
-    },
-  ).catch(() => {
+  await ElMessageBox.confirm("确定要应用以上迁移操作吗？此操作不可逆！", "危险操作", {
+    type: "error",
+    confirmButtonText: "确认执行",
+    cancelButtonText: "取消",
+  }).catch(() => {
     return Promise.reject(new Error("cancel"));
   });
 

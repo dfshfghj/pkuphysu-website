@@ -118,7 +118,7 @@ watch(
     if (vditor.value && newVal !== vditor.value.getValue()) {
       setValue(newVal);
     }
-  },
+  }
 );
 
 watch(
@@ -133,7 +133,7 @@ watch(
         vditor.value.setTheme(theme, contentTheme, codeTheme);
       }
     }
-  },
+  }
 );
 </script>
 

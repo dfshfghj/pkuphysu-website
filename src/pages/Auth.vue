@@ -9,13 +9,7 @@
             fill-rule="evenodd"
             d="M1337,668.5 C1337,1037.455193874239 1037.455193874239,1337 668.5,1337 C523.6725684305388,1337 337,1236 370.50000000000006,1094 C434.03835568300906,824.6732385973953 6.906089672974592e-14,892.6277623047779 0,668.5000000000001 C0,299.5448061257611 299.5448061257609,1.1368683772161603e-13 668.4999999999999,0 C1037.455193874239,0 1337,299.544806125761 1337,668.5Z"
           />
-          <linearGradient
-            id="linearGradient-2"
-            x1="0.79"
-            y1="0.62"
-            x2="0.21"
-            y2="0.86"
-          >
+          <linearGradient id="linearGradient-2" x1="0.79" y1="0.62" x2="0.21" y2="0.86">
             <stop offset="0" stop-color="#ff6b6b" stop-opacity="1" />
             <stop offset="1" stop-color="#c41212" stop-opacity="1" />
           </linearGradient>
@@ -57,9 +51,7 @@
       <div class="auth-title">
         <img src="../assets/logo_white.svg" class="logo" v-if="isDark" />
         <img src="../assets/logo_black.svg" class="logo" v-else />
-        <h2 style="color: #f53f3f">
-          {{ isLogin ? "登录" : "注册" }}到物院学生会
-        </h2>
+        <h2 style="color: #f53f3f">{{ isLogin ? "登录" : "注册" }}到物院学生会</h2>
       </div>
       <el-form
         v-if="isLogin"
@@ -96,19 +88,8 @@
         </div>
 
         <el-form-item>
-          <el-button
-            class="tab-btn minor"
-            size="large"
-            @click="isLogin = false"
-          >
-            注册
-          </el-button>
-          <el-button
-            class="tab-btn major"
-            size="large"
-            native-type="submit"
-            :loading="loading"
-          >
+          <el-button class="tab-btn minor" size="large" @click="isLogin = false"> 注册 </el-button>
+          <el-button class="tab-btn major" size="large" native-type="submit" :loading="loading">
             {{ loading ? "登录中..." : "登 录" }}
           </el-button>
         </el-form-item>
@@ -248,8 +229,7 @@ const handleLogin = async () => {
         });
 
         ElMessage.success("登录成功！");
-        const redirect =
-          new URLSearchParams(window.location.search).get("redirect") || "/";
+        const redirect = new URLSearchParams(window.location.search).get("redirect") || "/";
         await router.push(redirect);
       } else {
         ElMessage.error(result.message || "账户或密码错误");

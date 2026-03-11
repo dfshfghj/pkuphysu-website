@@ -1,22 +1,10 @@
 <template>
-  <el-tabs
-    type="border-card"
-    class="markdown-editor"
-    @tab-change="manageHeight"
-  >
+  <el-tabs type="border-card" class="markdown-editor" @tab-change="manageHeight">
     <el-tab-pane label="编辑">
-      <el-input
-        type="textarea"
-        v-model="model"
-        :placeholder="props.placeholder"
-        style="font-size: 16px"
-      ></el-input>
+      <el-input type="textarea" v-model="model" :placeholder="props.placeholder" style="font-size: 16px"></el-input>
     </el-tab-pane>
     <el-tab-pane label="预览">
-      <MarkdownRenderer
-        :content="model"
-        :darkMode="darkMode"
-      ></MarkdownRenderer>
+      <MarkdownRenderer :content="model" :darkMode="darkMode"></MarkdownRenderer>
     </el-tab-pane>
   </el-tabs>
   <slot></slot>
@@ -60,14 +48,6 @@ const manageHeight = (name) => {
 
 .markdown-editor :deep(.el-tabs__header) {
   background: transparent;
-}
-
-.markdown-editor:not(:focus-within) :deep(textarea) {
-  line-height: 40px;
-}
-
-.markdown-editor:not(:focus-within) :deep(.el-tabs__header) {
-  display: none;
 }
 
 .markdown-body {

@@ -25,9 +25,7 @@ const handleCommand = (command) => {
 
 const fetchArticles = async (config = { mode: "page", count: 1 }) => {
   try {
-    const res = await requestApi(
-      `/api/blogs/articles?limit=10&${config.mode}=${config.count}`,
-    );
+    const res = await requestApi(`/api/blogs/articles?limit=10&${config.mode}=${config.count}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -61,18 +59,9 @@ onUnmounted(() => {
 <template>
   <el-scrollbar style="height: 100vh">
     <div :class="['menu-wrapper acrylic', { scrolled: isScrolled }]">
-      <el-menu
-        :class="{ scrolled: isScrolled }"
-        mode="horizontal"
-        :ellipsis="false"
-        router
-        popper-class="acrylic"
-      >
+      <el-menu :class="{ scrolled: isScrolled }" mode="horizontal" :ellipsis="false" router popper-class="acrylic">
         <el-menu-item index="/">
-          <div
-            class="flex items-center justify-center gap-2"
-            style="display: flex; align-items: center"
-          >
+          <div class="flex items-center justify-center gap-2" style="display: flex; align-items: center">
             <img src="../assets/logo_white.svg" class="logo" v-if="isDark" />
             <img src="../assets/logo_black.svg" class="logo" v-else />
           </div>
@@ -110,28 +99,13 @@ onUnmounted(() => {
               <user-avatar />
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item command="profile"
-                    >个人资料</el-dropdown-item
-                  >
-                  <el-dropdown-item
-                    command="logout"
-                    divided
-                    style="color: #f56c6c"
-                  >
-                    退出登录
-                  </el-dropdown-item>
+                  <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                  <el-dropdown-item command="logout" divided style="color: #f56c6c"> 退出登录 </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
           </div>
-          <el-button
-            v-else
-            link
-            type="primary"
-            plain
-            @click="$router.push('/login')"
-            class="border-none"
-          >
+          <el-button v-else link type="primary" plain @click="$router.push('/login')" class="border-none">
             登录
           </el-button>
         </el-menu-item>
@@ -139,21 +113,12 @@ onUnmounted(() => {
     </div>
     <div class="articles-container">
       <div v-for="article in articles" :key="article.id" style="width: 100%">
-        <div
-          class="article-card"
-          @click="router.push(`/chat/articles/${article.id}`)"
-        >
+        <div class="article-card" @click="router.push(`/chat/articles/${article.id}`)">
           <div class="card-body">
             <h3>{{ article.title }}</h3>
-            <div
-              v-if="windowWidth <= 768"
-              style="display: flex; align-items: center; margin-bottom: 10px"
-            >
+            <div v-if="windowWidth <= 768" style="display: flex; align-items: center; margin-bottom: 10px">
               <div class="card-info">
-                <el-avatar
-                  :size="22"
-                  :src="`${API_BASE}/api/avatars/${article.author}`"
-                />
+                <el-avatar :size="22" :src="`${API_BASE}/api/avatars/${article.author}`" />
               </div>
               <span style="white-space: nowrap; font-size: 13px">
                 {{ formatTime(article.timestamp).relativeTime }}
@@ -164,21 +129,12 @@ onUnmounted(() => {
               {{ article.content.length > 50 ? "..." : "" }}</span
             >
             <div v-if="windowWidth <= 768" style="margin: 10px">
-              <span>
-                {{ article.likenum }} 关注 &nbsp; 丨 &nbsp;
-                {{ article.reply }} 评论
-              </span>
+              <span> {{ article.likenum }} 关注 &nbsp; 丨 &nbsp; {{ article.reply }} 评论 </span>
             </div>
           </div>
-          <div
-            v-if="windowWidth > 768"
-            style="display: flex; align-items: center"
-          >
+          <div v-if="windowWidth > 768" style="display: flex; align-items: center">
             <div class="card-info">
-              <el-avatar
-                :size="35"
-                :src="`${API_BASE}/api/avatars/${article.author}`"
-              />
+              <el-avatar :size="35" :src="`${API_BASE}/api/avatars/${article.author}`" />
             </div>
             <span style="white-space: nowrap; font-size: 13px">
               {{ formatTime(article.timestamp).relativeTime }}

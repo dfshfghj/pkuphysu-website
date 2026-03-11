@@ -1,11 +1,5 @@
 <script lang="ts" setup>
-import {
-  Menu,
-  Setting,
-  ArrowLeft,
-  ArrowRight,
-  Tickets,
-} from "@element-plus/icons-vue";
+import { Menu, Setting, ArrowLeft, ArrowRight, Tickets } from "@element-plus/icons-vue";
 const isCollapsed = ref(false);
 
 const toggleSidebar = () => {
@@ -15,12 +9,7 @@ const toggleSidebar = () => {
 
 <template>
   <div class="adminContainer">
-    <el-menu
-      router
-      default-active="/admin/dashboard"
-      class="el-menu-vertical-demo"
-      :collapse="isCollapsed"
-    >
+    <el-menu router default-active="/admin/dashboard" class="el-menu-vertical-demo" :collapse="isCollapsed">
       <el-menu-item class="collapse-toggle" @click="toggleSidebar">
         <el-icon>
           <ArrowLeft v-if="!isCollapsed" />
@@ -46,26 +35,12 @@ const toggleSidebar = () => {
           </el-icon>
           <span>抽奖管理</span>
         </template>
-        <el-menu-item
-          index="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0"
-          >一等奖</el-menu-item
-        >
-        <el-menu-item
-          index="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1"
-          >二等奖</el-menu-item
-        >
-        <el-menu-item
-          index="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2"
-          >三等奖</el-menu-item
-        >
+        <el-menu-item index="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0">一等奖</el-menu-item>
+        <el-menu-item index="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1">二等奖</el-menu-item>
+        <el-menu-item index="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2">三等奖</el-menu-item>
       </el-sub-menu>
     </el-menu>
-    <div
-      :class="[
-        'main-content',
-        isCollapsed ? 'main-content--collapsed' : 'main-content--expanded',
-      ]"
-    >
+    <div :class="['main-content', isCollapsed ? 'main-content--collapsed' : 'main-content--expanded']">
       <RouterView />
     </div>
   </div>

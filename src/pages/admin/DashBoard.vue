@@ -56,29 +56,14 @@
     <div>
       <span> cookies 失效时间：{{ FormatTime(cookies_expire) }}</span>
     </div>
-    <el-button
-      type="primary"
-      plain
-      :loading="checking"
-      @click="checkWechatEngine"
-    >
+    <el-button type="primary" plain :loading="checking" @click="checkWechatEngine">
       {{ checking ? "检查中..." : "手动检查" }}
     </el-button>
-    <el-button
-      type="primary"
-      plain
-      :loading="refreshing"
-      @click="refreshWechatState"
-    >
+    <el-button type="primary" plain :loading="refreshing" @click="refreshWechatState">
       {{ refreshing ? "更新中..." : "更新文章" }}
     </el-button>
 
-    <el-dialog
-      v-model="QRcodeDialogVisible"
-      title="扫码登录"
-      width="500"
-      align-center
-    >
+    <el-dialog v-model="QRcodeDialogVisible" title="扫码登录" width="500" align-center>
       <img :src="qrcodeUrl" />
     </el-dialog>
 
@@ -162,9 +147,7 @@ const checkWechatEngine = async () => {
       ElMessage.success("登录状态有效");
     } else {
       ElMessage.error(result.message || "登录状态失效");
-      const res = await requestApi(
-        `/api/wechat/scanloginqrcode?action=getqrcode&fingerprint=${fingerprint.value}`,
-      );
+      const res = await requestApi(`/api/wechat/scanloginqrcode?action=getqrcode&fingerprint=${fingerprint.value}`);
       if (res.ok) {
         const blob = await res.blob();
         if (qrcodeUrl.value) {
@@ -175,18 +158,14 @@ const checkWechatEngine = async () => {
       }
       let isLogged = false;
       while (!isLogged) {
-        const res = await requestApi(
-          `/api/wechat/scanloginqrcode?action=ask&fingerprint=${fingerprint.value}`,
-        );
+        const res = await requestApi(`/api/wechat/scanloginqrcode?action=ask&fingerprint=${fingerprint.value}`);
         const result = await res.json();
         if (result.status == 1) {
           isLogged = true;
           URL.revokeObjectURL(qrcodeUrl.value);
           qrcodeUrl.value = "";
           QRcodeDialogVisible.value = false;
-          await requestApi(
-            `/api/wechat/login?fingerprint=${fingerprint.value}`,
-          );
+          await requestApi(`/api/wechat/login?fingerprint=${fingerprint.value}`);
           break;
         }
         await new Promise((resolve) => setTimeout(resolve, 1000));

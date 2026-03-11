@@ -6,6 +6,8 @@ import viteCompression from 'vite-plugin-compression';
 import vueDevTools from "vite-plugin-vue-devtools";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
+import Icons from 'unplugin-icons/vite';
+import IconsResolver from 'unplugin-icons/resolver';
 import tailwindcss from "@tailwindcss/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
@@ -29,7 +31,12 @@ export default defineConfig({
     }),
     vueDevTools(),
     AutoImport({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        ElementPlusResolver(),
+        IconsResolver({
+          prefix: 'Icon',
+        }),
+      ],
       imports: ["vue", "vue-router", "pinia"],
       dts: "src/auto-imports.d.ts",
     }),
@@ -39,17 +46,23 @@ export default defineConfig({
           resolveIcons: true,
           importStyle: "css",
         }),
+        IconsResolver({
+          prefix: 'Icon',
+        }),
       ],
       dirs: ["src/components"],
       extensions: ["vue"],
       dts: "src/components.d.ts",
+    }),
+    Icons({
+      autoInstall: true,
     }),
     tailwindcss(),
   ],
   server: {
     proxy: {
       "/api/v2": {
-        target: "http://localhost:8081",
+        target: "http://localhost:8080",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/v2/, ""),
       },

@@ -1,26 +1,10 @@
 <template>
   <div class="bb unselectable" @click="changeBodyDown">&#xe737;</div>
-  <div
-    class="body body-home show unselectable"
-    ref="homeRef"
-    @wheel="onScrollDown"
-  >
+  <div class="body body-home show unselectable" ref="homeRef" @wheel="onScrollDown">
     <div class="pictureContainer">
-      <el-carousel
-        height="calc(100vh - var(--el-menu-item-height) - 4px)"
-        indicator-position="none"
-      >
-        <el-carousel-item
-          v-for="item in news"
-          :key="item.title"
-          type="card"
-          class="carousel-item"
-        >
-          <a
-            :href="item.href"
-            target="_blank"
-            style="text-decoration: none; width: 100%; height: 100%"
-          >
+      <el-carousel height="calc(100vh - var(--el-menu-item-height) - 4px)" indicator-position="none">
+        <el-carousel-item v-for="item in news" :key="item.title" type="card" class="carousel-item">
+          <a :href="item.href" target="_blank" style="text-decoration: none; width: 100%; height: 100%">
             <div
               :style="{
                 backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.9) 0% , transparent 20%), url(${item.img})`,
@@ -45,13 +29,7 @@
         <span class="font-serif">活动</span>
       </div>
       <el-row id="cardList" :gutter="16" style="margin: 0px">
-        <el-col
-          v-for="(activity, index) in activities"
-          :key="index"
-          :md="12"
-          :sm="12"
-          :xs="24"
-        >
+        <el-col v-for="(activity, index) in activities" :key="index" :md="12" :sm="12" :xs="24">
           <a :href="activity.href" style="text-decoration: none">
             <el-card shadow="hover" class="card post-card with-image">
               <div class="card-info">
@@ -97,13 +75,7 @@
         <span class="font-serif">文章</span>
       </div>
       <div id="cardList">
-        <a
-          v-for="(post, index) in posts"
-          :key="index"
-          :href="post.url"
-          target="_blank"
-          style="text-decoration: none"
-        >
+        <a v-for="(post, index) in posts" :key="index" :href="post.url" target="_blank" style="text-decoration: none">
           <div class="card post-card">
             <div class="time" style="white-space: nowrap">
               <span>{{ post.publish_time }}</span>
@@ -113,14 +85,7 @@
             </div>
           </div>
         </a>
-        <div
-          style="
-            text-align: right;
-            font-size: 12px;
-            text-decoration: none;
-            padding: 10px 20px 30px 20px;
-          "
-        >
+        <div style="text-align: right; font-size: 12px; text-decoration: none; padding: 10px 20px 30px 20px">
           <a href="/posts"><span> View More </span></a>
         </div>
       </div>
@@ -133,13 +98,7 @@
           href="https://github.com/pkuphysu"
           target="_blank"
           rel="noopener"
-          style="
-            text-decoration: none;
-            color: var(--c-text);
-            display: flex;
-            align-items: center;
-            margin: 10px;
-          "
+          style="text-decoration: none; color: var(--c-text); display: flex; align-items: center; margin: 10px"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -158,12 +117,7 @@
       </div>
       <div
         id="wechat"
-        style="
-          display: flex;
-          align-items: center;
-          margin: 10px;
-          cursor: pointer;
-        "
+        style="display: flex; align-items: center; margin: 10px; cursor: pointer"
         @click="showWechatQRCode = true"
       >
         <svg
@@ -181,9 +135,7 @@
             d="M0 6.826c0 1.455.781 2.765 2.001 3.656a.385.385 0 0 1 .143.439l-.161.6-.1.373a.499.499 0 0 0-.032.14.192.192 0 0 0 .193.193c.039 0 .077-.01.111-.029l1.268-.733a.622.622 0 0 1 .308-.088c.058 0 .116.009.171.025a6.83 6.83 0 0 0 1.625.26 4.45 4.45 0 0 1-.177-1.251c0-2.936 2.785-5.02 5.824-5.02.05 0 .1 0 .15.002C10.587 3.429 8.392 2 5.796 2 2.596 2 0 4.16 0 6.826Zm4.632-1.555a.77.77 0 1 1-1.54 0 .77.77 0 0 1 1.54 0Zm3.875 0a.77.77 0 1 1-1.54 0 .77.77 0 0 1 1.54 0Z"
           />
         </svg>
-        <span style="font-size: 12px; margin-left: 5px"
-          >公众号 | 物院学生会</span
-        >
+        <span style="font-size: 12px; margin-left: 5px">公众号 | 物院学生会</span>
       </div>
     </div>
   </div>

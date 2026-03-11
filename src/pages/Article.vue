@@ -6,10 +6,7 @@
         <div class="author-info">
           <div style="display: flex; align-items: center; margin-bottom: 10px">
             <div class="card-info">
-              <el-avatar
-                :size="40"
-                :src="`${API_BASE}/api/avatars/${data.author}`"
-              />
+              <el-avatar :size="40" :src="`${API_BASE}/api/avatars/${data.author}`" />
             </div>
             <div style="display: flex; flex-direction: column">
               <span> {{ data.author }} </span>
@@ -19,11 +16,7 @@
             </div>
           </div>
         </div>
-        <MarkdownRenderer
-          :content="data.content"
-          :dark-mode="isDark"
-          v-if="data.content"
-        />
+        <MarkdownRenderer :content="data.content" :dark-mode="isDark" v-if="data.content" />
         <div class="action-panel">
           <div class="control-btn">
             <span> {{ data.likenum }} </span>

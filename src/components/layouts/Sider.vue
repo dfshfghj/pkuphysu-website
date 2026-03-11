@@ -1,11 +1,5 @@
 <script lang="ts" setup>
-import {
-  Menu,
-  Setting,
-  ArrowLeft,
-  ArrowRight,
-  Tickets,
-} from "@element-plus/icons-vue";
+import { Menu, Setting, ArrowLeft, ArrowRight, Tickets } from "@element-plus/icons-vue";
 
 const isCollapsed = ref(false);
 const toggleSidebar = () => {
@@ -31,11 +25,7 @@ const themeClass = computed(() => `sider--${props.theme}`);
 </script>
 
 <template>
-  <el-menu
-    router
-    :collapse="isCollapsed"
-    :class="[themeClass, { 'sider--collapsed': collapsed }]"
-  >
+  <el-menu router :collapse="isCollapsed" :class="[themeClass, { 'sider--collapsed': collapsed }]">
     <el-menu-item class="collapse-toggle" @click="toggleSidebar">
       <el-icon>
         <ArrowLeft v-if="!isCollapsed" />
@@ -62,25 +52,13 @@ const themeClass = computed(() => `sider--${props.theme}`);
         <span>抽奖管理</span>
       </template>
       <el-menu-item
-        ><a
-          href="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0"
-          class="menu-link"
-          >一等奖</a
-        ></el-menu-item
+        ><a href="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0" class="menu-link">一等奖</a></el-menu-item
       >
       <el-menu-item
-        ><a
-          href="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1"
-          class="menu-link"
-          >二等奖</a
-        ></el-menu-item
+        ><a href="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1" class="menu-link">二等奖</a></el-menu-item
       >
       <el-menu-item
-        ><a
-          href="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2"
-          class="menu-link"
-          >三等奖</a
-        ></el-menu-item
+        ><a href="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2" class="menu-link">三等奖</a></el-menu-item
       >
     </el-sub-menu>
   </el-menu>

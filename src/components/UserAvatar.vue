@@ -19,14 +19,11 @@ const props = defineProps({
   },
 });
 
-const userAvatar = ref(
-  `${API_BASE}/api/v2/user/avatar/${props.userid || userStore.userid}`,
-);
+const userAvatar = ref(`${API_BASE}/api/v2/user/avatar/${props.userid || userStore.userid}`);
 
 function onImageError() {
   const svgString = minidenticon(String(props.userid || userStore.userid), 64);
-  const svgPath =
-    "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
+  const svgPath = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
   userAvatar.value = svgPath;
 }
 </script>

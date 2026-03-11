@@ -1,27 +1,6 @@
 <template>
-  <el-scrollbar
-    distance="500"
-    @end-reached="loadMorePosts"
-    style="height: 100vh"
-  >
+  <el-scrollbar distance="200" @end-reached="loadMorePosts" style="height: 100vh">
     <div class="title-bar unselectable">
-      <div class="aux-margin">
-        <div class="title">
-          <img
-            src="../assets/logo_white.svg"
-            class="logo"
-            v-if="isDark"
-            @click="router.push('/')"
-          />
-          <img
-            src="../assets/logo_black.svg"
-            class="logo"
-            v-else
-            @click="router.push('/')"
-          />
-          <h4>交流论坛</h4>
-        </div>
-      </div>
       <div class="control-bar">
         <div
           class="control-btn"
@@ -52,20 +31,18 @@
           <el-select
             v-model="searchConfig.tag"
             placeholder="选择分类"
-            style="padding-left: 10px; width: 50%"
+            style="padding-left: 10px; width: 50%; display: none"
           >
             <el-option label="全部" value=""></el-option>
-            <el-option
-              v-for="tag in tags"
-              :label="tag.tag_name"
-              :value="tag.tag_name"
-              :key="tag.id"
-            >
-            </el-option>
+            <el-option v-for="tag in tags" :label="tag.tag_name" :value="tag.tag_name" :key="tag.id"> </el-option>
           </el-select>
-          <el-input
+          <el-input-tag
+            collapse-tags
+            collapse-tags-tooltip
+            :max-collapse-tags="3"
             v-model="searchConfig.query"
-            placeholder="搜索内容 或 #PID"
+            trigger="Space"
+            placeholder="搜索内容 或 #id"
           />
           <el-icon :size="20" @click="fetchPosts((config = searchConfig))">
             <Search />
@@ -83,7 +60,7 @@
           </el-icon>
           <span class="control-btn-label">消息</span>
         </div>
-        <div class="control-btn">
+        <div class="control-btn" @click="router.push('/settings')">
           <el-icon :size="20">
             <Setting />
           </el-icon>
@@ -94,26 +71,13 @@
             <UserAvatar />
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人资料</el-dropdown-item>
-                <el-dropdown-item
-                  command="logout"
-                  divided
-                  style="color: #f56c6c"
-                >
-                  退出登录
-                </el-dropdown-item>
+                <!----<el-dropdown-item command="profile">个人资料</el-dropdown-item>-->
+                <el-dropdown-item command="logout" divided style="color: #f56c6c"> 退出登录 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
-        <el-button
-          v-else
-          link
-          type="primary"
-          plain
-          @click="$router.push('/login')"
-          class="border-none"
-        >
+        <el-button v-else link type="primary" plain @click="$router.push('/login')" class="border-none">
           登录
         </el-button>
       </div>
@@ -122,36 +86,49 @@
       <div v-for="post in posts" class="card" :key="post.id">
         <CollapsibleDiv max-height="500">
           <div class="card-header unselectable">
-            <UserAvatar :userid="post.userid" />
-            <div style="flex: 1">
-              <span> {{ post.username }} </span>
-              <code class="card-id"> #{{ post.id }} </code>
-              <el-icon :size="16" class="copy-btn" @click="copyText(post.text)">
-                <CopyDocument />
-              </el-icon>
-              <div>
-                <div class="header-badge" v-if="post.likenum">
-                  {{ post.likenum }}
-                  <el-icon :size="12">
-                    <StarFilled v-if="post.is_follow" />
-                    <Star v-else />
-                  </el-icon>
+            <div style="display: flex">
+              <UserAvatar :userid="post.userid" />
+              <div style="flex: 1">
+                <span> {{ post.username }} </span>
+                <code class="card-id"> #{{ post.id }} </code>
+                <el-icon :size="16" class="copy-btn" @click="copyText(post.text)">
+                  <CopyDocument />
+                </el-icon>
+                <div>
+                  <div class="header-badge" @click="handleFollowPost(post.id)">
+                    {{ post.follownum }}
+                    <el-icon :size="12">
+                      <StarFilled v-if="post.is_follow" />
+                      <Star v-else />
+                    </el-icon>
+                  </div>
+                  <div class="header-badge" @click="handleLikePost(post.id)">
+                    {{ post.likenum }}
+                    <el-icon :size="12">
+                      <IconRiHeartFill v-if="post.is_like" />
+                      <IconRiHeartLine v-else />
+                    </el-icon>
+                  </div>
+                  <div class="header-badge" v-if="post.reply">
+                    {{ post.reply }}
+                    <el-icon :size="12">
+                      <ChatLineRound />
+                    </el-icon>
+                  </div>
+                  <span>
+                    {{ formatTime(post.timestamp).relativeTime }}
+                    {{ formatTime(post.timestamp).formattedTime }}
+                  </span>
                 </div>
-                <div class="header-badge" v-if="post.reply">
-                  {{ post.reply }}
-                  <el-icon :size="12">
-                    <ChatLineRound />
-                  </el-icon>
-                </div>
-                <span>
-                  {{ formatTime(post.timestamp).relativeTime }}
-                  {{ formatTime(post.timestamp).formattedTime }}
-                </span>
-                &nbsp;
-                <el-tag v-if="post.tag"> {{ post.tag }} </el-tag>
               </div>
             </div>
+            <div style="margin: 10px 0 0 5px">
+              <span class="tag" v-for="tag in post.tags" :key="tag">
+                {{ tag }}
+              </span>
+            </div>
           </div>
+
           <MarkdownRenderer
             :dark-mode="isDark"
             :content="post.text"
@@ -170,15 +147,27 @@
       </div>
     </div>
   </el-scrollbar>
+  <el-backtop
+    target="#app > div > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default > div > div.el-scrollbar > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default"
+    :right="20"
+    :bottom="30"
+  >
+  </el-backtop>
 
   <div v-if="editing" class="edit-panel acrylic unselectable">
     <div class="editor">
+      <div style="margin: 10px 0 0 10px">
+        <el-icon size="20" @click="editing = false">
+          <Close />
+        </el-icon>
+      </div>
+      <AutoCompleteTagInput v-model="selectedTags" :suggestions="tagSuggestions" />
       <MarkdownEditor v-model="content">
         <div style="display: flex; align-items: baseline">
           <el-upload
             style="padding-top: 20px; flex: 1"
             v-model:file-list="fileList"
-            action="/api/files/upload"
+            action="/api/v2/files/upload"
             :on-preview="handlePreview"
             :on-success="handleUploadSuccess"
             :on-remove="handleRemove"
@@ -189,34 +178,17 @@
               <el-icon>
                 <Link />
               </el-icon>
-              上传文件
+              上传附件
             </el-button>
             <template #tip>
-              <div class="el-upload__tip" style="color: white">
-                files with a size less than 5MB.
-              </div>
+              <div class="el-upload__tip" style="color: white">文件小于 5MB.</div>
             </template>
           </el-upload>
           <div class="btn-panel">
-            <el-button @click="editing = false"> 取消编辑 </el-button>
-            <el-button
-              @click="editing = false"
-              :disabled="content ? false : true"
-            >
+            <el-button @click="editing = false" :disabled="content ? false : true" style="display: none">
               保存草稿
             </el-button>
-            <el-select v-model="tag" placeholder="选择tag" style="width: 100px">
-              <el-option
-                v-for="tag in tags"
-                :label="tag.tag_name"
-                :value="tag.tag_name"
-                :key="tag.id"
-              >
-              </el-option>
-            </el-select>
-            <el-button @click="submitPost" :disabled="content ? false : true">
-              发布
-            </el-button>
+            <el-button @click="submitPost" :disabled="content ? false : true"> 发布 </el-button>
           </div>
         </div>
       </MarkdownEditor>
@@ -257,9 +229,6 @@
           >
             <Close />
           </el-icon>
-          <b
-            ><code> POST #{{ currentPost.id }}</code></b
-          >
         </div>
         <div style="display: flex; align-items: center; margin-right: 20px">
           <div class="control-btn" @click="fetchComments(currentPost.id)">
@@ -270,6 +239,7 @@
           </div>
           <div
             class="control-btn"
+            style="display: none"
             @click="
               handleFollow(currentPost.id);
               currentPost.is_follow = !currentPost.is_follow;
@@ -295,72 +265,122 @@
           </div>
         </div>
       </div>
-      <el-scrollbar
-        class="card-list"
-        distance="300"
-        @end-reached="loadMoreComments($event, currentPost.id)"
-      >
-        <div
-          v-for="comment in comments"
-          class="card comment-card"
-          :key="comment.cid"
-        >
+      <el-scrollbar class="card-list" distance="100" @end-reached="loadMoreComments($event, currentPost.id)">
+        <!-- 添加当前帖子的显示区域 -->
+        <div class="card comment-card" v-if="currentPost">
           <CollapsibleDiv max-height="300">
             <div class="card-header unselectable">
-              <UserAvatar :userid="comment.userid" />
-              <div style="flex: 1">
-                <span> {{ comment.username }} </span>
-                <el-icon
-                  :size="16"
-                  class="copy-btn"
-                  @click="copyText(comment.text)"
-                >
-                  <CopyDocument />
-                </el-icon>
-                <div>
-                  <span>
-                    {{ formatTime(comment.timestamp).relativeTime }}
-                    {{ formatTime(comment.timestamp).formattedTime }}
-                  </span>
+              <div style="display: flex">
+                <UserAvatar :userid="currentPost.userid" />
+                <div style="flex: 1">
+                  <span> {{ currentPost.username }} </span>
+                  <code class="card-id"> #{{ currentPost.id }} </code>
+                  <el-icon :size="16" class="copy-btn" @click="copyText(currentPost.text)">
+                    <CopyDocument />
+                  </el-icon>
+                  <div>
+                    <div class="header-badge" @click="handleFollowPost(currentPost.id)">
+                      {{ currentPost.follownum }}
+                      <el-icon :size="12">
+                        <StarFilled v-if="currentPost.is_follow" />
+                        <Star v-else />
+                      </el-icon>
+                    </div>
+                    <div class="header-badge" @click="handleLikePost(currentPost.id)">
+                      {{ currentPost.likenum }}
+                      <el-icon :size="12">
+                        <IconRiHeartFill v-if="currentPost.is_like" />
+                        <IconRiHeartLine v-else />
+                      </el-icon>
+                    </div>
+                    <div class="header-badge" v-if="currentPost.reply">
+                      {{ currentPost.reply }}
+                      <el-icon :size="12">
+                        <ChatLineRound />
+                      </el-icon>
+                    </div>
+                    <span>
+                      {{ formatTime(currentPost.timestamp).relativeTime }}
+                      {{ formatTime(currentPost.timestamp).formattedTime }}
+                    </span>
+                    &nbsp;
+                    <el-tag v-if="currentPost.tag">
+                      {{ currentPost.tag }}
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+              <div style="margin: 10px 0 0 5px">
+                <span class="tag" v-for="tag in currentPost.tags" :key="tag">
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+            <MarkdownRenderer :dark-mode="isDark" :content="currentPost.text" />
+          </CollapsibleDiv>
+        </div>
+        <div v-for="comment in comments" class="card comment-card" :key="comment.cid">
+          <CollapsibleDiv
+            max-height="300"
+            @click="
+              () => {
+                if (quote !== comment.cid) {
+                  quote = comment.cid;
+                  quoteName = comment.username;
+                } else {
+                  quote = null;
+                  quoteName = null;
+                }
+              }
+            "
+          >
+            <div class="card-header unselectable">
+              <div style="display: flex">
+                <UserAvatar :userid="comment.userid" />
+                <div style="flex: 1">
+                  <span> {{ comment.username }} </span>
+                  <el-icon :size="16" class="copy-btn" @click="copyText(comment.text)">
+                    <CopyDocument />
+                  </el-icon>
+                  <div>
+                    <div class="header-badge" @click="handleLikeComment(comment.cid)">
+                      {{ comment.likenum }}
+                      <el-icon :size="12">
+                        <IconRiHeartFill v-if="comment.is_like" />
+                        <IconRiHeartLine v-else />
+                      </el-icon>
+                    </div>
+                    <span>
+                      {{ formatTime(comment.timestamp).relativeTime }}
+                      {{ formatTime(comment.timestamp).formattedTime }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-            <span
-              v-if="comment.quote"
-              style="
-                margin-left: 20px;
-                font-size: 14px;
-                color: var(--c-secondary);
-              "
-            >
+            <span v-if="comment.quote" style="font-size: 14px; color: var(--c-secondary)">
               {{ `@${comment.quote.username}: ` }}
             </span>
-            <MarkdownRenderer
-              :dark-mode="isDark"
-              :content="comment.text"
-              @click="
-                () => {
-                  if (quote !== comment.cid) {
-                    quote = comment.cid;
-                    quoteName = comment.username;
-                  } else {
-                    quote = null;
-                    quoteName = null;
-                  }
-                }
-              "
-            />
+            <MarkdownRenderer :dark-mode="isDark" :content="comment.text" />
           </CollapsibleDiv>
         </div>
         <div v-if="endOfComments" class="end-flag">
           <span> 加载完毕 </span>
         </div>
       </el-scrollbar>
+      <el-backtop
+        target="#app > div > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default > div > div.comment-panel.acrylic > div.el-scrollbar.card-list > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default"
+        :right="20"
+        :bottom="60"
+      >
+      </el-backtop>
       <transition name="slide" mode="out-in">
         <div class="reply-simp" v-if="!editReply" key="simp">
           <div style="flex: 1">
             <div v-if="quote">
-              <span> {{ `@${quoteName}: ` }} </span>
+              <span style="font-size: 14px; color: var(--c-secondary)">
+                {{ `@${quoteName}: ` }}
+              </span>
             </div>
             <div class="reply-btn unselectable" @click="editReply = true">
               <span> {{ content ? content : "评论" }} </span>
@@ -371,14 +391,12 @@
           </el-icon>
         </div>
         <div class="reply unselectable" v-else key="full">
-          <div
-            style="width: 100%; display: flex; flex-direction: column-reverse"
-          >
+          <div style="width: 100%; display: flex; flex-direction: column-reverse">
             <MarkdownEditor v-model="content">
               <div style="display: flex; align-items: baseline; padding: 5px">
                 <el-upload
                   v-model:file-list="fileList"
-                  action="/api/files/upload"
+                  action="/api/v2/files/upload"
                   :show-file-list="false"
                   :on-success="handleUploadSuccess"
                   style="flex: 1"
@@ -387,13 +405,10 @@
                     <el-icon>
                       <Link />
                     </el-icon>
-                    上传文件
+                    上传附件
                   </el-button>
                 </el-upload>
-                <el-button
-                  style="width: 100px; background: var(--c-card)"
-                  @click="submitComment(currentPost.id)"
-                >
+                <el-button style="width: 100px; background: var(--c-card)" @click="submitComment(currentPost.id)">
                   <el-icon>
                     <Promotion />
                   </el-icon>
@@ -403,11 +418,34 @@
                 </el-icon>
               </div>
             </MarkdownEditor>
+            <div v-if="quote">
+              <span style="font-size: 14px; color: var(--c-secondary)">
+                {{ `@${quoteName}: ` }}
+              </span>
+            </div>
           </div>
         </div>
       </transition>
     </div>
   </transition>
+  <!-- 设置密码弹窗 -->
+  <el-dialog v-model="showSetPasswordDialog" title="设置密码" width="500" align-center>
+    <el-form :model="passwordForm" label-width="auto">
+      <el-form-item label="新密码">
+        <el-input v-model="passwordForm.newPassword" type="password" placeholder="请输入至少6位密码" />
+      </el-form-item>
+      <el-form-item label="确认密码">
+        <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="请再次输入密码" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="showSetPasswordDialog = false">稍后设置</el-button>
+        <el-button type="primary" @click="setPassword">提交</el-button>
+      </div>
+    </template>
+  </el-dialog>
+
   <div class="bg-img"></div>
 </template>
 
@@ -435,10 +473,12 @@ import CollapsibleDiv from "../components/CollapsibleDiv.vue";
 import { isDark } from "../composables/theme";
 import { useUserStore } from "../stores/user";
 import { requestApi } from "../api/api";
-import { formatTime } from "../utils";
+import { formatTime, sha256 } from "../utils";
 import { onBeforeMount } from "vue";
 import { ElMessage } from "element-plus";
 import UserAvatar from "../components/UserAvatar.vue";
+// 导入 AutoCompleteTagInput 组件
+import AutoCompleteTagInput from "../components/AutoCompleteTagInput.vue";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -459,7 +499,7 @@ const searchConfig = ref({
   mode: "page",
   count: 1,
   tag: "",
-  query: "",
+  query: [],
 });
 
 const posts = ref([]);
@@ -468,7 +508,8 @@ const comments = ref([]);
 const AscSort = ref(true);
 
 const content = ref("");
-const tag = ref("");
+// 将原来的单个 tag 改为 selectedTags 数组
+const selectedTags = ref([]);
 const editing = ref(false);
 
 const currentPost = ref(null);
@@ -479,7 +520,17 @@ const quoteName = ref("");
 
 const editReply = ref(false);
 
+// 添加密码设置相关状态
+const showSetPasswordDialog = ref(false);
+const passwordForm = reactive({
+  newPassword: "",
+  confirmPassword: "",
+});
+
 const fileList = ref([]);
+
+// 用于 AutoCompleteTagInput 的 suggestions 格式
+const tagSuggestions = ref([]);
 
 const windowWidth = ref(window.innerWidth);
 
@@ -506,24 +557,10 @@ const handlePreview = (uploadFile) => {
 };
 
 const handleUploadSuccess = (response, uploadFile, uploadFiles) => {
-  if (
-    response.ext in
-    [
-      ".png",
-      ".jpg",
-      ".jpeg",
-      ".gif",
-      ".webp",
-      ".eps",
-      ".svg",
-      ".bmp",
-      ".ico",
-      ".tiff",
-    ]
-  ) {
-    content.value += `\n![${uploadFile.name}](/api${response.url})\n`;
+  if (["png", "jpg", "jpeg", "gif", "webp", "eps", "svg", "bmp", "ico", "tiff"].includes(response.ext)) {
+    content.value += `\n![${uploadFile.name}](/api/v2/static${response.url})\n`;
   } else {
-    content.value += `\n[${uploadFile.name}](/api${response.url})\n`;
+    content.value += `\n[${uploadFile.name}](/api/v2/static${response.url})\n`;
   }
 
   console.log(response, uploadFile, uploadFiles);
@@ -531,9 +568,7 @@ const handleUploadSuccess = (response, uploadFile, uploadFiles) => {
 
 const handleExceed = (files, uploadFiles) => {
   ElMessage.warning(
-    `you selected ${files.length} files this time, add up to ${
-      files.length + uploadFiles.length
-    } totally`,
+    `you selected ${files.length} files this time, add up to ${files.length + uploadFiles.length} totally`
   );
 };
 
@@ -548,51 +583,146 @@ const handleFollow = async (id) => {
   }
 };
 
+const handleLikePost = async (id) => {
+  try {
+    const res = await requestApi(`/api/v2/forum/like/${id}`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const post = posts.value.find((p) => p.id === id);
+    if (post) {
+      post.is_like = !post.is_like;
+      post.likenum = post.is_like ? post.likenum + 1 : post.likenum - 1;
+    }
+  } catch (err) {
+    console.error("Like post failed:", err);
+    ElMessage.error("点赞操作失败");
+  }
+};
+
+const handleFollowPost = async (id) => {
+  try {
+    const res = await requestApi(`/api/v2/forum/follow/${id}`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const post = posts.value.find((p) => p.id === id);
+    if (post) {
+      post.is_follow = !post.is_follow;
+      post.follownum = post.is_follow ? post.follownum + 1 : post.follownum - 1;
+    }
+  } catch (err) {
+    console.error("Follow post failed:", err);
+    ElMessage.error("关注操作失败");
+  }
+};
+
+const handleLikeComment = async (id) => {
+  try {
+    const res = await requestApi(`/api/v2/forum/comment/like/${id}`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // 更新本地状态
+    const comment = comments.value.find((c) => c.cid === id);
+    if (comment) {
+      comment.is_like = !comment.is_like;
+      comment.likenum = comment.is_like ? comment.likenum + 1 : comment.likenum - 1;
+    }
+  } catch (err) {
+    console.error("Like comment failed:", err);
+    ElMessage.error("点赞操作失败");
+  }
+};
+
 const fetchConfig = async () => {
   try {
-    const res = await requestApi("/api/blogs/tags");
+    const res = await requestApi("/api/v2/forum/tags");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
     tags.value = data.data;
+    // 转换为 AutoCompleteTagInput 需要的格式
+    tagSuggestions.value = data.data.map((tag) => ({ value: tag.tag_name }));
+    console.log(tagSuggestions.value);
   } catch (err) {
     console.error("Fetch posts failed:", err);
   }
 };
 
-const fetchPosts = async (
-  config = { tag: "", query: "" },
-) => {
+// 添加检查用户密码状态的函数
+const checkUserPasswordStatus = async () => {
+  if (!userStore.isLoggedIn) return;
+
+  try {
+    const res = await requestApi("/api/v2/user/me");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    // 检查 has_password 字段
+    if (data.data && data.data.has_password === false) {
+      ElMessage.warning("您尚未设置密码，请尽快设置以保障账户安全");
+      showSetPasswordDialog.value = true;
+    }
+  } catch (err) {
+    console.error("Check user password status failed:", err);
+  }
+};
+
+const fetchPosts = async (config = { tag: "", query: [] }) => {
   try {
     const params = new URLSearchParams();
-    
-    // 处理搜索查询
-    const trimmedQuery = config.query.trim();
-    if (/^#\d+$/.test(trimmedQuery)) {
-      // 查询单个帖子
-      const postId = trimmedQuery.slice(1);
-      const res = await requestApi(`/api/v2/forum/posts/${postId}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      posts.value = [data.data];
-      endOfPosts.value = true;
-      return;
-    } else if (trimmedQuery) {
-      // 关键词搜索
-      params.append('keyword', trimmedQuery);
+
+    // 处理搜索查询数组
+    const hashQuery = config.query.find((item) => typeof item === "string" && item.trim().startsWith("#"));
+    if (hashQuery) {
+      // 如果有 # 开头的查询，只取第一个这样的元素查询单个帖子
+      const trimmedHashQuery = hashQuery.trim();
+      if (/^#\d+$/.test(trimmedHashQuery)) {
+        const postId = trimmedHashQuery.slice(1);
+        const res = await requestApi(`/api/v2/forum/posts/${postId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        posts.value = [data.data];
+        endOfPosts.value = true;
+        return;
+      }
+    } else {
+      // 如果没有 # 开头的查询，处理关键词搜索
+      const keywords = config.query
+        .filter((item) => typeof item === "string" && item.trim() && !item.trim().startsWith("#"))
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+
+      if (keywords.length > 0) {
+        // 将关键词添加到参数中，每个关键词作为一个 keyword 参数
+        keywords.forEach((keyword) => {
+          params.append("keyword", keyword);
+        });
+      }
     }
-    
-    // 添加标签参数
-    if (config.tag) {
-      params.append('tag', config.tag);
+
+    // 添加标签参数（仅在非关注模式下）
+    if (config.tag && browseType.value !== "follow") {
+      params.append("tag", config.tag);
     }
-    
+
     // 默认不传 begin 参数（相当于第一页）
-    params.append('limit', '10');
-    
-    const res = await requestApi(
-      `/api/v2/forum/posts?${params.toString()}`,
-    );
+    params.append("limit", "10");
+
+    let apiUrl;
+    if (browseType.value === "follow") {
+      // 关注模式使用不同的API端点
+      apiUrl = `/api/v2/forum/follow?${params.toString()}`;
+    } else {
+      // 普通模式
+      apiUrl = `/api/v2/forum/posts?${params.toString()}`;
+    }
+
+    const res = await requestApi(apiUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -608,9 +738,7 @@ const fetchPosts = async (
 
 const fetchComments = async (id) => {
   try {
-    const res = await requestApi(
-      `/api/v2/forum/comments/${id}?limit=10&sort=${AscSort.value ? "asc" : "desc"}`,
-    );
+    const res = await requestApi(`/api/v2/forum/comments/${id}?limit=10&sort=${AscSort.value ? "asc" : "desc"}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -628,21 +756,37 @@ const loadMorePosts = async (direction) => {
   if (direction === "bottom" && !endOfPosts.value) {
     try {
       const params = new URLSearchParams();
-      params.append('limit', '10');
-      params.append('begin', posts.value.at(-1).id);
-      
-      if (searchConfig.value.tag) {
-        params.append('tag', searchConfig.value.tag);
-      }
-      
-      const trimmedQuery = searchConfig.value.query.trim();
-      if (trimmedQuery && !/^#\d+$/.test(trimmedQuery)) {
-        params.append('keyword', trimmedQuery);
+      params.append("limit", "10");
+      params.append("begin", posts.value.at(-1).id);
+
+      // 添加标签参数（仅在非关注模式下）
+      if (searchConfig.value.tag && browseType.value !== "follow") {
+        params.append("tag", searchConfig.value.tag);
       }
 
-      const res = await requestApi(
-        `/api/v2/forum/posts?${params.toString()}`,
-      );
+      // 处理搜索查询数组（分页时不应该有 # 查询，因为 # 查询只返回单个帖子）
+      const keywords = searchConfig.value.query
+        .filter((item) => typeof item === "string" && item.trim() && !item.trim().startsWith("#"))
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+
+      if (keywords.length > 0) {
+        // 将关键词添加到参数中，每个关键词作为一个 keyword 参数
+        keywords.forEach((keyword) => {
+          params.append("keyword", keyword);
+        });
+      }
+
+      let apiUrl;
+      if (browseType.value === "follow") {
+        // 关注模式使用不同的API端点
+        apiUrl = `/api/v2/forum/follow?${params.toString()}`;
+      } else {
+        // 普通模式
+        apiUrl = `/api/v2/forum/posts?${params.toString()}`;
+      }
+
+      const res = await requestApi(apiUrl);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -659,9 +803,7 @@ const loadMorePosts = async (direction) => {
 const loadMoreComments = async (direction, id) => {
   if (direction === "bottom" && !endOfComments.value) {
     try {
-      const res = await requestApi(
-        `/api/v2/forum/comments/${id}?limit=10&begin=${comments.value.at(-1).cid}`,
-      );
+      const res = await requestApi(`/api/v2/forum/comments/${id}?limit=10&begin=${comments.value.at(-1).cid}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -686,13 +828,14 @@ const submitPost = async () => {
       method: "POST",
       body: JSON.stringify({
         text: content.value,
-        tag: tag.value,
+        // 将 selectedTags 作为 tags 字段发送
+        tags: selectedTags.value,
       }),
     });
     if (!res.ok) throw new Error("上传失败");
     editing.value = false;
     content.value = "";
-    tag.value = "";
+    selectedTags.value = [];
   } catch (err) {
     ElMessage.error(err.message || "网络错误");
     console.error(err);
@@ -702,8 +845,10 @@ const submitPost = async () => {
   }
 };
 
+// 修改 submitComment 函数
 const submitComment = async (id) => {
   console.log(content.value);
+  console.log(quote.value);
   try {
     const res = await requestApi("/api/v2/forum/comments", {
       method: "POST",
@@ -724,6 +869,44 @@ const submitComment = async (id) => {
   }
 };
 
+// 添加设置密码函数
+const setPassword = async () => {
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    ElMessage.error("两次输入的密码不一致");
+    return;
+  }
+
+  if (passwordForm.newPassword.length < 6) {
+    ElMessage.error("密码长度至少6位");
+    return;
+  }
+
+  try {
+    const res = await requestApi("/api/v2/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({
+        // 由于是首次设置密码，没有旧密码，所以 oldPassword 传空字符串或特殊标记
+        oldPassword: await sha256("", "hello_pkuphysu"),
+        newPassword: await sha256(passwordForm.newPassword, "hello_pkuphysu"),
+      }),
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      ElMessage.success("密码设置成功");
+      showSetPasswordDialog.value = false;
+      // 重置表单
+      passwordForm.newPassword = "";
+      passwordForm.confirmPassword = "";
+    } else {
+      ElMessage.error(result.message || "设置密码失败");
+    }
+  } catch (err) {
+    ElMessage.error("网络错误");
+    console.error(err);
+  }
+};
+
 // 引用外部图片绕过防盗链
 onBeforeMount(() => {
   const meta = document.createElement("meta");
@@ -735,6 +918,8 @@ onMounted(() => {
   window.addEventListener("resize", handleResize);
   fetchPosts();
   fetchConfig();
+  // 添加检查用户密码状态
+  checkUserPasswordStatus();
 });
 
 onUnmounted(() => {
@@ -759,10 +944,9 @@ onUnmounted(() => {
   padding-bottom: 0.7em;
   z-index: 10;
   position: sticky;
-  top: -110px;
+  top: 0px;
   left: 0;
   width: 100%;
-  min-height: 9em;
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
   margin-bottom: 1em;
   background-color: var(--c-card);
@@ -778,7 +962,7 @@ onUnmounted(() => {
 
 .control-bar {
   line-height: 2em;
-  margin-top: 5px;
+  padding-top: 10px;
   display: flex;
   align-items: center;
 }
@@ -800,6 +984,11 @@ onUnmounted(() => {
 :deep(.el-input__wrapper) {
   box-shadow: none;
   background-color: transparent;
+}
+
+:deep(.el-input-tag__wrapper) {
+  box-shadow: none !important;
+  background-color: transparent !important;
 }
 
 .control-search:deep(.el-select__wrapper) {
@@ -856,20 +1045,20 @@ onUnmounted(() => {
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 9999;
   pointer-events: auto;
+  align-content: center;
+  overflow: auto;
 }
 
 .editor {
-  height: calc(100vh - 200px);
-  padding: 50px 50px 0px 50px;
+  margin: 0 50px;
+  padding: 8px;
   align-content: center;
+  background: var(--c-background);
+  border-radius: 6px;
 }
 
 :deep(.el-tabs) {
   max-height: 100%;
-}
-
-:deep(.el-upload-list__item-file-name) {
-  color: beige;
 }
 
 .header-badge {
@@ -905,11 +1094,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   z-index: 150;
-}
-
-.comment-panel :deep(.markdown-body) {
-  padding-left: 30px;
-  padding-right: 30px;
 }
 
 .shadow {
@@ -991,15 +1175,13 @@ onUnmounted(() => {
   background-color: var(--c-card);
 }
 
-.dark .el-tag {
-  background: #3c108f;
-  border: #3c108f;
-}
-
-.el-tag {
-  background: #c396ed;
-  border: #3c108f;
-  font-weight: bold;
+.tag {
+  font-size: 14px;
+  background: var(--gray-2);
+  padding: 2px 12px;
+  margin: 0 12px 8px 0;
+  border: 1px solid var(--gray-2);
+  border-radius: 9999px;
 }
 
 .comment-card {
@@ -1009,16 +1191,16 @@ onUnmounted(() => {
 
 .card-header {
   font-size: 14px;
-  padding: 15px 20px 5px 20px;
+  padding: 15px 0 10px 0;
   margin-bottom: 10px;
-  display: flex;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .el-avatar {
   margin-right: 10px;
 }
 
-.card:hover {
+.card:not(.comment-card):hover {
   transform: translateX(5px);
 }
 
@@ -1034,7 +1216,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .editor {
-    padding: 100px 5px 0px 5px;
+    margin: 0px 5px;
   }
 
   .btn-panel {
