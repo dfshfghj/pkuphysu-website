@@ -4,13 +4,13 @@
   --c-border: #d0d7de;
   --c-background: #f8f8f4;
   --c-input-bg: #f8f4f6;
-  --c-card: #fffdf6;
+  --c-card: #faf8ef;
   --c-hover: rgba(230, 230, 230, 0.5);
   --c-focus: #fff;
   --c-box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 50px;
   --c-accent: #9b0000;
   --c-navbar: #fcfbf7;
-  --c-sidebar: #fcfbf7;
+  --c-sidebar: #f9f7e2;
   --c-subtitle: #82a3ac;
   --c-label: #f6f8fa;
   --c-link: #fcc59f;
@@ -89,14 +89,6 @@ code {
 
 ::-webkit-scrollbar {
   display: none;
-}
-
-.control-btn {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  height: 100%;
-  padding: 10px;
 }
 
 @font-face {

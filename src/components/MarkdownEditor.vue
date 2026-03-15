@@ -75,10 +75,35 @@ const initVditor = () => {
     image: {
       isPreview: false,
     },
+    toolbar: [
+      "headings",
+      "bold",
+      "italic",
+      "strike",
+      "link",
+      "|",
+      "list",
+      "ordered-list",
+      "check",
+      "code",
+      "table",
+      "upload",
+      "|",
+      "undo",
+      "redo",
+      "|",
+      "edit-mode",
+      {
+        name: "more",
+        toolbar: ["both", "export", "outline"],
+      },
+    ],
     toolbarConfig: {
       hide: props.hideToolbar,
     },
     preview: {
+      url: "/api/v2/markdown/preview",
+      delay: 200,
       hljs: {
         style: hljs_style,
         lineNumber: true,
@@ -89,6 +114,29 @@ const initVditor = () => {
       },
       theme: {
         current: preview_theme,
+      },
+      actions: [],
+    },
+    upload: {
+      url: "/api/v2/files/upload",
+      max: 5 * 1024 * 1024, // 5MB
+      format: (files, responseText) => {
+        console.log(responseText);
+        const originalResponse = JSON.parse(responseText);
+        let succMap = {};
+        originalResponse.files.forEach((file) => {
+          succMap[file.originalName] = `/api/v2/static${file.url}`;
+        });
+        console.log(succMap);
+        const vditorFormat = {
+          code: originalResponse.success ? 0 : 1,
+          msg: originalResponse.message || "",
+          data: {
+            errFiles: [],
+            succMap: succMap,
+          },
+        };
+        return JSON.stringify(vditorFormat);
       },
     },
     input: (value) => {

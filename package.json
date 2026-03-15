@@ -46,6 +46,7 @@
     "dayjs": "^1.11.19",
     "dompurify": "^3.3.1",
     "element-plus": "^2.13.3",
+    "highlight.js": "^11.11.1",
     "jsencrypt": "^3.5.4",
     "katex": "^0.16.33",
     "lint-staged": "^16.3.2",

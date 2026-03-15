@@ -20,27 +20,35 @@ const props = defineProps({
   },
 });
 
+window.DOMPurify = DOMPurify;
+
+const purify = (html) => {
+  return DOMPurify.sanitize(html || "", {
+    ADD_TAGS: ["iframe", "style", "head"],
+    FORCE_BODY: true,
+    ALLOWED_ATTR: ["href", "src", "srcdoc", "style", "class", "id"],
+    ADD_ATTR: ["sandbox"],
+    //ALLOWED_URI_REGEXP: /^(?:https?:\/\/|\/\/)(?:[\w-]+\.)?(?:bilibili\.com|(?:www\.)?youtube(?:-nocookie)?\.com)(?::[0-9]+)?(?:\/.*)?$/i,
+  });
+};
+
 const parseOptions = {
   preTransformTokens: (tokens) => {
+    //console.log(tokens);
     return tokens.map((token) => {
       if (token.type === "html_block") {
-        token.content = DOMPurify.sanitize(token.content || "", {
-          ADD_TAGS: ["iframe"],
-          ALLOWED_ATTR: ["href", "src", "style", "class", "id"],
-          ADD_ATTR: ["sandbox"],
-          //ALLOWED_URI_REGEXP: /^(?:https?:\/\/|\/\/)(?:[\w-]+\.)?(?:bilibili\.com|(?:www\.)?youtube(?:-nocookie)?\.com)(?::[0-9]+)?(?:\/.*)?$/i,
-        });
+        //console.log(purify(token.content))
+        return {
+          ...token,
+          content: purify(token.content),
+        };
       } else if (token.type === "inline" && token.children) {
         token.children = token.children.map((child) => {
           if (child.type === "html_inline" || child.type === "html_block") {
+            //console.log(purify(token.content))
             return {
               ...child,
-              content: DOMPurify.sanitize(child.content || "", {
-                ADD_TAGS: ["iframe"],
-                ALLOWED_ATTR: ["href", "src", "style", "class", "id"],
-                ADD_ATTR: ["sandbox"],
-                //ALLOWED_URI_REGEXP: /^(?:https?:\/\/|\/\/)(?:[\w-]+\.)?(?:bilibili\.com|(?:www\.)?youtube(?:-nocookie)?\.com)(?::[0-9]+)?(?:\/.*)?$/i,
-              }),
+              content: purify(child.content),
             };
           }
           return child;
