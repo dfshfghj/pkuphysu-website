@@ -288,6 +288,8 @@ const updateProfile = async () => {
   const result = await res.json();
   if (res.ok) {
     ElMessage.success("更新成功");
+    userStore.username = currentUser.value.username;
+    localStorage.setItem("user_name", currentUser.value.username);
   } else {
     ElMessage.error(result.message);
   }

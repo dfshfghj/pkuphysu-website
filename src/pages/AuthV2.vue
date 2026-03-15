@@ -10,7 +10,7 @@
     </div>
     <form v-show="activeTab === 'login'" class="form-content" @submit="handleLogin">
       <div class="form-group">
-        <input v-model="loginForm.username" type="text" class="form-control" placeholder="电子邮箱 / 账号" required />
+        <input v-model="loginForm.username" type="text" class="form-control" placeholder="电子邮箱 / 用户名" required />
       </div>
       <div class="form-group">
         <input v-model="loginForm.password" type="password" class="form-control" placeholder="密码" required />
