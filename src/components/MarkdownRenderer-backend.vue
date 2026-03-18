@@ -41,10 +41,6 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  darkMode: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const initMarkdown = () => {
@@ -52,15 +48,6 @@ const initMarkdown = () => {
   Vditor.mathRender(vditorRef.value, {
     cdn: "/vditor",
   });
-  Vditor.highlightRender(
-    {
-      style: props.darkMode ? "github-dark" : "github",
-      lineNumber: true,
-      enable: true,
-    },
-    vditorRef.value,
-    "/vditor"
-  );
 };
 
 onMounted(async () => {
@@ -92,13 +79,13 @@ onBeforeUnmount(() => {
 
 @media (max-width: 640px) {
   :deep(h1),
-:deep(h2),
-:deep(h3),
-:deep(h4),
-:deep(h5),
-:deep(h6) {
-  font-family: "KaTeX_Main";
-}
+  :deep(h2),
+  :deep(h3),
+  :deep(h4),
+  :deep(h5),
+  :deep(h6) {
+    font-family: "KaTeX_Main";
+  }
 }
 
 :deep(h1:first-child),

@@ -7,6 +7,7 @@
 <script setup>
 import Vditor from "vditor";
 import "vditor/dist/index.css";
+import { nextTick } from "vue";
 
 const props = defineProps({
   modelValue: {
@@ -121,13 +122,11 @@ const initVditor = () => {
       url: "/api/v2/files/upload",
       max: 5 * 1024 * 1024, // 5MB
       format: (files, responseText) => {
-        console.log(responseText);
         const originalResponse = JSON.parse(responseText);
         let succMap = {};
         originalResponse.files.forEach((file) => {
           succMap[file.originalName] = `/api/v2/static${file.url}`;
         });
-        console.log(succMap);
         const vditorFormat = {
           code: originalResponse.success ? 0 : 1,
           msg: originalResponse.message || "",
@@ -147,9 +146,7 @@ const initVditor = () => {
       isInternalUpdate = false;
     },
     after: () => {
-      if (props.modelValue) {
-        setValue(props.modelValue);
-      }
+      setValue(props.modelValue);
     },
     typewriterMode: true,
   });
@@ -158,6 +155,9 @@ const initVditor = () => {
 const setValue = (content) => {
   isInternalUpdate = true;
   vditor.value.setValue(content);
+  nextTick(() => {
+    isInternalUpdate = false;
+  });
 };
 
 watch(
@@ -183,6 +183,11 @@ watch(
     }
   }
 );
+
+// 暴露vditor实例供父组件访问
+defineExpose({
+  vditor: vditor,
+});
 </script>
 
 <style>

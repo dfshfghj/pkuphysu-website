@@ -1,5 +1,5 @@
 <template>
-  <el-scrollbar distance="200" @end-reached="loadMorePosts" style="height: 100vh">
+  <el-scrollbar ref="mainScrollbar" distance="200" @end-reached="loadMorePosts" style="height: 100vh">
     <div class="title-bar unselectable">
       <div class="control-bar">
         <div
@@ -8,6 +8,7 @@
             browseType = 'posts';
             endOfPosts = false;
             fetchPosts();
+            scrollToTop();
           "
         >
           <el-icon :size="20">
@@ -20,6 +21,7 @@
           @click="
             browseType = 'follow';
             fetchPosts();
+            scrollToTop();
           "
         >
           <el-icon :size="20">
@@ -154,7 +156,7 @@
   >
   </el-backtop>
 
-  <div v-if="editing" class="edit-panel acrylic unselectable">
+  <div v-show="editing" class="edit-panel acrylic unselectable">
     <div class="editor">
       <div style="margin: 10px 0 0 10px">
         <el-icon size="20" @click="editing = false">
@@ -162,7 +164,7 @@
         </el-icon>
       </div>
       <AutoCompleteTagInput v-model="selectedTags" :suggestions="tagSuggestions" />
-      <MarkdownEditor v-model="content">
+      <MarkdownEditor v-model="content" :dark-mode="isDark" :height="500">
         <div style="display: flex; align-items: baseline">
           <el-upload
             style="padding-top: 20px; flex: 1"
@@ -231,7 +233,13 @@
           </el-icon>
         </div>
         <div style="display: flex; align-items: center; margin-right: 20px">
-          <div class="control-btn" @click="fetchComments(currentPost.id)">
+          <div
+            class="control-btn"
+            @click="
+              fetchComments(currentPost.id);
+              scrollToCommentsTop();
+            "
+          >
             <el-icon>
               <Refresh />
             </el-icon>
@@ -265,7 +273,12 @@
           </div>
         </div>
       </div>
-      <el-scrollbar class="card-list" distance="100" @end-reached="loadMoreComments($event, currentPost.id)">
+      <el-scrollbar
+        ref="commentScrollbar"
+        class="card-list"
+        distance="100"
+        @end-reached="loadMoreComments($event, currentPost.id)"
+      >
         <!-- 添加当前帖子的显示区域 -->
         <div class="card comment-card" v-if="currentPost">
           <CollapsibleDiv max-height="300">
@@ -392,7 +405,7 @@
         </div>
         <div class="reply unselectable" v-else key="full">
           <div style="width: 100%; display: flex; flex-direction: column-reverse">
-            <MarkdownEditor v-model="content">
+            <MarkdownEditor v-model="content" :dark-mode="isDark" :height="200" :hide-toolbar="true">
               <div style="display: flex; align-items: baseline; padding: 5px">
                 <el-upload
                   v-model:file-list="fileList"
@@ -467,8 +480,8 @@ import {
   ArrowDownBold,
   CopyDocument,
 } from "@element-plus/icons-vue";
-import MarkdownEditor from "../components/MarkdownEditor-v2.vue";
-import MarkdownRenderer from "../components/MarkdownRenderer.vue";
+import MarkdownEditor from "../components/MarkdownEditor.vue";
+import MarkdownRenderer from "../components/MarkdownRenderer-backend.vue";
 import CollapsibleDiv from "../components/CollapsibleDiv.vue";
 import { isDark } from "../composables/theme";
 import { useUserStore } from "../stores/user";
@@ -477,11 +490,14 @@ import { formatTime, sha256 } from "../utils";
 import { onBeforeMount } from "vue";
 import { ElMessage } from "element-plus";
 import UserAvatar from "../components/UserAvatar.vue";
-// 导入 AutoCompleteTagInput 组件
 import AutoCompleteTagInput from "../components/AutoCompleteTagInput.vue";
 
 const router = useRouter();
 const userStore = useUserStore();
+
+// 添加 scrollbar refs
+const mainScrollbar = ref();
+const commentScrollbar = ref();
 
 const tags = ref([]);
 
@@ -518,6 +534,10 @@ const endOfComments = ref(false);
 const quote = ref(null);
 const quoteName = ref("");
 
+// 添加加载状态标志
+const postsLoading = ref(false);
+const commentsLoading = ref(false);
+
 const editReply = ref(false);
 
 // 添加密码设置相关状态
@@ -541,6 +561,19 @@ const handleCommand = (command) => {
     router.push("/login");
   } else if (command === "profile") {
     router.push("/profile");
+  }
+};
+
+// 使用 scrollbar expose API 实现滚动到顶部
+const scrollToTop = () => {
+  if (mainScrollbar.value) {
+    mainScrollbar.value.scrollTo({ top: 0 });
+  }
+};
+
+const scrollToCommentsTop = () => {
+  if (commentScrollbar.value) {
+    commentScrollbar.value.scrollTo({ top: 0 });
   }
 };
 
@@ -711,7 +744,7 @@ const fetchPosts = async (config = { tag: "", query: [] }) => {
     }
 
     // 默认不传 begin 参数（相当于第一页）
-    params.append("limit", "10");
+    params.append("limit", "20");
 
     let apiUrl;
     if (browseType.value === "follow") {
@@ -726,7 +759,7 @@ const fetchPosts = async (config = { tag: "", query: [] }) => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    if (data.data.length < 10) {
+    if (data.data.length < 20) {
       endOfPosts.value = true;
     }
 
@@ -738,11 +771,11 @@ const fetchPosts = async (config = { tag: "", query: [] }) => {
 
 const fetchComments = async (id) => {
   try {
-    const res = await requestApi(`/api/v2/forum/comments/${id}?limit=10&sort=${AscSort.value ? "asc" : "desc"}`);
+    const res = await requestApi(`/api/v2/forum/comments/${id}?limit=20&sort=${AscSort.value ? "asc" : "desc"}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    if (data.data.length < 10) {
+    if (data.data.length < 20) {
       endOfComments.value = true;
     }
 
@@ -753,10 +786,11 @@ const fetchComments = async (id) => {
 };
 
 const loadMorePosts = async (direction) => {
-  if (direction === "bottom" && !endOfPosts.value) {
+  if (direction === "bottom" && !endOfPosts.value && !postsLoading.value) {
+    postsLoading.value = true;
     try {
       const params = new URLSearchParams();
-      params.append("limit", "10");
+      params.append("limit", "20");
       params.append("begin", posts.value.at(-1).id);
 
       // 添加标签参数（仅在非关注模式下）
@@ -791,28 +825,33 @@ const loadMorePosts = async (direction) => {
       const data = await res.json();
 
       posts.value = [...posts.value, ...data.data];
-      if (data.data.length < 10) {
+      if (data.data.length < 20) {
         endOfPosts.value = true;
       }
     } catch (err) {
       console.error("Fetch posts failed:", err);
+    } finally {
+      postsLoading.value = false;
     }
   }
 };
 
 const loadMoreComments = async (direction, id) => {
-  if (direction === "bottom" && !endOfComments.value) {
+  if (direction === "bottom" && !endOfComments.value && !commentsLoading.value) {
+    commentsLoading.value = true;
     try {
-      const res = await requestApi(`/api/v2/forum/comments/${id}?limit=10&begin=${comments.value.at(-1).cid}`);
+      const res = await requestApi(`/api/v2/forum/comments/${id}?limit=20&begin=${comments.value.at(-1).cid}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
       comments.value = [...comments.value, ...data.data];
-      if (data.data.length < 10) {
+      if (data.data.length < 20) {
         endOfComments.value = true;
       }
     } catch (err) {
       console.error("Fetch posts failed:", err);
+    } finally {
+      commentsLoading.value = false;
     }
   }
 };
@@ -1089,8 +1128,8 @@ onUnmounted(() => {
   position: fixed;
   top: 0;
   height: 100%;
-  left: calc(100% - 550px);
-  width: 550px;
+  left: calc(100% - max(40%, 550px));
+  width: max(40%, 550px);
   display: flex;
   flex-direction: column;
   z-index: 150;
@@ -1161,7 +1200,7 @@ onUnmounted(() => {
 }
 
 .editor:deep(.vditor-editor) {
-  max-height: calc(100vh - 400px);
+  max-height: calc(100vh - 200px);
 }
 
 .card {
@@ -1171,7 +1210,7 @@ onUnmounted(() => {
   border: 1px solid var(--c-border);
   box-shadow: var(--c-box-shadow);
   transition: transform 0.3s ease;
-  max-width: 500px;
+  max-width: max(40%, 500px);
   background-color: var(--c-card);
 }
 
