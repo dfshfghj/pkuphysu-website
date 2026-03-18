@@ -108,8 +108,9 @@
           <template v-if="editingRow === row">
             <el-input
               v-model="row[col]"
-              :type="getColumnType(col)"
+              :type="getColumnType(col, row)"
               :step="isNumberField(col) ? 'any' : undefined"
+              :rows="hasNewlines(row[col]) ? 3 : 1"
               @keyup.enter="saveEdit(row)"
               @focus="$event.target.select()"
               @keyup.escape="cancelEdit(row)"
@@ -118,9 +119,7 @@
           </template>
           <!-- 非编辑状态显示值 -->
           <template v-else>
-            <span class="cell-value" @dblclick="startEdit(row)">
-              {{ formatValue(row[col]) }}
-            </span>
+            <span class="cell-value" @dblclick="startEdit(row)" v-html="formatValueForDisplay(row[col])"> </span>
           </template>
         </template>
       </el-table-column>
@@ -172,32 +171,45 @@ const info = computed(() => {
 // 判断是否为新添加的未保存行
 const isNewRow = (row) => row.__isNew;
 
-// 格式化显示值
-const formatValue = (val) => {
+// 格式化显示值（用于v-html）
+const formatValueForDisplay = (val) => {
   if (val === null || val === undefined) return "(null)";
-  return String(val);
+  // 将换行符转换为<br>标签，并转义HTML特殊字符
+  return String(val)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/\n/g, "<br>");
 };
 
-// 推断输入框类型（目前只区分 text/number）
-const getColumnType = (col) => {
+// 判断字段是否包含换行符（用于决定是否使用textarea）
+const hasNewlines = (value) => {
+  if (value === null || value === undefined) return false;
+  return String(value).includes("\n");
+};
+
+// 推断输入框类型（目前只区分 text/number/textarea）
+const getColumnType = (col, row) => {
+  const value = row?.[col];
+  if (typeof value === "number") return "number";
+  if (hasNewlines(value)) return "textarea";
+
   const sample = currentData.value.data.find((r) => r[col] != null)?.[col];
   return typeof sample === "number" ? "number" : "text";
 };
-const isNumberField = (col) => getColumnType(col) === "number";
 
-// --- Methods ---
-
-const request = async (url, options = {}) => {
-  const res = await requestApi(`/api${url}`, options);
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.message || "请求失败");
-  return json;
+const isNumberField = (col) => {
+  const sample = currentData.value.data.find((r) => r[col] != null)?.[col];
+  return typeof sample === "number";
 };
 
 const loadTables = async () => {
   try {
-    const res = await request("/db-tables");
-    tables.value = res.tables;
+    const res = await requestApi("/api/v2/dba/db-tables");
+    const data = await res.json();
+    tables.value = data.data;
     ElMessage.success("表列表已加载");
   } catch (e) {
     ElMessage.error("加载表失败: " + e.message);
@@ -211,8 +223,9 @@ const viewTable = async (tableName) => {
 
 const refreshCurrentTable = async () => {
   try {
-    const res = await request(`/db-tables/${currentTable.value}`);
-    currentData.value = res;
+    const res = await requestApi(`/api/v2/dba/db-tables/${currentTable.value}`);
+    const data = await res.json();
+    currentData.value = data.data;
   } catch (e) {
     ElMessage.error("获取数据失败: " + e.message);
     backToTables();
@@ -233,7 +246,7 @@ const createAllTables = async () => {
   });
 
   try {
-    await request("/db-tables/create-all", { method: "POST" });
+    await requestApi("/api/v2/dba/db-tables/create-all", { method: "POST" });
     ElMessage.success("已创建所有表");
     await loadTables();
   } catch (e) {
@@ -251,7 +264,7 @@ const truncateTable = async (tableName) => {
   });
 
   try {
-    await request(`/db-tables/${tableName}`, {
+    await requestApi(`/api/v2/dba/db-tables/${tableName}`, {
       method: "DELETE",
       body: JSON.stringify({ data: "all" }),
     });
@@ -281,7 +294,7 @@ const saveEdit = async (row) => {
 
   try {
     // 提交整行数据更新（后端应支持 upsert）
-    await request(`/db-tables/${currentTable.value}`, {
+    await requestApi(`/api/v2/dba/db-tables/${currentTable.value}`, {
       method: "PUT",
       body: JSON.stringify({ data: [row] }),
     });
@@ -345,7 +358,7 @@ const confirmDelete = async (row) => {
 
   try {
     // 假设后端接受 DELETE /db-tables/{table}?id=... 或通过 body 删除
-    await request(`/db-tables/${currentTable.value}`, {
+    await requestApi(`/api/v2/dba/db-tables/${currentTable.value}`, {
       method: "DELETE",
       body: JSON.stringify({ data: [row] }),
     });
@@ -359,7 +372,7 @@ const confirmDelete = async (row) => {
 // 显示迁移计划
 const showMigratePlan = async () => {
   try {
-    const res = await request("/db-tables/migrate");
+    const res = await requestApi("api/v2/dba/db-tables/migrate");
     migrateOutput.value = res.migration;
     migrateVisible.value = true;
   } catch (e) {
@@ -378,7 +391,7 @@ const applyMigrate = async () => {
   });
 
   try {
-    await request("/db-tables/migrate", { method: "POST" });
+    await requestApi("/api/v2/dba/db-tables/migrate", { method: "POST" });
     ElMessage.success("迁移成功！");
     migrateVisible.value = false;
     await loadTables();

@@ -102,12 +102,12 @@ const FormatTime = function (timestamp) {
 const loadUserList = async (group) => {
   loading.value = true;
   try {
-    const res = await requestApi(`/api/${group}/list`);
+    const res = await requestApi(`/api/v2/${group}`);
 
     const result = await res.json();
 
     if (res.ok) {
-      users.value[group] = result.data.users;
+      users.value[group] = result.data[group];
     } else {
       ElMessage.error(result.message || "获取用户列表失败");
     }
