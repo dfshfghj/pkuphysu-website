@@ -1,7 +1,7 @@
 <template>
   <transition name="slide">
     <div
-      class="box-border flex bg-(--c-card) border-t border-(--c-border) rounded-t p-2.5 items-center absolute bottom-0 w-full"
+      class="box-border flex bg-(--c-card) border-t border-(--c-border) rounded-t p-2.5 items-center absolute z-9999 bottom-0 w-full"
       v-if="!isEditing"
       key="simp"
     >

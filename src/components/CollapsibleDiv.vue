@@ -3,8 +3,8 @@
     <div ref="contentRef" class="content" :class="{ expanded: isExpanded }" :style="{ maxHeight: currentMaxHeight }">
       <slot></slot>
     </div>
-    <div class="ctl-panel" v-if="shouldShowButton">
-      <span @click="toggleExpanded" style="cursor: pointer; color: var(--c-primary)">
+    <div class="px-8 py-3 text-right sticky bottom-0 z-1" v-if="shouldShowButton">
+      <span @click="toggleExpanded" class="cursor-pointer text-(--c-primary)!">
         {{ isExpanded ? "收起" : "展开" }}
       </span>
     </div>
@@ -95,18 +95,5 @@ watch(
 .content {
   overflow: hidden;
   transition: max-height 0.3s ease;
-}
-
-.ctl-panel {
-  padding: 10px;
-  text-align: right;
-  position: sticky;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.ctl-panel span {
-  pointer-events: auto;
 }
 </style>

@@ -681,7 +681,6 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url("/images/bg-light.webp") center center / cover rgb(255, 255, 255);
 }
 
 .dark .bg-img {
