@@ -3,6 +3,7 @@
   <div class="avatar-list">
     <div class="list-header">
       <h3 class="font-serif">用户</h3>
+      <el-button type="primary" size="small" @click="showCreateUserDialog">创建新用户</el-button>
     </div>
     <div v-if="users.users.length > 0" class="avatar-container">
       <el-tooltip
@@ -69,12 +70,36 @@
 
     <div class="qrcodeContainer" v-if="qrcodeUrl"></div>
   </div>
+
+  <!-- 创建用户对话框 -->
+  <el-dialog v-model="createUserDialogVisible" title="创建新用户" width="400">
+    <el-form :model="newUserForm" :rules="createUserRules" ref="createUserFormRef" label-width="80px">
+      <el-form-item label="用户名" prop="username">
+        <el-input v-model="newUserForm.username" placeholder="请输入用户名" />
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input v-model="newUserForm.password" type="password" placeholder="请输入密码" show-password />
+      </el-form-item>
+      <el-form-item label="角色" prop="role">
+        <el-select v-model="newUserForm.role" placeholder="请选择角色">
+          <el-option :value="0" label="普通用户" />
+          <el-option :value="1" label="访客" />
+          <el-option :value="2" label="管理员" />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="createUserDialogVisible = false">取消</el-button>
+      <el-button type="primary" @click="handleCreateUser" :loading="creatingUser">确定</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
 import { requestApi } from "../../api/api";
 import UserAvatar from "../../components/UserAvatar.vue";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
+import { sha256 } from "../../utils";
 
 const users = ref({
   users: [],
@@ -87,6 +112,30 @@ const refreshing = ref(false);
 const cookies_expire = ref(0);
 const qrcodeUrl = ref("");
 const QRcodeDialogVisible = ref(false);
+
+// 创建用户相关状态
+const createUserDialogVisible = ref(false);
+const creatingUser = ref(false);
+const newUserForm = reactive({
+  username: "",
+  password: "",
+  role: 0,
+});
+const createUserFormRef = ref();
+
+const createUserRules = {
+  username: [
+    { required: true, message: "请输入用户名", trigger: "blur" },
+    { min: 3, max: 20, message: "用户名长度应在3-20个字符之间", trigger: "blur" }
+  ],
+  password: [
+    { required: true, message: "请输入密码", trigger: "blur" },
+    { min: 6, max: 30, message: "密码长度应在6-30个字符之间", trigger: "blur" }
+  ],
+  role: [
+    { required: true, message: "请选择角色", trigger: "change" }
+  ]
+};
 
 const getBrowserFingerprint = async () => {
   const fp = await FingerprintJS.load();
@@ -199,6 +248,51 @@ const refreshWechatState = async () => {
   }
 };
 
+const showCreateUserDialog = () => {
+  createUserDialogVisible.value = true;
+  newUserForm.username = "";
+  newUserForm.password = "";
+  newUserForm.role = 0;
+};
+
+const handleCreateUser = async () => {
+  if (!createUserFormRef.value) return;
+  
+  try {
+    await createUserFormRef.value.validate();
+    creatingUser.value = true;
+    const hashedPassword = await sha256(newUserForm.password, "hello_pkuphysu");
+    
+    const response = await requestApi("/api/v2/user/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: newUserForm.username,
+        password: hashedPassword,
+        role: newUserForm.role,
+      }),
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      ElMessage.success("用户创建成功");
+      createUserDialogVisible.value = false;
+      loadUserList("users");
+      loadUserList("admins");
+    } else {
+      ElMessage.error(result.message || "创建用户失败");
+    }
+  } catch (err) {
+    ElMessage.error("网络错误，请检查连接");
+    console.error(err);
+  } finally {
+    creatingUser.value = false;
+  }
+};
+
 onMounted(() => {
   loadUserList("admins");
   loadUserList("users");
@@ -207,4 +301,19 @@ onMounted(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.avatar-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.avatar-item {
+  cursor: pointer;
+}
+</style>
