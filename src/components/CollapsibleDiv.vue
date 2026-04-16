@@ -1,17 +1,28 @@
 <template>
   <div class="collapsible-container">
-    <div ref="contentRef" class="content" :class="{ expanded: isExpanded }" :style="{ maxHeight: currentMaxHeight }">
+    <div
+      ref="contentRef"
+      class="overflow-hidden w-full px-5 md:px-12.5"
+      :class="{ expanded: isExpanded }"
+      :style="{ maxHeight: currentMaxHeight }"
+    >
       <slot></slot>
     </div>
-    <div class="px-8 py-3 text-right sticky bottom-0 z-1" v-if="shouldShowButton">
-      <span @click="toggleExpanded" class="cursor-pointer text-(--c-primary)!">
-        {{ isExpanded ? "收起" : "展开" }}
-      </span>
+    <div class="px-8 py-3 text-right bottom-4 z-1" :class="isExpanded ? 'sticky' : ''" v-if="shouldShowButton">
+      <div v-if="isExpanded" @click="toggleExpanded" class="flex items-center cursor-pointer justify-end">
+        <span class="text-sm">收起</span>
+        <ChevronsUp :size="16" />
+      </div>
+      <div v-else @click="toggleExpanded" class="flex items-center cursor-pointer justify-end">
+        <span class="text-sm">展开</span>
+        <ChevronsDown :size="16" />
+      </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ChevronsUp, ChevronsDown } from "lucide-vue-next";
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 
 const props = defineProps({
@@ -21,10 +32,10 @@ const props = defineProps({
   },
 });
 
-const contentRef = ref(null);
+const contentRef = ref<HTMLElement | null>(null);
 const isExpanded = ref(false);
 const shouldShowButton = ref(false);
-const resizeObserver = ref(null);
+const resizeObserver = ref<ResizeObserver | null>(null);
 
 const currentMaxHeight = computed(() => {
   if (isExpanded.value) {
@@ -78,22 +89,3 @@ watch(
   }
 );
 </script>
-
-<style scoped>
-.content {
-  padding-left: 50px;
-  padding-right: 50px;
-}
-
-@media (max-width: 768px) {
-  .content {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-
-.content {
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-}
-</style>

@@ -1,19 +1,23 @@
 <template>
-  <div class="card comment-card bg-(--c-card) md:bg-transparent" :key="comment.cid">
-    <CollapsibleDiv max-height="300" @click="onClick">
-      <div class="card-header unselectable">
+  <div class="group rounded-sm my-2 py-3 comment-card bg-card md:bg-transparent" :key="comment.cid">
+    <CollapsibleDiv :max-height="300" @click="onClick">
+      <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
         <div class="flex">
-          <UserAvatar :userid="comment.userid" />
+          <UserAvatar class="mr-2" :userid="comment.userid" />
           <div class="flex-1">
             <span> {{ comment.username }} </span>
-            <el-icon :size="16" class="copy-btn" @click="handleCopy">
+            <el-icon
+              :size="16"
+              class="float-right text-center opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
+              @click="handleCopy"
+            >
               <CopyDocument />
             </el-icon>
             <div>
               <div class="float-right mr-4" @click="handleLike">
-                {{ likeNum }}
+                {{ props.comment.likenum }}
                 <el-icon :size="12">
-                  <IconRiHeartFill v-if="isLiked" />
+                  <IconRiHeartFill v-if="props.comment.is_like" />
                   <IconRiHeartLine v-else />
                 </el-icon>
               </div>
@@ -33,15 +37,17 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
 import { CopyDocument } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus";
-import { formatTime } from "../../utils";
-import { requestApi } from "../../api/api";
-import CollapsibleDiv from "../CollapsibleDiv.vue";
-import MarkdownRenderer from "../MarkdownRenderer-backend.vue";
-import UserAvatar from "../UserAvatar.vue";
+import { formatTime } from "@/utils";
+import { requestApi } from "@/api/api";
+import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
+import UserAvatar from "@/components/UserAvatar.vue";
+import { useForumStore } from "@/stores/forum";
+import { toast } from "vue-sonner";
+
+const forumStore = useForumStore();
 
 const props = defineProps({
   comment: {
@@ -49,12 +55,6 @@ const props = defineProps({
     required: true,
   },
 });
-
-const emit = defineEmits(["like-update", "click"]);
-
-// 使用 computed 确保状态始终与 props 同步，符合项目规范
-const isLiked = computed(() => props.comment.is_like);
-const likeNum = computed(() => props.comment.likenum);
 
 const handleLike = async () => {
   try {
@@ -64,61 +64,68 @@ const handleLike = async () => {
 
     if (!res.ok) throw new Error("操作失败");
 
-    // 通知父组件更新评论数据
-    emit("like-update", {
-      cid: props.comment.cid,
-      is_like: !props.comment.is_like,
-      likenum: props.comment.is_like ? props.comment.likenum - 1 : props.comment.likenum + 1,
-    });
+    // 更新 store 中的评论数据
+    console.log(props.comment.cid, props.comment.is_like);
+    forumStore.updateCommentLike(
+      props.comment.cid,
+      Number(!props.comment.is_like),
+      props.comment.is_like ? props.comment.likenum - 1 : props.comment.likenum + 1
+    );
   } catch (error) {
-    ElMessage.error("网络错误");
+    toast.error("操作失败");
     console.error("Like operation failed:", error);
   }
 };
 
 const handleCopy = async () => {
-  if (!navigator.clipboard) return alert("当前浏览器环境不支持复制");
   try {
     const res = await requestApi(`/api/v2/forum/comments/raw/${props.comment.cid}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    await navigator.clipboard.writeText(data.data.content);
-    ElMessage.success("复制成功");
+    const text = data.data.content;
+    if (!navigator.clipboard) {
+      return new Promise((resolve) => {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+
+        textarea.style.position = "fixed";
+        textarea.style.top = "0";
+        textarea.style.left = "0";
+        textarea.style.width = "2em";
+        textarea.style.height = "2em";
+        textarea.style.padding = "0";
+        textarea.style.border = "none";
+        textarea.style.outline = "none";
+        textarea.style.boxShadow = "none";
+        textarea.style.background = "transparent";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+
+        try {
+          const successful = document.execCommand("copy");
+          toast.success("复制成功");
+          resolve(successful);
+        } catch (err) {
+          toast.warning("当前浏览器环境不支持复制");
+          console.error("Fallback copy failed", err);
+          resolve(false);
+        } finally {
+          document.body.removeChild(textarea);
+        }
+      });
+    }
+    await navigator.clipboard.writeText(text);
+    toast.success("复制成功");
   } catch {
-    ElMessage.error("复制失败");
+    toast.error("复制失败");
   }
 };
 
 const onClick = () => {
-  emit("click");
+  // 不再需要 emit，直接通过 props 传递事件
 };
 </script>
-
-<style scoped>
-.card {
-  padding: 0px;
-  border-radius: 5px;
-}
-
-.card-header {
-  font-size: 14px;
-  padding: 15px 0 10px 0;
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--c-border);
-}
-
-.el-avatar {
-  margin-right: 10px;
-}
-
-.copy-btn {
-  float: right;
-  text-align: center;
-  color: transparent;
-  cursor: pointer;
-}
-
-.card:hover .copy-btn {
-  color: var(--c-text);
-}
-</style>

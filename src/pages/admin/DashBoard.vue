@@ -126,15 +126,13 @@ const createUserFormRef = ref();
 const createUserRules = {
   username: [
     { required: true, message: "请输入用户名", trigger: "blur" },
-    { min: 3, max: 20, message: "用户名长度应在3-20个字符之间", trigger: "blur" }
+    { min: 3, max: 20, message: "用户名长度应在3-20个字符之间", trigger: "blur" },
   ],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, max: 30, message: "密码长度应在6-30个字符之间", trigger: "blur" }
+    { min: 6, max: 30, message: "密码长度应在6-30个字符之间", trigger: "blur" },
   ],
-  role: [
-    { required: true, message: "请选择角色", trigger: "change" }
-  ]
+  role: [{ required: true, message: "请选择角色", trigger: "change" }],
 };
 
 const getBrowserFingerprint = async () => {
@@ -257,12 +255,12 @@ const showCreateUserDialog = () => {
 
 const handleCreateUser = async () => {
   if (!createUserFormRef.value) return;
-  
+
   try {
     await createUserFormRef.value.validate();
     creatingUser.value = true;
     const hashedPassword = await sha256(newUserForm.password, "hello_pkuphysu");
-    
+
     const response = await requestApi("/api/v2/user/create", {
       method: "POST",
       headers: {
@@ -274,9 +272,9 @@ const handleCreateUser = async () => {
         role: newUserForm.role,
       }),
     });
-    
+
     const result = await response.json();
-    
+
     if (response.ok) {
       ElMessage.success("用户创建成功");
       createUserDialogVisible.value = false;

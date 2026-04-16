@@ -1,13 +1,24 @@
 <template>
-  <div class="card mt-10 bg-(--c-card) md:bg-transparent" :key="post.id">
-    <CollapsibleDiv max-height="500">
-      <div class="card-header unselectable">
+  <div class="group rounded-sm my-2 py-3 bg-card md:bg-transparent" :key="post.id">
+    <CollapsibleDiv :max-height="500">
+      <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
         <div class="flex">
-          <UserAvatar :userid="post.userid" />
+          <HoverCard>
+            <HoverCardTrigger>
+              <UserAvatar class="mr-2" :userid="post.userid" />
+            </HoverCardTrigger>
+            <HoverCardContent>
+              <UserAvatar :userid="post.userid" :size="50" />
+            </HoverCardContent>
+          </HoverCard>
           <div class="flex-1">
             <span> {{ post.username }} </span>
-            <code class="card-id"> #{{ post.id }} </code>
-            <el-icon :size="16" class="copy-btn" @click.stop="handleCopy">
+            <code> #{{ post.id }} </code>
+            <el-icon
+              :size="16"
+              class="float-right text-center opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
+              @click.stop="handleCopy"
+            >
               <CopyDocument />
             </el-icon>
             <div>
@@ -39,7 +50,7 @@
           </div>
         </div>
         <div class="mt-2.5 mr-1">
-          <span class="tag" v-for="tag in post.tags" :key="tag">
+          <span class="text-sm bg-(--gray-2) px-3 py-1 mr-3 mb-2 rounded-full" v-for="tag in post.tags" :key="tag">
             {{ tag }}
           </span>
         </div>
@@ -50,20 +61,28 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { Star, StarFilled, ChatLineRound, CopyDocument } from "@element-plus/icons-vue";
-import MarkdownRenderer from "../MarkdownRenderer-backend.vue";
-import CollapsibleDiv from "../CollapsibleDiv.vue";
-import { ElMessage } from "element-plus";
-import { requestApi } from "../../api/api";
-import { formatTime } from "../../utils";
-import UserAvatar from "../UserAvatar.vue";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
+import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
+import { requestApi } from "@/api/api";
+import { formatTime } from "@/utils";
+import UserAvatar from "@/components/UserAvatar.vue";
+import { useForumStore } from "@/stores/forum";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { toast } from "vue-sonner";
+
+const forumStore = useForumStore();
 
 const props = defineProps({
   post: {
     type: Object,
     required: true,
+  },
+  darkMode: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -84,12 +103,16 @@ const handleLike = async () => {
       method: "POST",
     });
 
+    // 更新本地状态
     isLiked.value = !isLiked.value;
     likeNum.value = isLiked.value ? likeNum.value + 1 : likeNum.value - 1;
 
+    // 更新store中的帖子数据
+    forumStore.updatePostLike(props.post.id, isLiked.value, likeNum.value);
+
     if (!res.ok) throw new Error("操作失败");
   } catch (error) {
-    ElMessage.error("网络错误");
+    toast.error("操作失败");
     console.error("Like operation failed:", error);
   }
 };
@@ -100,64 +123,62 @@ const handleFollow = async () => {
       method: "POST",
     });
 
+    // 更新本地状态
     isFollowed.value = !isFollowed.value;
     followNum.value = isFollowed.value ? followNum.value + 1 : followNum.value - 1;
 
     if (!res.ok) throw new Error("操作失败");
   } catch (error) {
-    ElMessage.error("网络错误");
+    toast.error("操作失败");
     console.error("Follow operation failed:", error);
   }
 };
 
 const handleCopy = async () => {
-  if (!navigator.clipboard) return alert("当前浏览器环境不支持复制");
   try {
     const res = await requestApi(`/api/v2/forum/posts/raw/${props.post.id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    await navigator.clipboard.writeText(data.data.content);
-    ElMessage.success("复制成功");
+    const text = data.data.content;
+    if (!navigator.clipboard) {
+      return new Promise((resolve) => {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+
+        textarea.style.position = "fixed";
+        textarea.style.top = "0";
+        textarea.style.left = "0";
+        textarea.style.width = "2em";
+        textarea.style.height = "2em";
+        textarea.style.padding = "0";
+        textarea.style.border = "none";
+        textarea.style.outline = "none";
+        textarea.style.boxShadow = "none";
+        textarea.style.background = "transparent";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+
+        try {
+          const successful = document.execCommand("copy");
+          toast.success("复制成功");
+          resolve(successful);
+        } catch (err) {
+          toast.warning("当前浏览器环境不支持复制");
+          console.error("Fallback copy failed", err);
+          resolve(false);
+        } finally {
+          document.body.removeChild(textarea);
+        }
+      });
+    }
+    await navigator.clipboard.writeText(text);
+    toast.success("复制成功");
   } catch {
-    ElMessage.error("复制失败");
+    toast.error("复制失败");
   }
 };
 </script>
-
-<style scoped>
-.card {
-  padding: 0px;
-  border-radius: 5px;
-}
-
-.tag {
-  font-size: 14px;
-  background: var(--gray-2);
-  padding: 2px 12px;
-  margin: 0 12px 8px 0;
-  border: 1px solid var(--gray-2);
-  border-radius: 9999px;
-}
-
-.card-header {
-  font-size: 14px;
-  padding: 15px 0 10px 0;
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--c-border);
-}
-
-.el-avatar {
-  margin-right: 10px;
-}
-
-.copy-btn {
-  float: right;
-  text-align: center;
-  color: transparent;
-  cursor: pointer;
-}
-
-.card:hover .copy-btn {
-  color: var(--c-text);
-}
-</style>

@@ -1,7 +1,12 @@
 <template>
-  <transition name="slide">
+  <transition
+    enter-active-class="transition-all duration-300 ease-in-out"
+    leave-active-class="transition-all duration-300 ease-in-out"
+    enter-from-class="opacity-0 translate-y-5"
+    leave-to-class="opacity-0 translate-y-5"
+  >
     <div
-      class="box-border flex bg-(--c-card) border-t border-(--c-border) rounded-t p-2.5 items-center absolute z-9999 bottom-0 w-full"
+      class="box-border flex bg-card border-t border-(--c-border) rounded-t p-2.5 items-center absolute z-9999 bottom-0 w-full"
       v-if="!isEditing"
       key="simp"
     >
@@ -12,7 +17,7 @@
           </span>
         </div>
         <div
-          class="py-1 pl-4 pr-1 mr-8 bg-(--c-background) border border-(--c-border) rounded-full shadow-[0_0_6px_rgba(0,0,0,0.12)] text-[13px] unselectable"
+          class="py-1 pl-4 pr-1 mr-8 bg-background border border-(--c-border) rounded-full shadow-[0_0_6px_rgba(0,0,0,0.12)] text-[13px] unselectable"
           @click="toggleEdit(true)"
         >
           <span> {{ content.trim() ? content.trim() : "评论" }} </span>
@@ -23,7 +28,7 @@
       </el-icon>
     </div>
     <div
-      class="box-border flex p-1 bg-(--c-card) border-t border-(--c-border) rounded-t absolute z-9999 bottom-0 w-full unselectable"
+      class="box-border flex p-1 bg-card border-t border-(--c-border) rounded-t absolute z-9999 bottom-0 w-full unselectable"
       v-else
       key="full"
     >
@@ -37,20 +42,21 @@
         <el-icon @click="toggleEdit(false)" class="absolute! bottom-40 right-6">
           <ArrowDownBold />
         </el-icon>
-        <button @click="handleSubmit" class="absolute bottom-2.5 right-0 bg-transparent! m-y-1 border-none!">
-          发送
-        </button>
+        <Button variant="outline" @click="handleSubmit" class="absolute bottom-2 right-2 m-y-1"> 发送 </Button>
       </div>
     </div>
   </transition>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ArrowUpBold, ArrowDownBold } from "@element-plus/icons-vue";
 import MarkdownEditor from "../MarkdownEditor.vue";
-import { ElMessage } from "element-plus";
+import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { ref } from "vue";
+import { useForumStore } from "../../stores/forum";
+
+const forumStore = useForumStore();
 
 const props = defineProps({
   quote: {
@@ -66,25 +72,23 @@ const props = defineProps({
     default: false,
   },
   postId: {
-    type: [String, Number],
+    type: Number,
     required: true,
   },
 });
-
-const emit = defineEmits(["success"]);
 
 const content = ref("");
 const isEditing = ref(false);
 const editorRef = ref(null);
 
-const toggleEdit = (editing) => {
+const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;
 };
 
 const handleSubmit = async () => {
   const currentContent = editorRef.value?.vditor?.getValue() || content.value;
   if (!currentContent.trim()) {
-    ElMessage.error("评论内容不能为空");
+    toast.error("评论内容不能为空");
     return;
   }
 
@@ -94,31 +98,21 @@ const handleSubmit = async () => {
       body: JSON.stringify({
         text: currentContent,
         pid: props.postId,
-        quote: props.quote,
+        quote: props.quote ? props.quote : null,
       }),
     });
     if (!res.ok) throw new Error("上传失败");
 
-    ElMessage.success("评论成功");
-    emit("success");
+    toast.success("评论成功");
+
+    // 直接调用 store 方法获取最新评论
+    await forumStore.fetchComments(props.postId);
 
     content.value = "";
+    isEditing.value = false;
   } catch (error) {
-    ElMessage.error("网络错误");
+    toast.error("网络错误");
     console.error("Comment submit failed:", error);
   }
 };
 </script>
-
-<style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-</style>

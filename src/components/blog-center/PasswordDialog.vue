@@ -17,14 +17,15 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { requestApi } from "../../api/api";
 import { sha256 } from "../../utils";
 import { useUserStore } from "../../stores/user";
+import { useForumStore } from "../../stores/forum";
 
-const emit = defineEmits(["success"]);
+const forumStore = useForumStore();
 
 const userStore = useUserStore();
 const internalVisible = ref(false);
@@ -89,7 +90,9 @@ const handleSubmit = async () => {
       internalVisible.value = false;
       passwordForm.newPassword = "";
       passwordForm.confirmPassword = "";
-      emit("success");
+
+      // 重新获取帖子数据
+      await forumStore.fetchPosts();
     } else {
       ElMessage.error(result.message || "设置密码失败");
     }

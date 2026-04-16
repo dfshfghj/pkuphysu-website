@@ -1,17 +1,39 @@
 <template>
   <div class="markdown-body">
-    <div class="math-markdown-content">
-      <MarkdownRenderer :content="props.content" :parse-options="parseOptions" />
-    </div>
+    <div ref="vditorRef" class="markdown-content overflow-auto"></div>
   </div>
 </template>
 
-<script setup>
-import MarkdownRenderer from "markstream-vue";
-import "markstream-vue/index.css";
+<script setup lang="ts">
+import katex from "katex";
 import "katex/dist/katex.min.css";
-import "../styles/github-markdown.css";
-import DOMPurify from "dompurify";
+window.katex = katex as typeof import("katex");
+const fakeScript = (id: string) => {
+  if (!document.getElementById(id)) {
+    const script = document.createElement("script");
+    script.id = id;
+    document.head.appendChild(script);
+  }
+};
+
+const fakeStyle = (id: string) => {
+  if (!document.getElementById(id)) {
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = "";
+    document.head.appendChild(link);
+  }
+};
+
+fakeStyle("vditorKatexStyle");
+fakeScript("vditorKatexScript");
+fakeScript("vditorKatexChemScript");
+
+import Vditor from "vditor";
+import "@/styles/github-markdown.css";
+
+const vditorRef = ref<HTMLDivElement | null>(null);
 
 const props = defineProps({
   content: {
@@ -20,44 +42,16 @@ const props = defineProps({
   },
 });
 
-window.DOMPurify = DOMPurify;
-
-const purify = (html) => {
-  return DOMPurify.sanitize(html || "", {
-    ADD_TAGS: ["iframe", "style", "head"],
-    FORCE_BODY: true,
-    ALLOWED_ATTR: ["href", "src", "srcdoc", "style", "class", "id"],
-    ADD_ATTR: ["sandbox"],
-    //ALLOWED_URI_REGEXP: /^(?:https?:\/\/|\/\/)(?:[\w-]+\.)?(?:bilibili\.com|(?:www\.)?youtube(?:-nocookie)?\.com)(?::[0-9]+)?(?:\/.*)?$/i,
+const initMarkdown = () => {
+  vditorRef.value!.innerHTML = props.content;
+  Vditor.mathRender(vditorRef.value!, {
+    cdn: "/vditor",
   });
 };
 
-const parseOptions = {
-  preTransformTokens: (tokens) => {
-    //console.log(tokens);
-    return tokens.map((token) => {
-      if (token.type === "html_block") {
-        //console.log(purify(token.content))
-        return {
-          ...token,
-          content: purify(token.content),
-        };
-      } else if (token.type === "inline" && token.children) {
-        token.children = token.children.map((child) => {
-          if (child.type === "html_inline" || child.type === "html_block") {
-            //console.log(purify(token.content))
-            return {
-              ...child,
-              content: purify(child.content),
-            };
-          }
-          return child;
-        });
-      }
-      return token;
-    });
-  },
-};
+onMounted(() => {
+  initMarkdown();
+});
 </script>
 
 <style scoped>
@@ -65,12 +59,48 @@ const parseOptions = {
   background-color: transparent;
 }
 
-:deep(.node-slot:first-child *) {
-  margin-top: 0;
+:deep(h1),
+:deep(h2),
+:deep(h3),
+:deep(h4),
+:deep(h5),
+:deep(h6) {
+  font-family: "KaTeX_Main", serif;
 }
 
-:deep(.heading-node) {
-  font-family: "KaTeX_Main", serif;
+@media (max-width: 640px) {
+  :deep(h1),
+  :deep(h2),
+  :deep(h3),
+  :deep(h4),
+  :deep(h5),
+  :deep(h6) {
+    font-family: "KaTeX_Main";
+  }
+}
+
+:deep(h1:first-child),
+:deep(h2:first-child),
+:deep(h3:first-child),
+:deep(h4:first-child),
+:deep(h5:first-child),
+:deep(h6:first-child) {
+  margin-top: 0px;
+}
+
+.markdown-body {
+  --bgColor-default: transparent;
+}
+
+.markdown-body :deep(iframe) {
+  border: none;
+  border-radius: 4px;
+}
+
+/* KaTeX 相关样式 */
+.markdown-body:deep(.katex-display) {
+  overflow: auto;
+  overflow-y: hidden;
 }
 
 :deep(.admonition) {
