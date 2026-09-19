@@ -1,5 +1,5 @@
 <template>
-  <el-scrollbar :distance="400" @end-reached="forumStore.loadMoreComments(pid)">
+  <el-scrollbar :distance="400" @end-reached="loadMoreComments">
     <el-backtop
       target="#app > div.flex > div.flex-1.min-w-0.h-screen > div.el-scrollbar > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default"
       :right="20"
@@ -13,31 +13,36 @@
         </el-icon>
         <span>详情</span>
       </h2>
-      <BlogPostCard v-if="forumStore.getPostById(pid)" :post="forumStore.getPostById(pid)" />
+      <BlogPostCard
+        v-if="forumStore.getPostById(pid)"
+        :post="forumStore.getPostById(pid)"
+        @deleted="handlePostDeleted"
+      />
       <div class="border-b border-(--c-border)"></div>
 
       <div class="flex pl-6 pt-3">
         <span class="text-lg sm:font-serif font-bold"> 评论 </span>
         <div
-          class="flex items-center content-center cursor-pointer text-sm pl-4"
+          class="sort-toggle flex items-center content-center cursor-pointer text-sm pl-4"
           @click="
-            forumStore.toggleCommentSort();
-            forumStore.fetchComments(pid);
+            toggleSort();
           "
         >
           <el-icon>
             <Histogram />
           </el-icon>
-          <span> {{ forumStore.ascSort ? "顺序" : "逆序" }} </span>
+          <span> {{ ascSort ? "顺序" : "逆序" }} </span>
         </div>
       </div>
       <BlogCommentCard
-        v-for="comment in forumStore.comments"
+        v-for="comment in comments"
         :key="comment.cid"
         :comment="comment"
+        @like-update="handleLikeUpdate"
+        @deleted="handleCommentDeleted"
         @click="toggleQuote(comment.cid, comment.username)"
       />
-      <div class="text-center mt-5" v-if="forumStore.comments.length === 0">
+      <div class="text-center mt-5" v-if="comments.length === 0">
         <span class="text-sm"> 暂无更多评论 </span>
       </div>
       <div class="pb-50"></div>
@@ -46,7 +51,7 @@
         :quote="quote"
         :quote-name="quoteName"
         :dark-mode="isDark"
-        @success="forumStore.fetchComments(pid)"
+        @success="fetchComments(pid)"
       />
     </div>
   </el-scrollbar>
@@ -55,8 +60,9 @@
 <script setup lang="ts">
 import { Histogram, ArrowLeftBold } from "@element-plus/icons-vue";
 import { isDark } from "@/composables/theme";
+import { requestApi } from "@/api/api";
 import { useRoute, useRouter } from "vue-router";
-import { useForumStore } from "@/stores/forum";
+import { type Comment, useForumStore } from "@/stores/forum";
 import { computed, onMounted, ref, watch } from "vue";
 
 const route = useRoute();
@@ -64,6 +70,10 @@ const router = useRouter();
 const forumStore = useForumStore();
 
 const pid = computed(() => Number(route.params.id));
+const comments = ref<Comment[]>([]);
+const endOfComments = ref(false);
+const commentsLoading = ref(false);
+const ascSort = ref(false);
 const quote = ref(0);
 const quoteName = ref("");
 
@@ -77,22 +87,82 @@ const toggleQuote = (id: number, name: string) => {
   }
 };
 
+const fetchComments = async (postId: number) => {
+  try {
+    endOfComments.value = false;
+    const res = await requestApi(`/api/v2/forum/comments/${postId}?limit=20&sort=${ascSort.value ? "asc" : "desc"}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    comments.value = data.data;
+    if (data.data.length < 20) {
+      endOfComments.value = true;
+    }
+  } catch (error) {
+    console.error("Fetch comments failed:", error);
+  }
+};
+
+const loadMoreComments = async (direction?: string) => {
+  if ((direction && direction !== "bottom") || endOfComments.value || commentsLoading.value || comments.value.length === 0) {
+    return;
+  }
+
+  commentsLoading.value = true;
+  try {
+    const res = await requestApi(
+      `/api/v2/forum/comments/${pid.value}?limit=20&begin=${comments.value.at(-1)!.cid}&sort=${ascSort.value ? "asc" : "desc"}`
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    comments.value = [...comments.value, ...data.data];
+    if (data.data.length < 20) {
+      endOfComments.value = true;
+    }
+  } catch (error) {
+    console.error("Load more comments failed:", error);
+  } finally {
+    commentsLoading.value = false;
+  }
+};
+
+const toggleSort = async () => {
+  ascSort.value = !ascSort.value;
+  await fetchComments(pid.value);
+};
+
+const handleLikeUpdate = (updatedComment: Pick<Comment, "cid" | "is_like" | "likenum">) => {
+  const index = comments.value.findIndex((comment) => comment.cid === updatedComment.cid);
+  if (index !== -1) {
+    comments.value[index].is_like = updatedComment.is_like;
+    comments.value[index].likenum = updatedComment.likenum;
+  }
+};
+
+const handleCommentDeleted = (commentId: number) => {
+  comments.value = comments.value.filter((comment) => comment.cid !== commentId);
+};
+
+const handlePostDeleted = async () => {
+  await router.push({ name: "PostsView" });
+};
+
 watch(pid, async (newPid, oldPid) => {
   if (newPid !== oldPid) {
-    forumStore.comments = [];
-    await forumStore.fetchComments(newPid);
+    comments.value = [];
+    ascSort.value = false;
+    quote.value = 0;
+    quoteName.value = "";
+    await fetchComments(newPid);
   }
 });
 
 onMounted(async () => {
   if (!forumStore.getPostById(pid.value)) {
-    forumStore.fetchPostById(pid.value);
+    await forumStore.fetchPostById(pid.value);
   }
-  await forumStore.fetchComments(pid.value);
-});
-
-onUnmounted(() => {
-  forumStore.comments = [];
+  await fetchComments(pid.value);
 });
 </script>
 

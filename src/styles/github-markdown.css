@@ -232,8 +232,18 @@
 
 .markdown-body img {
   border-style: none;
-  max-width: 100%;
+  border-radius: 8px;
+  max-width: min(80%, 450px);
+  margin: auto;
   box-sizing: content-box;
+}
+
+.markdown-body iframe,
+.markdown-body object,
+.markdown-body embed {
+  border-radius: 8px;
+  max-width: min(80%, 450px);
+  margin: auto;
 }
 
 .markdown-body code,

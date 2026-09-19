@@ -3,6 +3,7 @@ export const useUserStore = defineStore("user", {
     token: localStorage.getItem("user_token") || null,
     userid: localStorage.getItem("user_id") || null,
     username: localStorage.getItem("user_name") || null,
+    role: Number(localStorage.getItem("user_role") || 0),
     isLoggedIn: !!localStorage.getItem("user_token"),
   }),
 
@@ -11,11 +12,13 @@ export const useUserStore = defineStore("user", {
       this.token = data.token;
       this.username = data.username;
       this.userid = data.userid;
+      this.role = Number(data.role || 0);
       this.isLoggedIn = true;
 
       localStorage.setItem("user_token", data.token);
       localStorage.setItem("user_id", data.userid);
       localStorage.setItem("user_name", data.username);
+      localStorage.setItem("user_role", String(this.role));
     },
 
     // 退出登录
@@ -23,11 +26,13 @@ export const useUserStore = defineStore("user", {
       this.token = null;
       this.userid = null;
       this.username = null;
+      this.role = 0;
       this.isLoggedIn = false;
 
       localStorage.removeItem("user_token");
       localStorage.removeItem("user_id");
       localStorage.removeItem("user_name");
+      localStorage.removeItem("user_role");
     },
 
     // 应用启动时尝试恢复登录状态
@@ -35,11 +40,13 @@ export const useUserStore = defineStore("user", {
       const token = localStorage.getItem("user_token");
       const userid = localStorage.getItem("user_id");
       const username = localStorage.getItem("user_name");
+      const role = Number(localStorage.getItem("user_role") || 0);
 
       if (token && username) {
         this.token = token;
         this.userid = userid;
         this.username = username;
+        this.role = role;
         this.isLoggedIn = true;
       }
     },
@@ -58,6 +65,8 @@ export const useUserStore = defineStore("user", {
         return {};
       } else {
         const result = await res.json();
+        this.role = Number(result?.data?.role || 0);
+        localStorage.setItem("user_role", String(this.role));
         return result;
       }
     },

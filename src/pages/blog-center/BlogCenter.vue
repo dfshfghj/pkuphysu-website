@@ -68,7 +68,7 @@
             collapse-tags
             collapse-tags-tooltip
             :max-collapse-tags="3"
-            v-model="forumStore.searchConfig.query"
+            v-model="searchDraft"
             trigger="Space"
             placeholder="搜索内容 或 #id 或 :tag"
           />
@@ -98,7 +98,7 @@
               collapse-tags
               collapse-tags-tooltip
               :max-collapse-tags="3"
-              v-model="forumStore.searchConfig.query"
+              v-model="searchDraft"
               trigger="Space"
               placeholder="搜索内容 或 #id 或 :tag"
             />
@@ -149,7 +149,7 @@
           collapse-tags
           collapse-tags-tooltip
           :max-collapse-tags="3"
-          v-model="forumStore.searchConfig.query"
+          v-model="searchDraft"
           trigger="Space"
           placeholder="搜索内容 或 #id 或 :tag"
         />
@@ -188,8 +188,8 @@
       <div class="flex-1"></div>
     </div>
   </div>
-  <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="forumStore.fetchPosts()" />
-  <PasswordDialog @success="forumStore.fetchPosts()" />
+  <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="handlePostCreated" />
+  <PasswordDialog />
 
   <div class="bg-img"></div>
 </template>
@@ -200,8 +200,8 @@ import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
 import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
-import { useForumStore } from "@/stores/forum";
-import { onBeforeMount, onUnmounted, ref } from "vue";
+import { nextTick, onBeforeMount, onUnmounted, ref, watch } from "vue";
+import { buildSearchRouteQuery, getSearchTokensFromRouteQuery } from "@/utils/forum-search";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -216,67 +216,44 @@ import { Accordion } from "@/components/ui/accordion";
 import { Book } from "lucide-vue-next";
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
-const forumStore = useForumStore();
 
 const editing = ref(false);
+const searchDraft = ref<string[]>([]);
 const currentPageRef = ref<InstanceType<typeof PostsView> | InstanceType<typeof FollowView> | null>(null);
+const pendingPostsForceRefresh = ref(false);
+const pendingFollowForceRefresh = ref(false);
 
 const handleRefresh = () => {
   if (!currentPageRef.value) {
     return;
   }
-  currentPageRef.value.refresh();
+  currentPageRef.value.refresh(true);
 };
 
 const goPosts = () => {
-  forumStore.resetSearchConfig();
-  forumStore.endOfPosts = false;
-  forumStore.refreshPosts = true;
-  if (router.currentRoute.value.name == "PostsView") {
+  searchDraft.value = [];
+  if (route.name == "PostsView") {
     handleRefresh();
   } else {
-    router.push("/");
+    pendingPostsForceRefresh.value = true;
+    router.push({ name: "PostsView" });
   }
 };
 
 const goFollow = () => {
-  forumStore.refreshFollows = true;
-  if (router.currentRoute.value.name == "FollowView") {
+  if (route.name == "FollowView") {
     handleRefresh();
   } else {
-    router.push("/follow");
+    pendingFollowForceRefresh.value = true;
+    router.push({ name: "FollowView" });
   }
 };
 
 const navigateToSearch = () => {
-  if (forumStore.searchConfig.query.length > 0) {
-    const keywords: string[] = [];
-    const tags: string[] = [];
-
-    forumStore.searchConfig.query.forEach((item) => {
-      if (item.startsWith(":")) {
-        tags.push(item.substring(1)); // 移除冒号
-      } else if (!item.startsWith("#")) {
-        keywords.push(item);
-      }
-    });
-
-    const query: LocationQueryRaw = {};
-
-    if (keywords.length > 0) {
-      query.keyword = keywords.length === 1 ? keywords[0] : keywords;
-    }
-
-    if (tags.length > 0) {
-      query.tag = tags.length === 1 ? tags[0] : tags;
-    }
-
-    const idQuery = forumStore.searchConfig.query.find((item) => item.startsWith("#"));
-    if (idQuery) {
-      query.id = idQuery.substring(1);
-    }
-
+  if (searchDraft.value.length > 0) {
+    const query: LocationQueryRaw = buildSearchRouteQuery(searchDraft.value);
     if (!query.keyword && !query.tag && !query.id) {
       router.push({ path: "/" });
     } else {
@@ -286,6 +263,38 @@ const navigateToSearch = () => {
     router.push({ path: "/" }); // 当搜索条件为空时，跳转到首页
   }
 };
+
+const handlePostCreated = () => {
+  if (route.name === "PostsView") {
+    handleRefresh();
+  }
+};
+
+watch(
+  () => route.name,
+  async (name) => {
+    if (name === "PostsView" && pendingPostsForceRefresh.value) {
+      pendingPostsForceRefresh.value = false;
+      await nextTick();
+      handleRefresh();
+      return;
+    }
+
+    if (name === "FollowView" && pendingFollowForceRefresh.value) {
+      pendingFollowForceRefresh.value = false;
+      await nextTick();
+      handleRefresh();
+    }
+  }
+);
+
+watch(
+  () => route.query,
+  (query) => {
+    searchDraft.value = getSearchTokensFromRouteQuery(query);
+  },
+  { immediate: true }
+);
 
 // 引用外部图片绕过防盗链
 onBeforeMount(() => {

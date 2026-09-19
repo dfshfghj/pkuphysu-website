@@ -68,7 +68,7 @@ const routes = [
         meta: { login: true },
       },
       {
-        path: "search/:query?",
+        path: "search",
         name: "SearchView",
         component: () => import("../pages/blog-center/SearchView.vue"),
         meta: { login: true },

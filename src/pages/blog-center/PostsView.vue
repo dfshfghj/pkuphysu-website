@@ -13,22 +13,20 @@
         :key="post.id"
         :post="post"
         @card-click="router.push(`/${post.id}`)"
+        @deleted="handlePostDeleted"
       />
     </div>
   </el-scrollbar>
 </template>
 <script setup lang="ts">
-import { useForumStore } from "@/stores/forum";
 import { requestApi } from "@/api/api";
+import { useForumStore } from "@/stores/forum";
 import { ref } from "vue";
 
 const router = useRouter();
 const forumStore = useForumStore();
 
 const mainScrollbar = ref();
-
-const endOfPosts = ref(false);
-const postsLoading = ref(false);
 
 const scrollToTop = () => {
   if (mainScrollbar.value) {
@@ -37,51 +35,32 @@ const scrollToTop = () => {
 };
 
 const loadMorePosts = async () => {
-  console.log("loadMorePosts", endOfPosts.value);
-  if (endOfPosts.value || postsLoading.value || forumStore.posts.length === 0) return;
-
-  postsLoading.value = true;
-  try {
-    const params = new URLSearchParams();
-    params.append("limit", "20");
-    params.append("begin", String(forumStore.posts.at(-1)!.id));
-    const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
-
-    const res = await requestApi(apiUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    forumStore.posts = [...forumStore.posts, ...data.data];
-    if (data.data.length < 20) {
-      endOfPosts.value = true;
-    }
-  } catch {
-    console.error("Fetch posts failed:");
-  } finally {
-    postsLoading.value = false;
-  }
+  await forumStore.loadMorePosts();
 };
 
 const loadNotifications = async () => {
   const res = await requestApi("/api/v2/notifications");
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  console.log(data);
+  await res.json();
 };
 
-const refresh = async () => {
-  if (forumStore.refreshPosts) {
-    endOfPosts.value = false;
-    forumStore.posts = [];
-    forumStore.fetchPosts();
-    scrollToTop();
-    forumStore.refreshPosts = false;
+const handlePostDeleted = (postId: number) => {
+  forumStore.posts = forumStore.posts.filter((post) => post.id !== postId);
+};
+
+const refresh = async (force = false) => {
+  if (!force && forumStore.posts.length > 0) {
+    return;
   }
+
+  forumStore.endOfPosts = false;
+  forumStore.posts = [];
+  await forumStore.fetchPosts();
+  scrollToTop();
 };
 
 onActivated(async () => {
-  console.log(forumStore.refreshPosts);
-  refresh();
+  await refresh();
   loadNotifications();
 });
 

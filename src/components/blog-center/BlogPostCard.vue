@@ -21,7 +21,22 @@
             >
               <CopyDocument />
             </el-icon>
-            <div>
+            <el-button
+              link
+              class="float-right mr-2! h-auto! px-0! text-xs! font-normal! text-(--c-secondary)! opacity-0 transition-all group-hover:opacity-100 hover:text-(--red-6)!"
+              @click.stop="reportVisible = true"
+            >
+              举报
+            </el-button>
+            <el-button
+              v-if="isAdmin"
+              link
+              class="float-right mr-2! h-auto! px-0! text-xs! font-normal! text-(--c-secondary)! opacity-0 transition-all group-hover:opacity-100 hover:text-(--red-6)!"
+              @click.stop="deleteVisible = true"
+            >
+              删除
+            </el-button>
+            <div class="flex flex-row-reverse w-full">
               <div class="float-right mr-4" @click.stop="handleFollow">
                 {{ followNum }}
                 <el-icon :size="12">
@@ -42,7 +57,7 @@
                   <ChatLineRound />
                 </el-icon>
               </div>
-              <span>
+              <span class="flex-1">
                 {{ formatTime(post.timestamp).relativeTime }}
                 {{ formatTime(post.timestamp).formattedTime }}
               </span>
@@ -59,10 +74,19 @@
       <MarkdownRenderer :dark-mode="darkMode" :content="post.text" class="cursor-pointer" @click="handleClick" />
     </CollapsibleDiv>
   </div>
+  <ForumReportDialog v-model="reportVisible" :target-id="post.id" />
+  <AdminDeleteDialog
+    v-model="deleteVisible"
+    :endpoint="`/api/v2/admin/forum/posts/${post.id}`"
+    title="删除帖子"
+    :description="`确认删除帖子 #${post.id} 吗？此操作不可撤销。`"
+    success-message="帖子已删除"
+    @success="emit('deleted', post.id)"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { Star, StarFilled, ChatLineRound, CopyDocument } from "@element-plus/icons-vue";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
@@ -70,10 +94,14 @@ import { requestApi } from "@/api/api";
 import { formatTime } from "@/utils";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { useForumStore } from "@/stores/forum";
+import { useUserStore } from "@/stores/user";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { toast } from "vue-sonner";
+import AdminDeleteDialog from "@/components/blog-center/AdminDeleteDialog.vue";
+import ForumReportDialog from "@/components/blog-center/ForumReportDialog.vue";
 
 const forumStore = useForumStore();
+const userStore = useUserStore();
 
 const props = defineProps({
   post: {
@@ -86,12 +114,15 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["card-click"]);
+const emit = defineEmits(["card-click", "deleted"]);
 
 const isLiked = ref(props.post.is_like);
 const isFollowed = ref(props.post.is_follow);
 const likeNum = ref(props.post.likenum);
 const followNum = ref(props.post.follownum);
+const reportVisible = ref(false);
+const deleteVisible = ref(false);
+const isAdmin = computed(() => userStore.role === 2);
 
 const handleClick = () => {
   emit("card-click");

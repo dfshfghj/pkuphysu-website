@@ -54,9 +54,7 @@ import MarkdownEditor from "../MarkdownEditor.vue";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { ref } from "vue";
-import { useForumStore } from "../../stores/forum";
-
-const forumStore = useForumStore();
+const emit = defineEmits(["success"]);
 
 const props = defineProps({
   quote: {
@@ -105,11 +103,9 @@ const handleSubmit = async () => {
 
     toast.success("评论成功");
 
-    // 直接调用 store 方法获取最新评论
-    await forumStore.fetchComments(props.postId);
-
     content.value = "";
     isEditing.value = false;
+    emit("success");
   } catch (error) {
     toast.error("网络错误");
     console.error("Comment submit failed:", error);

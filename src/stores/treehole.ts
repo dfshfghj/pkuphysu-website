@@ -30,7 +30,7 @@ interface Comment {
   };
 }
 
-export const useTreeholeStore = defineStore("forum", {
+export const useTreeholeStore = defineStore("treehole", {
   state: () => ({
     posts: [] as Post[],
     endOfPosts: false,
@@ -77,7 +77,7 @@ export const useTreeholeStore = defineStore("forum", {
           const trimmedHashQuery = hashQuery.trim();
           if (/^#\d+$/.test(trimmedHashQuery)) {
             const postId = trimmedHashQuery.slice(1);
-            const res = await requestApi(`/api/v2/forum/posts/${postId}`);
+            const res = await requestApi(`/api/dev/posts/${postId}`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             this.posts = [data.data];

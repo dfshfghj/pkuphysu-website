@@ -23,9 +23,7 @@ import { ElMessage } from "element-plus";
 import { requestApi } from "../../api/api";
 import { sha256 } from "../../utils";
 import { useUserStore } from "../../stores/user";
-import { useForumStore } from "../../stores/forum";
-
-const forumStore = useForumStore();
+const emit = defineEmits(["success"]);
 
 const userStore = useUserStore();
 const internalVisible = ref(false);
@@ -90,9 +88,7 @@ const handleSubmit = async () => {
       internalVisible.value = false;
       passwordForm.newPassword = "";
       passwordForm.confirmPassword = "";
-
-      // 重新获取帖子数据
-      await forumStore.fetchPosts();
+      emit("success");
     } else {
       ElMessage.error(result.message || "设置密码失败");
     }

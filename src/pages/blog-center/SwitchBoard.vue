@@ -10,7 +10,7 @@
         class="cursor-pointer hover:bg-accent/50 transition-all mx-4"
         @click="navigateToSearch(board.tag)"
       >
-        <span class="text-sm">{{ board.name }}</span>
+        <span class="text-md font-bold">{{ board.name }}</span>
       </Item>
       <Item
         :key="'treehole'"
@@ -19,7 +19,7 @@
         class="cursor-pointer hover:bg-accent/50 transition-all mx-4"
         @click="router.push('/treehole')"
       >
-        <span class="text-sm">树洞</span>
+        <span class="text-md font-bold">树洞</span>
       </Item>
     </div>
   </div>

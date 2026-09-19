@@ -23,9 +23,6 @@ import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
 import { ref, watch } from "vue";
-import { useForumStore } from "@/stores/forum";
-
-const forumStore = useForumStore();
 
 const props = defineProps({
   visible: {
@@ -38,7 +35,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:visible"]);
+const emit = defineEmits(["update:visible", "success"]);
 
 const content = ref("");
 const selectedTags = ref([]);
@@ -90,10 +87,7 @@ const submit = async () => {
     if (!res.ok) throw new Error("上传失败");
 
     toast.success("发布成功");
-
-    // 直接调用store获取最新帖子
-    await forumStore.fetchPosts();
-
+    emit("success");
     close();
   } catch (error) {
     toast.error("网络错误");

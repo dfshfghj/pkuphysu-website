@@ -11,34 +11,21 @@
       <BlogPostCard v-for="post in posts" :key="post.id" :post="post" @card-click="router.push(`/${post.id}`)" />
     </div>
   </el-scrollbar>
-  <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="fetchFollowPosts()" />
 </template>
 
 <script setup lang="ts">
 import { requestApi } from "@/api/api";
-import { ref, reactive } from "vue";
+import { ref } from "vue";
 import { ElMessage } from "element-plus";
 import BlogPostCard from "@/components/blog-center/BlogPostCard.vue";
-import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
-import { isDark } from "@/composables/theme";
-import { useForumStore } from "@/stores/forum";
 
 const router = useRouter();
-const forumStore = useForumStore();
 
 const mainScrollbar = ref();
 
-// 独立的状态管理
 const posts = ref([]);
 const endOfPosts = ref(false);
 const postsLoading = ref(false);
-const searchConfig = reactive({
-  mode: "page",
-  count: 1,
-  query: [],
-});
-
-const editing = ref(false);
 
 const scrollToTop = () => {
   if (mainScrollbar.value) {
@@ -46,51 +33,10 @@ const scrollToTop = () => {
   }
 };
 
-const fetchFollowPosts = async (config = { query: [] }) => {
+const fetchFollowPosts = async () => {
   try {
-    const params = new URLSearchParams();
-    const hashQuery = config.query.find((item) => typeof item === "string" && item.trim().startsWith("#"));
-
-    if (hashQuery) {
-      const trimmedHashQuery = hashQuery.trim();
-      if (/^#\d+$/.test(trimmedHashQuery)) {
-        const postId = trimmedHashQuery.slice(1);
-        const res = await requestApi(`/api/v2/forum/posts/${postId}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        posts.value = [data.data];
-        endOfPosts.value = true;
-        return;
-      }
-    } else {
-      const keywords = config.query
-        .filter(
-          (item) =>
-            typeof item === "string" && item.trim() && !item.trim().startsWith("#") && !item.trim().startsWith(":")
-        )
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0);
-
-      if (keywords.length > 0) {
-        keywords.forEach((keyword) => {
-          params.append("keyword", keyword);
-        });
-      }
-
-      const tagQueries = config.query
-        .filter((item) => typeof item === "string" && item.trim().startsWith(":"))
-        .map((item) => item.trim().substring(1))
-        .filter((item) => item.length > 0);
-
-      if (tagQueries.length > 0) {
-        tagQueries.forEach((tag) => {
-          params.append("tag", tag);
-        });
-      }
-    }
-
-    params.append("limit", "20");
-    const apiUrl = `/api/v2/forum/follow?${params.toString()}`;
+    endOfPosts.value = false;
+    const apiUrl = "/api/v2/forum/follow?limit=20";
 
     const res = await requestApi(apiUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -121,31 +67,6 @@ const loadMoreFollowPosts = async () => {
     params.append("limit", "20");
     params.append("begin", posts.value.at(-1).id);
 
-    const keywords = searchConfig.query
-      .filter(
-        (item) =>
-          typeof item === "string" && item.trim() && !item.trim().startsWith("#") && !item.trim().startsWith(":")
-      )
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
-
-    const tagQueries = searchConfig.query
-      .filter((item) => typeof item === "string" && item.trim().startsWith(":"))
-      .map((item) => item.trim().substring(1))
-      .filter((item) => item.length > 0);
-
-    if (keywords.length > 0) {
-      keywords.forEach((keyword) => {
-        params.append("keyword", keyword);
-      });
-    }
-
-    if (tagQueries.length > 0) {
-      tagQueries.forEach((tag) => {
-        params.append("tag", tag);
-      });
-    }
-
     const apiUrl = `/api/v2/forum/follow?${params.toString()}`;
 
     const res = await requestApi(apiUrl);
@@ -163,80 +84,18 @@ const loadMoreFollowPosts = async () => {
   }
 };
 
-// 获取普通帖子
-const fetchPosts = async (config = { query: [] }) => {
-  try {
-    const params = new URLSearchParams();
-    const hashQuery = config.query.find((item) => typeof item === "string" && item.trim().startsWith("#"));
-
-    if (hashQuery) {
-      const trimmedHashQuery = hashQuery.trim();
-      if (/^#\d+$/.test(trimmedHashQuery)) {
-        const postId = trimmedHashQuery.slice(1);
-        const res = await requestApi(`/api/v2/forum/posts/${postId}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        posts.value = [data.data];
-        endOfPosts.value = true;
-        return;
-      }
-    } else {
-      const keywords = config.query
-        .filter(
-          (item) =>
-            typeof item === "string" && item.trim() && !item.trim().startsWith("#") && !item.trim().startsWith(":")
-        )
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0);
-
-      if (keywords.length > 0) {
-        keywords.forEach((keyword) => {
-          params.append("keyword", keyword);
-        });
-      }
-
-      const tagQueries = config.query
-        .filter((item) => typeof item === "string" && item.trim().startsWith(":"))
-        .map((item) => item.trim().substring(1))
-        .filter((item) => item.length > 0);
-
-      if (tagQueries.length > 0) {
-        tagQueries.forEach((tag) => {
-          params.append("tag", tag);
-        });
-      }
-    }
-
-    params.append("limit", "20");
-    const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
-
-    const res = await requestApi(apiUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    if (data.data.length < 20) {
-      endOfPosts.value = true;
-    }
-
-    posts.value = data.data;
-  } catch (error) {
-    console.error("Fetch posts failed:", error);
-    ElMessage.error("获取帖子列表失败");
+const refresh = async (force = false) => {
+  if (!force && posts.value.length > 0) {
+    return;
   }
-};
 
-const refresh = async () => {
-  if (forumStore.refreshFollows) {
-    posts.value = [];
-    fetchFollowPosts();
-    scrollToTop();
-    forumStore.refreshFollows = false;
-  }
+  posts.value = [];
+  await fetchFollowPosts();
+  scrollToTop();
 };
 
 onActivated(async () => {
-  console.log(forumStore.refreshPosts);
-  refresh();
+  await refresh();
 });
 
 defineExpose({

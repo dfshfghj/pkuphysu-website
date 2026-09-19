@@ -11,75 +11,36 @@
       <BlogPostCard v-for="post in posts" :key="post.id" :post="post" @card-click="router.push(`/${post.id}`)" />
     </div>
   </el-scrollbar>
-  <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="performSearch()" />
 </template>
 
 <script setup lang="ts">
 import { requestApi } from "../../api/api";
+import { buildForumListParams, extractPostIdToken, getSearchTokensFromRouteQuery } from "@/utils/forum-search";
 import { ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import BlogPostCard from "../../components/blog-center/BlogPostCard.vue";
-import BlogPostEditor from "../../components/blog-center/BlogPostEditor.vue";
-import { isDark } from "../../composables/theme";
-import { useUserStore } from "../../stores/user";
-import { useForumStore } from "../../stores/forum";
 import { useRoute } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
-const userStore = useUserStore();
-const forumStore = useForumStore();
 
 const mainScrollbar = ref();
-
-// 独立的状态管理
 const posts = ref([]);
 const endOfPosts = ref(false);
 const postsLoading = ref(false);
-const searchQuery = ref([]);
-
-const editing = ref(false);
-
-// 从路由参数获取搜索查询（用于初始化 searchQuery）
-const getSearchFromRoute = () => {
-  const result = [];
-
-  // 添加关键词
-  const keywords = route.query.keyword || [];
-  if (typeof keywords === "string") {
-    result.push(keywords);
-  } else if (Array.isArray(keywords)) {
-    result.push(...keywords);
-  }
-
-  // 添加标签
-  const tags = route.query.tag || [];
-  if (typeof tags === "string") {
-    result.push(`:${tags}`);
-  } else if (Array.isArray(tags)) {
-    result.push(...tags.map((tag) => `:${tag}`));
-  }
-
-  // 如果有单独的 id 查询
-  if (route.query.id) {
-    result.push(`#${route.query.id}`);
-  }
-
-  return result;
-};
 
 const fetchPosts = async () => {
   try {
-    const queryString = window.location.search;
-
-    if (!queryString) {
+    const tokens = getSearchTokensFromRouteQuery(route.query);
+    if (tokens.length === 0) {
       router.push("/");
       return;
     }
 
-    const params = new URLSearchParams(queryString);
-    if (params.id) {
-      const res = await requestApi(`/api/v2/forum/posts/${params.id}`);
+    endOfPosts.value = false;
+    const postId = extractPostIdToken(tokens);
+    if (postId !== null) {
+      const res = await requestApi(`/api/v2/forum/posts/${postId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       posts.value = [data.data];
@@ -87,8 +48,7 @@ const fetchPosts = async () => {
       return;
     }
 
-    params.append("limit", "20");
-
+    const params = buildForumListParams({ query: tokens }, { limit: 20 });
     const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
     const res = await requestApi(apiUrl);
@@ -108,27 +68,23 @@ const fetchPosts = async () => {
 
 const loadMorePosts = async (direction: string) => {
   if (direction === "bottom" && !endOfPosts.value && !postsLoading.value) {
+    postsLoading.value = true;
     try {
-      const queryString = window.location.search;
-
-      if (!queryString) {
+      const tokens = getSearchTokensFromRouteQuery(route.query);
+      if (tokens.length === 0) {
         router.push("/");
         return;
       }
 
-      const params = new URLSearchParams(queryString);
-      if (params.id) {
-        const res = await requestApi(`/api/v2/forum/posts/${params.id}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        posts.value = [data.data];
+      if (extractPostIdToken(tokens) !== null) {
         endOfPosts.value = true;
         return;
       }
 
-      params.append("limit", "20");
-      params.append("begin", posts.value.at(-1).id);
-
+      const params = buildForumListParams(
+        { query: tokens },
+        { limit: 20, begin: posts.value.at(-1).id }
+      );
       const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
       const res = await requestApi(apiUrl);
@@ -139,38 +95,29 @@ const loadMorePosts = async (direction: string) => {
         endOfPosts.value = true;
       }
 
-      posts.value = data.data;
+      posts.value = [...posts.value, ...data.data];
     } catch (error) {
       console.error("Fetch posts failed:", error);
       ElMessage.error("获取帖子列表失败");
+    } finally {
+      postsLoading.value = false;
     }
   }
 };
 
-// 执行搜索
-const performSearch = () => {
-  fetchPosts();
-};
-
-// 监听路由变化
 watch(
   () => route.query,
-  (newQuery) => {
-    const searchTerms = getSearchFromRoute();
-    searchQuery.value = searchTerms;
+  async () => {
+    const searchTerms = getSearchTokensFromRouteQuery(route.query);
     if (searchTerms.length > 0) {
-      performSearch();
+      await fetchPosts();
     } else {
-      router.push({ path: "/" }); // 当搜索参数为空时，跳转到首页
-      posts.value = []; // 清空已有帖子
+      router.push({ path: "/" });
+      posts.value = [];
     }
   },
   { immediate: true }
 );
-
-onUnmounted(() => {
-  forumStore.posts = [];
-});
 </script>
 
 <style scoped>
