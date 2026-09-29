@@ -32,7 +32,7 @@
   --bgColor-neutral-muted: #656c7633;
   --bgColor-attention-muted: #bb800926;
   --borderColor-default: #3d444d;
-  --borderColor-muted: #3d444db3;
+  --borderColor-muted: transparent;
   --borderColor-neutral-muted: #3d444db3;
   --borderColor-accent-emphasis: #1f6feb;
   --borderColor-success-emphasis: #238636;
@@ -232,8 +232,18 @@
 
 .markdown-body img {
   border-style: none;
-  max-width: 100%;
+  border-radius: 8px;
+  max-width: min(80%, 450px);
+  margin: auto;
   box-sizing: content-box;
+}
+
+.markdown-body iframe,
+.markdown-body object,
+.markdown-body embed {
+  border-radius: 8px;
+  max-width: min(80%, 450px);
+  margin: auto;
 }
 
 .markdown-body code,

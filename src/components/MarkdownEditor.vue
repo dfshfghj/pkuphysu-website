@@ -4,8 +4,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Vditor from "vditor";
+import vditorPackage from "vditor/package.json";
 import "vditor/dist/index.css";
 import { nextTick } from "vue";
 
@@ -15,7 +16,7 @@ const props = defineProps({
     default: "",
   },
   mode: {
-    type: String,
+    type: String as PropType<"ir" | "wysiwyg" | "sv">,
     default: "ir",
   },
   height: {
@@ -42,8 +43,8 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue", "change", "save"]);
 
-const vditorRef = ref(null);
-const vditor = ref(null);
+const vditorRef = ref<HTMLElement | null>(null);
+const vditor = ref<Vditor | null>(null);
 const currentMode = ref(props.mode);
 const isDarkMode = ref(props.darkMode);
 let isInternalUpdate = false;
@@ -64,8 +65,8 @@ const initVditor = () => {
   const theme = isDarkMode.value ? "dark" : "classic";
   const preview_theme = isDarkMode.value ? "dark" : "light";
   const hljs_style = isDarkMode.value ? "github-dark" : "github";
-  vditor.value = new Vditor(vditorRef.value, {
-    cdn: "/vditor",
+  vditor.value = new Vditor(vditorRef.value!, {
+    cdn: `/vditor/${vditorPackage.version}`,
     height: props.height,
     minHeight: props.minHeight,
     mode: currentMode.value,
@@ -121,10 +122,10 @@ const initVditor = () => {
     upload: {
       url: "/api/v2/files/upload",
       max: 5 * 1024 * 1024, // 5MB
-      format: (files, responseText) => {
+      format: (_, responseText) => {
         const originalResponse = JSON.parse(responseText);
-        let succMap = {};
-        originalResponse.files.forEach((file) => {
+        let succMap: { [key: string]: string } = {};
+        originalResponse.files.forEach((file: any) => {
           succMap[file.originalName] = `/api/v2/static${file.url}`;
         });
         const vditorFormat = {
@@ -152,9 +153,9 @@ const initVditor = () => {
   });
 };
 
-const setValue = (content) => {
+const setValue = (content: string) => {
   isInternalUpdate = true;
-  vditor.value.setValue(content);
+  vditor.value!.setValue(content);
   nextTick(() => {
     isInternalUpdate = false;
   });
@@ -184,7 +185,6 @@ watch(
   }
 );
 
-// 暴露vditor实例供父组件访问
 defineExpose({
   vditor: vditor,
 });

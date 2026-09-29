@@ -1,9 +1,13 @@
 <template>
-  <el-avatar :size="props.size" :src="userAvatar" @error="onImageError" />
+  <span
+    :style="`height: ${props.size}px; width: ${props.size}px;`"
+    class="inline-flex text-center bg-transparent cursor-pointer rounded-full overflow-hidden"
+  >
+    <img :src="userAvatar" class="w-full h-full object-cover" />
+  </span>
 </template>
-<script setup>
-import { useUserStore } from "../stores/user";
-import { minidenticon } from "minidenticons";
+<script setup lang="ts">
+import { useUserStore } from "@/stores/user";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const userStore = useUserStore();
@@ -20,16 +24,4 @@ const props = defineProps({
 });
 
 const userAvatar = ref(`${API_BASE}/api/v2/user/avatar/${props.userid || userStore.userid}`);
-
-function onImageError() {
-  const svgString = minidenticon(String(props.userid || userStore.userid), 64);
-  const svgPath = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
-  userAvatar.value = svgPath;
-}
 </script>
-<style scoped>
-.el-avatar {
-  background: transparent;
-  cursor: pointer;
-}
-</style>

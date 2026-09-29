@@ -17,13 +17,12 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { requestApi } from "../../api/api";
 import { sha256 } from "../../utils";
 import { useUserStore } from "../../stores/user";
-
 const emit = defineEmits(["success"]);
 
 const userStore = useUserStore();

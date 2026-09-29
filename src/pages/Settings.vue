@@ -81,9 +81,6 @@
                     更换
                   </el-button>
                 </el-upload>
-                <!---
-            <p class="tip">支持 JPG、PNG、GIF，最大 5MB</p>
-            -->
               </div>
             </el-col>
           </el-row>

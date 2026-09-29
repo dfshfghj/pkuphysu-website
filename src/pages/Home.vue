@@ -365,7 +365,7 @@ strong {
 }
 
 .post-card {
-  background: var(--c-card);
+  background: var(--card);
   display: flex;
   align-items: center;
   padding: 5px;
@@ -478,7 +478,7 @@ strong {
 
 @media (min-width: 769px) {
   .body {
-    background: var(--c-background);
+    background: var(--background);
     position: fixed;
     top: 0px;
     height: 100vh;

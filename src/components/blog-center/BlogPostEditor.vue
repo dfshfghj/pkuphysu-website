@@ -3,7 +3,7 @@
     v-show="visible"
     class="fixed inset-0 bg-black/50 z-9999 pointer-events-auto overflow-auto acrylic unselectable content-center"
   >
-    <div class="editor p-2 mx-2 content-center bg-(--c-background) rounded-md lg:mx-12">
+    <div class="editor p-2 mx-2 content-center bg-background rounded-md lg:mx-12">
       <div class="mt-2.5 ml-2.5">
         <el-icon size="20" @click="close">
           <Close />
@@ -11,18 +11,18 @@
       </div>
       <AutoCompleteTagInput v-model="selectedTags" :suggestions="tagSuggestions" />
       <MarkdownEditor ref="editorRef" v-model="content" :dark-mode="darkMode" :height="800" />
-      <button @click="submit" class="float-right bg-transparent! mt-1.25 mb-1.25">发布</button>
+      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">发布</Button>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Close } from "@element-plus/icons-vue";
-import MarkdownEditor from "../MarkdownEditor.vue";
-import AutoCompleteTagInput from "../AutoCompleteTagInput.vue";
-import { ElMessage } from "element-plus";
-import { requestApi } from "../../api/api";
-import { ref } from "vue";
+import MarkdownEditor from "@/components/MarkdownEditor.vue";
+import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
+import { toast } from "vue-sonner";
+import { requestApi } from "@/api/api";
+import { ref, watch } from "vue";
 
 const props = defineProps({
   visible: {
@@ -40,7 +40,7 @@ const emit = defineEmits(["update:visible", "success"]);
 const content = ref("");
 const selectedTags = ref([]);
 const tagSuggestions = ref([]);
-const editorRef = ref(null);
+const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 
 const fetchTags = async () => {
   try {
@@ -48,7 +48,7 @@ const fetchTags = async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    tagSuggestions.value = data.data.map((tag) => ({ value: tag.tag_name }));
+    tagSuggestions.value = data.data.map((tag: any) => ({ value: tag.tag_name }));
   } catch (error) {
     console.error("Fetch tags failed:", error);
   }
@@ -71,8 +71,8 @@ const close = () => {
 
 const submit = async () => {
   const currentContent = editorRef.value?.vditor?.getValue() || content.value;
-  if (!currentContent) {
-    ElMessage.error("不能为空");
+  if (!currentContent.trim()) {
+    toast.error("不能为空");
     return;
   }
 
@@ -86,11 +86,11 @@ const submit = async () => {
     });
     if (!res.ok) throw new Error("上传失败");
 
-    ElMessage.success("发布成功");
+    toast.success("发布成功");
     emit("success");
     close();
   } catch (error) {
-    ElMessage.error("网络错误");
+    toast.error("网络错误");
     console.error("Post submit failed:", error);
   }
 };

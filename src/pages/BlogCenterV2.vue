@@ -1,6 +1,6 @@
 <template>
   <div class="flex">
-    <div class="bg-(--c-sidebar) hidden sm:flex flex-col">
+    <div class="bg-(--sidebar) hidden sm:flex flex-col">
       <div
         class="control-btn sm:font-serif font-bold pt-5"
         @click="
@@ -78,8 +78,8 @@
         :bottom="30"
       >
       </el-backtop>
-      <div class="bg-(--c-sidebar) p-1 sticky top-0 z-999 hidden sm:block md:hidden">
-        <div class="control-search p-1 m-2 bg-(--c-card)">
+      <div class="bg-(--sidebar) p-1 sticky top-0 z-999 hidden sm:block md:hidden">
+        <div class="control-search p-1 m-2 bg-(--card)">
           <el-input-tag
             collapse-tags
             collapse-tags-tooltip
@@ -100,7 +100,7 @@
         </div>
       </div>
       <div
-        class="text-(--c-title) pb-[0.7em] sticky top-0 left-0 w-full shadow-[0_0_25px_rgba(0,0,0,0.4)] bg-(--c-card) z-10 unselectable sm:hidden"
+        class="text-(--c-title) pb-[0.7em] sticky top-0 left-0 w-full shadow-[0_0_25px_rgba(0,0,0,0.4)] bg-(--card) z-10 unselectable sm:hidden"
       >
         <div class="control-bar">
           <div
@@ -259,7 +259,7 @@
         />
       </div>
     </el-scrollbar>
-    <div class="bg-(--c-sidebar) flex-col trans w-3/10 border-l border-(--c-border) hidden md:flex">
+    <div class="bg-(--sidebar) flex-col trans w-3/10 border-l border-(--c-border) hidden md:flex">
       <div class="control-search p-1 m-3">
         <el-input-tag
           collapse-tags
@@ -626,7 +626,7 @@ onUnmounted(() => {
 }
 
 .trans {
-  background-color: color-mix(in srgb, var(--c-card), transparent 10%);
+  background-color: color-mix(in srgb, var(--card), transparent 10%);
 }
 
 .slide-enter-active,
@@ -681,7 +681,6 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: url("/images/bg-light.webp") center center / cover rgb(255, 255, 255);
 }
 
 .dark .bg-img {
@@ -689,8 +688,8 @@ onUnmounted(() => {
 }
 
 :deep(.vditor) {
-  --panel-background-color: var(--c-card);
-  --textarea-background-color: var(--c-card);
+  --panel-background-color: var(--card);
+  --textarea-background-color: var(--card);
 }
 
 @media (max-width: 1036px) {

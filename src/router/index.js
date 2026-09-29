@@ -41,36 +41,98 @@ const routes = [
     component: () => import("../pages/Posts.vue"),
   },
   {
-    path: "/settings",
+    path: "/settings-1",
     name: "Settings",
     component: () => import("../pages/Settings.vue"),
     meta: { login: true },
   },
-  // {
-  //   path: "/forum",
-  //   name: "ForumDashBoard",
-  //   component: () => import("../pages/forum/DashBoard.vue"),
-  //   meta: {
-  //     login: true,
-  //   },
-  // },
-  // {
-  //   path: "/chat/articles",
-  //   name: "ArticleCenter",
-  //   component: () => import("../pages/ArticleCenter.vue"),
-  //   meta: {
-  //     noHeader: true,
-  //     login: true,
-  //   },
-  // },
   {
     path: "/",
-    name: "BlogCenterV2",
-    component: () => import("../pages/BlogCenterV2.vue"),
+    name: "BlogCenter",
+    component: () => import("../pages/blog-center/BlogCenter.vue"),
     meta: {
       noHeader: true,
       login: true,
     },
+    children: [
+      {
+        path: "/",
+        name: "PostsView",
+        component: () => import("../pages/blog-center/PostsView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "follow",
+        name: "FollowView",
+        component: () => import("../pages/blog-center/FollowView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "search",
+        name: "SearchView",
+        component: () => import("../pages/blog-center/SearchView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: ":id",
+        name: "CommentsView",
+        component: () => import("../pages/blog-center/CommentsView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "messages",
+        name: "Messages",
+        component: () => import("../pages/blog-center/Messages.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "settings",
+        name: "SettingsBeta",
+        component: () => import("../pages/blog-center/SettingsBeta.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "switch",
+        name: "SwitchBoard",
+        component: () => import("../pages/blog-center/SwitchBoard.vue"),
+        meta: { login: true },
+      },
+    ],
+  },
+  {
+    path: "/treehole",
+    name: "Treehole",
+    component: () => import("../pages/treehole/Treehole.vue"),
+    meta: {
+      noHeader: true,
+      login: true,
+    },
+    children: [
+      {
+        path: "",
+        name: "TreeholePostsView",
+        component: () => import("../pages/treehole/PostsView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "follow",
+        name: "TreeholeFollowView",
+        component: () => import("../pages/treehole/FollowView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "search/:query?",
+        name: "TreeholeSearchView",
+        component: () => import("../pages/treehole/SearchView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: ":id",
+        name: "TreeholeCommentsView",
+        component: () => import("../pages/treehole/CommentsView.vue"),
+        meta: { login: true },
+      },
+    ],
   },
   {
     path: "/admin/random-draw",
