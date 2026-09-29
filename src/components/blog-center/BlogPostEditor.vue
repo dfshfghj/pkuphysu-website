@@ -19,7 +19,9 @@
         :height="isNarrow ? 'calc(100vh - 210px)' : 800"
         :toolbar="isNarrow ? narrowToolbar : undefined"
       />
-      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">发布</Button>
+      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">
+        {{ isEdit ? "保存" : "发布" }}
+      </Button>
     </div>
   </div>
 </template>
@@ -40,7 +42,11 @@ const props = defineProps({
   },
   darkMode: {
     type: Boolean,
-    default: false,
+    default: undefined,
+  },
+  editTarget: {
+    type: Object as PropType<{ id: number; content: string; tags: string[] } | null>,
+    default: null,
   },
 });
 
@@ -52,6 +58,7 @@ const tagSuggestions = ref([]);
 const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 const isNarrow = useMediaQuery("(max-width: 639px)");
 const narrowToolbar = ["upload", "|", "undo", "redo"];
+const isEdit = computed(() => !!props.editTarget);
 
 const fetchTags = async () => {
   try {
@@ -68,8 +75,13 @@ const fetchTags = async () => {
 watch(
   () => props.visible,
   (newVal) => {
-    if (newVal) {
-      fetchTags();
+    if (!newVal) {
+      return;
+    }
+    fetchTags();
+    if (props.editTarget) {
+      content.value = props.editTarget.content;
+      selectedTags.value = [...props.editTarget.tags];
     }
   }
 );
@@ -87,17 +99,24 @@ const submit = async () => {
     return;
   }
 
+  const editing = props.editTarget;
   try {
-    const res = await requestApi("/api/v2/forum/posts", {
-      method: "POST",
+    const res = await requestApi(editing ? `/api/v2/forum/posts/${editing.id}` : "/api/v2/forum/posts", {
+      method: editing ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: currentContent,
         tags: selectedTags.value,
       }),
     });
-    if (!res.ok) throw new Error("上传失败");
+    const data = await res.json().catch(() => null);
 
-    toast.success("发布成功");
+    if (!res.ok) {
+      toast.error(data?.message || "操作失败");
+      return;
+    }
+
+    toast.success(data?.data?.message || (editing ? "修改成功" : "发布成功"));
     emit("success");
     close();
   } catch (error) {

@@ -11,12 +11,12 @@ export const useUserStore = defineStore("user", {
     login(data: any) {
       this.token = data.token;
       this.username = data.username;
-      this.userid = data.userid;
+      this.userid = String(data.userid);
       this.role = Number(data.role || 0);
       this.isLoggedIn = true;
 
       localStorage.setItem("user_token", data.token);
-      localStorage.setItem("user_id", data.userid);
+      localStorage.setItem("user_id", this.userid);
       localStorage.setItem("user_name", data.username);
       localStorage.setItem("user_role", String(this.role));
     },
@@ -65,7 +65,16 @@ export const useUserStore = defineStore("user", {
         return {};
       } else {
         const result = await res.json();
-        this.role = Number(result?.data?.role || 0);
+        const data = result?.data;
+        if (data?.id != null) {
+          this.userid = String(data.id);
+          localStorage.setItem("user_id", this.userid);
+        }
+        if (data?.username) {
+          this.username = data.username;
+          localStorage.setItem("user_name", data.username);
+        }
+        this.role = Number(data?.role || 0);
         localStorage.setItem("user_role", String(this.role));
         return result;
       }

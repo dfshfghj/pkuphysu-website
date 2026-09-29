@@ -6,29 +6,21 @@
           <UserAvatar class="mr-2" :userid="comment.userid" />
           <div class="flex-1">
             <span> {{ comment.username }} </span>
-            <el-icon
-              :size="16"
-              class="float-right text-center opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
-              @click.stop="handleCopy"
-            >
-              <CopyDocument />
-            </el-icon>
-            <el-button
-              link
-              class="float-right mr-2! h-auto! px-0! text-xs! font-normal! text-(--c-secondary)! opacity-0 transition-all group-hover:opacity-100 hover:text-(--red-6)!"
-              @click.stop="reportVisible = true"
-            >
-              举报
-            </el-button>
-            <el-button
-              v-if="isAdmin"
-              link
-              class="float-right mr-2! h-auto! px-0! text-xs! font-normal! text-(--c-secondary)! opacity-0 transition-all group-hover:opacity-100 hover:text-(--red-6)!"
-              @click.stop="deleteVisible = true"
-            >
-              删除
-            </el-button>
-            <div class="flex flex-row-reverse w-full">
+            <div class="flex flex-row-reverse w-full items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <el-icon :size="16" class="mr-4 cursor-pointer text-(--c-secondary)" @click.stop>
+                    <MoreFilled />
+                  </el-icon>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
+                  <DropdownMenuItem @click="reportVisible = true">举报</DropdownMenuItem>
+                  <DropdownMenuItem v-if="canDelete" class="text-(--red-6)" @click="deleteVisible = true">
+                    删除
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <div class="float-right mr-4" @click.stop="handleLike">
                 {{ props.comment.likenum }}
                 <el-icon :size="12">
@@ -36,9 +28,11 @@
                   <IconRiHeartLine v-else />
                 </el-icon>
               </div>
-              <span class="flex-1">
-                {{ formatTime(comment.timestamp).relativeTime }}
-                {{ formatTime(comment.timestamp).formattedTime }}
+              <span class="flex min-w-0 flex-1 items-center">
+                <span class="truncate">
+                  {{ timeInfo.relativeTime }}
+                  <span class="hidden sm:inline">{{ timeInfo.formattedTime }}</span>
+                </span>
               </span>
             </div>
           </div>
@@ -57,8 +51,8 @@
   />
   <AdminDeleteDialog
     v-model="deleteVisible"
-    :endpoint="`/api/v2/admin/forum/comments/${comment.cid}`"
-    title="删除评论"
+    :endpoint="deleteEndpoint"
+    :title="isOwn ? '删除评论' : '删除评论（管理员）'"
     :description="`确认删除评论 #${comment.cid} 吗？此操作不可撤销。`"
     success-message="评论已删除"
     @success="emit('deleted', comment.cid)"
@@ -67,7 +61,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { CopyDocument } from "@element-plus/icons-vue";
+import { MoreFilled } from "@element-plus/icons-vue";
 import { formatTime } from "@/utils";
 import { requestApi } from "@/api/api";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
@@ -78,6 +72,12 @@ import { useUserStore } from "@/stores/user";
 import { toast } from "vue-sonner";
 import AdminDeleteDialog from "@/components/blog-center/AdminDeleteDialog.vue";
 import ForumReportDialog from "@/components/blog-center/ForumReportDialog.vue";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const forumStore = useForumStore();
 const userStore = useUserStore();
@@ -92,6 +92,12 @@ const props = defineProps({
 const reportVisible = ref(false);
 const deleteVisible = ref(false);
 const isAdmin = computed(() => userStore.role === 2);
+const isOwn = computed(() => Number(props.comment.userid) === Number(userStore.userid));
+const timeInfo = computed(() => formatTime(props.comment.timestamp));
+const canDelete = computed(() => isOwn.value || isAdmin.value);
+const deleteEndpoint = computed(() =>
+  isOwn.value ? `/api/v2/forum/comments/${props.comment.cid}` : `/api/v2/admin/forum/comments/${props.comment.cid}`
+);
 
 const handleLike = async () => {
   try {

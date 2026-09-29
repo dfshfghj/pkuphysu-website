@@ -133,6 +133,7 @@ declare module 'vue' {
     MarkdownEditor: typeof import('./components/MarkdownEditor.vue')['default']
     MarkdownRenderer: typeof import('./components/MarkdownRenderer.vue')['default']
     PasswordDialog: typeof import('./components/blog-center/PasswordDialog.vue')['default']
+    PostHistoryDialog: typeof import('./components/blog-center/PostHistoryDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Separator: typeof import('./components/ui/separator/Separator.vue')['default']

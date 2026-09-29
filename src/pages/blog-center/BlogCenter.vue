@@ -1,37 +1,37 @@
 <template>
   <div class="flex">
-    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30">
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="goPosts">
+    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2">
+      <div class="control-btn sm:font-serif font-bold p-2" @click="goPosts">
         <el-icon :size="20">
           <Refresh />
         </el-icon>
         <span class="control-btn-label">最新</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="goFollow">
+      <div class="control-btn sm:font-serif font-bold p-2" @click="goFollow">
         <el-icon :size="20">
           <Star />
         </el-icon>
         <span class="control-btn-label">关注</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="editing = true">
+      <div class="control-btn sm:font-serif font-bold p-2" @click="editing = true">
         <el-icon :size="20">
           <Plus />
         </el-icon>
         <span class="control-btn-label">发布</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="router.push('/messages')">
+      <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/messages')">
         <el-icon :size="20">
           <Message />
         </el-icon>
         <span class="control-btn-label">消息</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="router.push('/settings')">
+      <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/settings')">
         <el-icon :size="20">
           <Setting />
         </el-icon>
         <span class="control-btn-label">设置</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="router.push('/switch')">
+      <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/switch')">
         <el-icon :size="20">
           <Book />
         </el-icon>

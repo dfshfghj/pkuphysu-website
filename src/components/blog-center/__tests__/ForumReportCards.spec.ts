@@ -51,7 +51,8 @@ const ForumReportDialogStub = defineComponent({
       default: "",
     },
   },
-  template: '<div class="report-dialog" :data-open="modelValue" :data-target-id="targetId" :data-endpoint="endpoint" />',
+  template:
+    '<div class="report-dialog" :data-open="modelValue" :data-target-id="targetId" :data-endpoint="endpoint" />',
 });
 
 const AdminDeleteDialogStub = defineComponent({
@@ -128,6 +129,34 @@ const IconStub = defineComponent({
   template: "<span />",
 });
 
+const DropdownMenuStub = defineComponent({
+  name: "DropdownMenu",
+  template: "<div><slot /></div>",
+});
+
+const DropdownMenuTriggerStub = defineComponent({
+  name: "DropdownMenuTrigger",
+  template: "<div><slot /></div>",
+});
+
+const DropdownMenuContentStub = defineComponent({
+  name: "DropdownMenuContent",
+  template: "<div><slot /></div>",
+});
+
+const DropdownMenuItemStub = defineComponent({
+  name: "DropdownMenuItem",
+  emits: ["click"],
+  template: '<button type="button" class="dropdown-menu-item" @click="$emit(\'click\', $event)"><slot /></button>',
+});
+
+const dropdownStubs = {
+  DropdownMenu: DropdownMenuStub,
+  DropdownMenuTrigger: DropdownMenuTriggerStub,
+  DropdownMenuContent: DropdownMenuContentStub,
+  DropdownMenuItem: DropdownMenuItemStub,
+};
+
 describe("forum report buttons", () => {
   it("opens the post report dialog with post id", async () => {
     mockUserStore.role = 0;
@@ -166,6 +195,7 @@ describe("forum report buttons", () => {
           Star: IconStub,
           StarFilled: IconStub,
           ChatLineRound: IconStub,
+          ...dropdownStubs,
         },
       },
     });
@@ -210,6 +240,7 @@ describe("forum report buttons", () => {
           IconRiHeartFill: IconStub,
           IconRiHeartLine: IconStub,
           CopyDocument: IconStub,
+          ...dropdownStubs,
         },
       },
     });
@@ -263,6 +294,7 @@ describe("forum report buttons", () => {
           Star: IconStub,
           StarFilled: IconStub,
           ChatLineRound: IconStub,
+          ...dropdownStubs,
         },
       },
     });
@@ -293,6 +325,7 @@ describe("forum report buttons", () => {
           IconRiHeartFill: IconStub,
           IconRiHeartLine: IconStub,
           CopyDocument: IconStub,
+          ...dropdownStubs,
         },
       },
     });
