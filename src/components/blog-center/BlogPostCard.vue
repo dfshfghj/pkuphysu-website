@@ -1,5 +1,5 @@
 <template>
-  <div class="group rounded-sm my-2 py-3 bg-card md:bg-transparent" :key="post.id">
+  <div class="group rounded-sm my-2 py-3" :key="post.id">
     <CollapsibleDiv :max-height="500">
       <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
         <div class="flex">

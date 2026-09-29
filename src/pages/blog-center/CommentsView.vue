@@ -7,7 +7,7 @@
     >
     </el-backtop>
     <div class="min-h-lvh">
-      <h2 class="flex items-center text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">
+      <h2 class="hidden sm:flex items-center text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">
         <el-icon :size="20" class="cursor-pointer" @click="router.back()">
           <ArrowLeftBold />
         </el-icon>

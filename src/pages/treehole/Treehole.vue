@@ -31,7 +31,7 @@
         </DropdownMenu>
       </div>
     </div>
-    <div class="flex flex-col flex-1 min-w-0 h-screen">
+    <div class="flex flex-col flex-1 min-w-0 h-screen pb-14 sm:pb-0">
       <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
         <div class="control-search p-1 m-2 bg-card">
           <el-input-tag
@@ -51,60 +51,45 @@
         class="text-(--c-title) pb-[0.7em] sticky top-0 left-0 w-full shadow-[0_0_25px_rgba(0,0,0,0.4)] bg-card z-10 unselectable sm:hidden"
       >
         <div class="control-bar">
-          <div class="control-btn p-2" @click="goPosts">
-            <el-icon :size="20">
-              <Refresh />
+          <template v-if="isDetail">
+            <el-icon :size="20" class="cursor-pointer ml-4 mr-2" @click="router.back()">
+              <ArrowLeftBold />
             </el-icon>
-            <span class="control-btn-label">最新</span>
-          </div>
-          <div class="control-btn p-2" @click="goFollow">
-            <el-icon :size="20">
-              <Star />
-            </el-icon>
-            <span class="control-btn-label">关注</span>
-          </div>
-          <div class="control-search flex-1">
-            <el-input-tag
-              collapse-tags
-              collapse-tags-tooltip
-              :max-collapse-tags="3"
-              v-model="treeholeStore.searchConfig.query"
-              trigger="Space"
-              placeholder="搜索内容 或 #id 或 :tag"
-            />
-            <el-icon :size="20" @click="navigateToSearch()">
-              <Search />
-            </el-icon>
-          </div>
-          <div class="control-btn p-2" @click="editing = true">
-            <el-icon :size="20">
-              <Plus />
-            </el-icon>
-            <span class="control-btn-label">发布</span>
-          </div>
-          <div class="control-btn p-2" @click="router.push('/messages')">
-            <el-icon :size="20">
-              <Message />
-            </el-icon>
-            <span class="control-btn-label">消息</span>
-          </div>
-          <div v-if="userStore.isLoggedIn" class="flex">
-            <DropdownMenu>
-              <DropdownMenuTrigger class="flex items-center bg-transparent border-0 cursor-pointer">
-                <UserAvatar />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem @click="router.push('/settings')"> 设置 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem @click="userStore.logout()">
-                  <span>退出登录</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <el-button v-else link type="primary" plain @click="router.push('/login')" class="border-none">
-            登录
-          </el-button>
+            <span class="text-(--c-secondary)!">#{{ route.params.id }}</span>
+            <span class="page-title">详情</span>
+          </template>
+          <template v-else>
+            <div class="control-btn p-2" @click="goFollow">
+              <el-icon :size="20">
+                <StarFilled v-if="isFollowPage" />
+                <Star v-else />
+              </el-icon>
+              <span class="control-btn-label">关注</span>
+            </div>
+            <div class="control-search flex-1">
+              <el-input-tag
+                collapse-tags
+                collapse-tags-tooltip
+                :max-collapse-tags="3"
+                v-model="treeholeStore.searchConfig.query"
+                trigger="Space"
+                placeholder="搜索内容 或 #id 或 :tag"
+              />
+              <el-icon :size="20" @click="navigateToSearch()">
+                <Search />
+              </el-icon>
+            </div>
+            <el-button
+              v-if="!userStore.isLoggedIn"
+              link
+              type="primary"
+              plain
+              @click="router.push('/login')"
+              class="border-none"
+            >
+              登录
+            </el-button>
+          </template>
         </div>
       </div>
       <router-view v-slot="{ Component, route }">
@@ -160,16 +145,23 @@
   </div>
   <PasswordDialog @success="treeholeStore.fetchPosts()" />
 
+  <BottomNav
+    :home-names="['TreeholePostsView', 'TreeholeCommentsView']"
+    @home="goPosts"
+    @post="toast.info('树洞发帖功能尚未接入')"
+  />
   <div class="bg-img"></div>
 </template>
 
 <script setup lang="ts">
-import { Star, Refresh, Search, Message, Plus, Setting } from "@element-plus/icons-vue";
+import { ArrowLeftBold, Star, StarFilled, Refresh, Search } from "@element-plus/icons-vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
+import BottomNav from "@/components/layouts/BottomNav.vue";
+import { toast } from "vue-sonner";
 import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
 import { useTreeholeStore } from "@/stores/treehole";
-import { onBeforeMount, onUnmounted, ref } from "vue";
+import { computed, onBeforeMount, onUnmounted, ref } from "vue";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -183,10 +175,12 @@ import { RouterView, type LocationQueryRaw } from "vue-router";
 import { Accordion } from "@/components/ui/accordion";
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 const treeholeStore = useTreeholeStore();
 
-const editing = ref(false);
+const isFollowPage = computed(() => route.name === "TreeholeFollowView");
+const isDetail = computed(() => route.name === "TreeholeCommentsView");
 const currentPageRef = ref<InstanceType<typeof PostsView> | InstanceType<typeof FollowView> | null>(null);
 
 const handleRefresh = () => {
@@ -272,6 +266,7 @@ onUnmounted(() => {
 .control-bar {
   line-height: 2em;
   padding-top: 10px;
+  padding-right: 0.5rem;
   display: flex;
   align-items: center;
 }
@@ -287,6 +282,13 @@ onUnmounted(() => {
   margin-left: 0.25rem;
   font-size: 16px;
   vertical-align: 0.05em;
+}
+
+.page-title {
+  font-size: 16px;
+  font-weight: bold;
+  padding-left: 0.5rem;
+  white-space: nowrap;
 }
 
 :deep(.el-input__wrapper) {

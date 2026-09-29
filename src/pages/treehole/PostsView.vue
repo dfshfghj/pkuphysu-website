@@ -7,7 +7,7 @@
     >
     </el-backtop>
     <div class="min-h-lvh">
-      <h2 class="text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">主页</h2>
+      <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">主页</h2>
       <TreeholePostCard
         v-for="post in treeholeStore.posts"
         :key="post.id"
