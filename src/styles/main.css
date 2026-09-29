@@ -204,3 +204,160 @@ code {
   background-color: var(--c-scrollbar);
   border-radius: 9999px;
 }
+
+/* 灰色调交互与左侧边栏修正 */
+:root {
+  --c-ui-hover-text: #666;
+  --c-ui-hover-bg: rgba(0, 0, 0, 0.055);
+  --c-ui-hover-bg-strong: rgba(0, 0, 0, 0.08);
+  --c-ui-hover-border: rgba(100, 116, 139, 0.32);
+}
+
+.dark {
+  --c-ui-hover-text: #a5a5a5;
+  --c-ui-hover-bg: rgba(255, 255, 255, 0.08);
+  --c-ui-hover-bg-strong: rgba(255, 255, 255, 0.11);
+  --c-ui-hover-border: rgba(170, 170, 170, 0.32);
+}
+
+/* 左侧边栏：桌面端固定为较舒适的 150px */
+#app div[class*="bg-(--c-sidebar)"]:not([class*="w-3/10"]) {
+  width: 150px;
+  min-width: 150px;
+  box-sizing: border-box;
+}
+
+/* 中等屏幕左侧只显示图标时，收窄为 72px */
+@media (min-width: 640px) and (max-width: 1036px) {
+  #app div[class*="bg-(--c-sidebar)"]:not([class*="w-3/10"]) {
+    width: 72px;
+    min-width: 72px;
+  }
+}
+
+/* 左侧按钮形成居中的圆角区域，不再出现碎块状高亮 */
+#app div[class*="bg-(--c-sidebar)"]:not([class*="w-3/10"]) > .control-btn {
+  width: calc(100% - 20px);
+  margin-right: 10px;
+  margin-left: 10px;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: 8px;
+}
+
+@media (min-width: 640px) and (max-width: 1036px) {
+  #app div[class*="bg-(--c-sidebar)"]:not([class*="w-3/10"]) > .control-btn {
+    width: calc(100% - 12px);
+    margin-right: 6px;
+    margin-left: 6px;
+  }
+}
+
+/* 所有 control-btn 的 hover 改为灰色 */
+#app .control-btn:hover,
+#app .control-btn:hover .el-icon,
+#app .control-btn:hover span {
+  color: var(--c-ui-hover-text) !important;
+}
+
+#app .control-btn:hover {
+  background-color: var(--c-ui-hover-bg) !important;
+}
+
+/* 修正上一版中图标、文字单独产生背景的问题 */
+#app .control-btn:hover .el-icon,
+#app .control-btn:hover span {
+  background-color: transparent !important;
+}
+
+/* 其他 hover 强调统一改为灰色 */
+#app a:hover,
+#app .tag:hover,
+#app .card-header .float-right:hover,
+#app .card .copy-btn:hover,
+#app .ctl-panel span:hover,
+#app .el-dropdown-menu__item:hover,
+#app .el-pager li:not(.is-active):hover,
+#app .el-pagination button:hover:not(:disabled),
+#app .el-menu--horizontal .el-menu-item:not(.is-disabled):not(.is-active):hover,
+#app .el-menu--horizontal .el-sub-menu__title:not(.is-disabled):hover,
+#app .el-menu--vertical .el-menu-item:not(.is-active):hover,
+#app .el-menu--vertical .el-sub-menu__title:hover {
+  color: var(--c-ui-hover-text) !important;
+}
+
+/* 灰色 hover 背景 */
+#app .tag:hover,
+#app .card.mt-10:hover,
+#app .card.comment-card:hover,
+#app .post-card:hover,
+#app .item-card:hover,
+#app .el-dropdown-menu__item:hover,
+#app .el-pager li:not(.is-active):hover,
+#app .el-pagination button:hover:not(:disabled) {
+  background-color: var(--c-ui-hover-bg) !important;
+  border-color: var(--c-ui-hover-border) !important;
+}
+
+#app .el-menu--horizontal .el-menu-item:not(.is-disabled):not(.is-active):hover,
+#app .el-menu--horizontal .el-sub-menu__title:not(.is-disabled):hover,
+#app .el-menu--vertical .el-menu-item:not(.is-active):hover,
+#app .el-menu--vertical .el-sub-menu__title:hover {
+  background-color: var(--c-ui-hover-bg) !important;
+}
+
+/* 帖子、评论和文章卡片的灰色描边 */
+#app .card.mt-10:hover,
+#app .card.comment-card:hover {
+  box-shadow:
+    inset 0 0 0 1px var(--c-ui-hover-border),
+    0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+#app .post-card:hover,
+#app .item-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 搜索框 hover 和 focus 改为灰色 */
+#app .control-search:hover {
+  border-color: var(--c-ui-hover-border);
+  background-color: var(--c-ui-hover-bg);
+}
+
+#app .control-search:focus-within {
+  border-color: var(--c-ui-hover-text);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 0 0 2px var(--c-ui-hover-bg-strong) !important;
+}
+
+/* 输入框 hover 和 focus 改为灰色 */
+#app .el-input__wrapper:hover,
+#app .el-textarea__inner:hover,
+#app .el-input-tag__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--c-ui-hover-border) !important;
+}
+
+#app .el-input__wrapper.is-focus,
+#app .el-textarea__inner:focus,
+#app .el-input-tag__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--c-ui-hover-text) !important;
+}
+
+/* 右侧公告区块 hover 改为灰色 */
+#app .w-3\/10 > .p-5:hover {
+  background-color: var(--c-ui-hover-bg) !important;
+}
+
+/* 键盘 focus 颜色同步改为灰色 */
+#app a:focus-visible,
+#app button:focus-visible,
+#app [role="button"]:focus-visible,
+#app input:focus-visible,
+#app textarea:focus-visible {
+  outline: 2px solid var(--c-ui-hover-border) !important;
+  outline-offset: 2px;
+}
