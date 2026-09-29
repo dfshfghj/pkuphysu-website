@@ -417,6 +417,18 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
+  background: url("/images/bg-light.webp") center center / cover rgb(255, 255, 255);
+}
+
+.dark .bg-img {
+  background: url("/images/bg.webp") center center / cover rgb(255, 255, 255);
+}
+
+.bg-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--background) 70%, transparent);
 }
 
 :deep(.vditor) {

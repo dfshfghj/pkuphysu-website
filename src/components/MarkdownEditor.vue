@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import Vditor from "vditor";
+import vditorPackage from "vditor/package.json";
 import "vditor/dist/index.css";
 import { nextTick } from "vue";
 
@@ -65,7 +66,7 @@ const initVditor = () => {
   const preview_theme = isDarkMode.value ? "dark" : "light";
   const hljs_style = isDarkMode.value ? "github-dark" : "github";
   vditor.value = new Vditor(vditorRef.value!, {
-    cdn: "/vditor",
+    cdn: `/vditor/${vditorPackage.version}`,
     height: props.height,
     minHeight: props.minHeight,
     mode: currentMode.value,

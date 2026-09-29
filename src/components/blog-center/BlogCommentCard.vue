@@ -1,6 +1,10 @@
 <template>
-  <div class="group rounded-sm my-2 py-3 comment-card bg-card md:bg-transparent" :key="comment.cid">
-    <CollapsibleDiv :max-height="300" @click="onClick">
+  <div
+    class="group rounded-sm my-2 py-3 comment-card bg-card md:bg-transparent"
+    :key="comment.cid"
+    @click="emit('click')"
+  >
+    <CollapsibleDiv :max-height="300">
       <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
         <div class="flex">
           <UserAvatar class="mr-2" :userid="comment.userid" />
@@ -81,7 +85,7 @@ import ForumReportDialog from "@/components/blog-center/ForumReportDialog.vue";
 
 const forumStore = useForumStore();
 const userStore = useUserStore();
-const emit = defineEmits(["like-update", "deleted"]);
+const emit = defineEmits(["click", "like-update", "deleted"]);
 
 const props = defineProps({
   comment: {
@@ -107,11 +111,7 @@ const handleLike = async () => {
       likenum: props.comment.is_like ? props.comment.likenum - 1 : props.comment.likenum + 1,
     };
 
-    forumStore.updateCommentLike(
-      updatedComment.cid,
-      updatedComment.is_like,
-      updatedComment.likenum
-    );
+    forumStore.updateCommentLike(updatedComment.cid, updatedComment.is_like, updatedComment.likenum);
     emit("like-update", updatedComment);
   } catch (error) {
     toast.error("操作失败");
@@ -165,9 +165,5 @@ const handleCopy = async () => {
   } catch {
     toast.error("复制失败");
   }
-};
-
-const onClick = () => {
-  // 不再需要 emit，直接通过 props 传递事件
 };
 </script>

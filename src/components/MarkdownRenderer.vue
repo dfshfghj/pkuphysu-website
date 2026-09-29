@@ -31,6 +31,7 @@ fakeScript("vditorKatexScript");
 fakeScript("vditorKatexChemScript");
 
 import Vditor from "vditor";
+import vditorPackage from "vditor/package.json";
 import "@/styles/github-markdown.css";
 
 const vditorRef = ref<HTMLDivElement | null>(null);
@@ -45,7 +46,7 @@ const props = defineProps({
 const initMarkdown = () => {
   vditorRef.value!.innerHTML = props.content;
   Vditor.mathRender(vditorRef.value!, {
-    cdn: "/vditor",
+    cdn: `/vditor/${vditorPackage.version}`,
   });
 };
 
