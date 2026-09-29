@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-lvh">
-    <h2 class="text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">板块</h2>
+    <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">板块</h2>
     <div class="pt-5 flex flex-col gap-4 w-full">
       <Item
         v-for="board in boards"

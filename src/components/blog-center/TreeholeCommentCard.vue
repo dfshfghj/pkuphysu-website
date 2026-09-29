@@ -1,5 +1,5 @@
 <template>
-  <div class="group rounded-sm my-2 py-3 comment-card bg-card md:bg-transparent" :key="comment.cid">
+  <div class="group rounded-sm my-2 py-3 comment-card" :key="comment.cid">
     <CollapsibleDiv :max-height="300" @click="onClick">
       <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable whitespace-pre-line">
         <div class="flex">
@@ -21,12 +21,20 @@
           </div>
         </div>
       </div>
-      <span v-if="comment.quote" class="text-sm text-(--c-secondary)! inline-block max-w-full overflow-hidden whitespace-nowrap text-ellipsis">
+      <span
+        v-if="comment.quote"
+        class="text-sm text-(--c-secondary)! inline-block max-w-full overflow-hidden whitespace-nowrap text-ellipsis"
+      >
         {{ `@${comment.quote.name_tag}: ${comment.quote.text}` }}
       </span>
       <MarkdownRenderer :content="comment.text" />
       <div v-if="comment.media_ids">
-        <img v-for="media_id in comment.media_ids.split(',')" :key="media_id" :src="`/api/dev/media/image?id=${media_id}`" class="rounded-lg max-w-100 mx-auto my-4 object-contain"></img>
+        <img
+          v-for="media_id in comment.media_ids.split(',')"
+          :key="media_id"
+          :src="`/api/dev/media/image?id=${media_id}`"
+          class="rounded-lg max-w-100 mx-auto my-4 object-contain"
+        />
       </div>
     </CollapsibleDiv>
   </div>
@@ -50,7 +58,6 @@ const props = defineProps({
     required: true,
   },
 });
-
 
 const handleCopy = async () => {
   try {

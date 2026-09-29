@@ -1,9 +1,5 @@
 <template>
-  <div
-    class="group rounded-sm my-2 py-3 comment-card bg-card md:bg-transparent"
-    :key="comment.cid"
-    @click="emit('click')"
-  >
+  <div class="group rounded-sm my-2 py-3 comment-card" :key="comment.cid" @click="emit('click')">
     <CollapsibleDiv :max-height="300">
       <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
         <div class="flex">

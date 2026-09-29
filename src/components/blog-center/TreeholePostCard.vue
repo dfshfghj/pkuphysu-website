@@ -1,5 +1,5 @@
 <template>
-  <div class="group rounded-sm my-2 py-3 bg-card md:bg-transparent" :key="post.id">
+  <div class="group rounded-sm my-2 py-3" :key="post.id">
     <CollapsibleDiv :max-height="500">
       <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
         <div class="flex">
@@ -49,9 +49,19 @@
       </div>
 
       <MarkdownRenderer :dark-mode="darkMode" :content="post.text" class="cursor-pointer" @click="handleClick" />
-      <img v-if="post.type == 'image' && post.media_ids == ''" :src="`/api/dev/media/image?pid=${post.id}`" class="rounded-lg max-w-100 mx-auto my-4 object-contain" @click="handleClick">
-      <div v-else-if="post.type == 'image'"  @click="handleClick" >
-        <img v-for="media_id in post.media_ids.split(',')" :key="media_id" :src="`/api/dev/media/image?id=${media_id}`" class="rounded-lg max-w-100 mx-auto my-4 object-contain"></img>
+      <img
+        v-if="post.type == 'image' && post.media_ids == ''"
+        :src="`/api/dev/media/image?pid=${post.id}`"
+        class="rounded-lg max-w-100 mx-auto my-4 object-contain"
+        @click="handleClick"
+      />
+      <div v-else-if="post.type == 'image'" @click="handleClick">
+        <img
+          v-for="media_id in post.media_ids.split(',')"
+          :key="media_id"
+          :src="`/api/dev/media/image?id=${media_id}`"
+          class="rounded-lg max-w-100 mx-auto my-4 object-contain"
+        />
       </div>
     </CollapsibleDiv>
   </div>

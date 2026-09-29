@@ -6,7 +6,7 @@
       :bottom="30"
     ></el-backtop>
     <div class="min-h-lvh">
-      <h2 class="text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">消息</h2>
+      <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">消息</h2>
       <Item variant="outline" v-for="notification in notifications" class="m-4">
         <ItemContent>
           <ItemTitle>{{ notification.title }}</ItemTitle>

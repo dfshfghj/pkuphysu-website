@@ -1,7 +1,7 @@
 <template>
   <el-scrollbar class="h-screen! flex-1">
     <div class="min-h-lvh">
-      <h2 class="text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">设置</h2>
+      <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">设置</h2>
       <div class="p-4 mt-10">
         <Label class="p-2" for="picture"> 头像 </Label>
         <div class="flex items-end">
@@ -78,6 +78,17 @@
             </Dialog>
           </ItemActions>
         </Item>
+        <Item variant="outline">
+          <ItemMedia>
+            <LogOutIcon />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>退出登录</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <Button variant="outline" size="sm" @click="handleLogout"> 退出 </Button>
+          </ItemActions>
+        </Item>
         <Item variant="outline" class="text-(--red-7)">
           <ItemMedia>
             <AlertCircleIcon />
@@ -114,7 +125,7 @@ import Button from "@/components/ui/button/Button.vue";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { toast } from "vue-sonner";
-import { AlertCircleIcon, Edit, ShieldCheckIcon } from "lucide-vue-next";
+import { AlertCircleIcon, Edit, LogOutIcon, ShieldCheckIcon } from "lucide-vue-next";
 import { sha256 } from "@/utils";
 
 interface User {
@@ -131,7 +142,13 @@ interface User {
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const avatarUpload = `${API_BASE}/api/v2/user/avatar`;
 const userStore = useUserStore();
+const router = useRouter();
 const currentUser = ref<User>({} as User);
+
+const handleLogout = () => {
+  userStore.logout();
+  router.push("/login");
+};
 
 const passwordForm = reactive({
   oldPassword: "",

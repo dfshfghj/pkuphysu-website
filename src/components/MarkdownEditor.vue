@@ -39,6 +39,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  toolbar: {
+    type: Array as PropType<(string | Record<string, unknown>)[]>,
+    default: undefined,
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "change", "save"]);
@@ -77,7 +81,7 @@ const initVditor = () => {
     image: {
       isPreview: false,
     },
-    toolbar: [
+    toolbar: props.toolbar ?? [
       "headings",
       "bold",
       "italic",
