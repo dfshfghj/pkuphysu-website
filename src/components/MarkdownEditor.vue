@@ -9,6 +9,7 @@ import Vditor from "vditor";
 import vditorPackage from "vditor/package.json";
 import "vditor/dist/index.css";
 import { nextTick } from "vue";
+import { isDark } from "@/composables/theme";
 
 const props = defineProps({
   modelValue: {
@@ -33,7 +34,7 @@ const props = defineProps({
   },
   darkMode: {
     type: Boolean,
-    default: false,
+    default: undefined,
   },
   hideToolbar: {
     type: Boolean,
@@ -50,7 +51,7 @@ const emit = defineEmits(["update:modelValue", "change", "save"]);
 const vditorRef = ref<HTMLElement | null>(null);
 const vditor = ref<Vditor | null>(null);
 const currentMode = ref(props.mode);
-const isDarkMode = ref(props.darkMode);
+const isDarkMode = ref(props.darkMode ?? isDark.value);
 let isInternalUpdate = false;
 
 onMounted(async () => {
@@ -175,7 +176,7 @@ watch(
 );
 
 watch(
-  () => props.darkMode,
+  () => props.darkMode ?? isDark.value,
   (newVal) => {
     if (newVal !== isDarkMode.value) {
       isDarkMode.value = newVal;

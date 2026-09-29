@@ -8,7 +8,13 @@
     </el-backtop>
     <div class="min-h-lvh">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">关注</h2>
-      <BlogPostCard v-for="post in posts" :key="post.id" :post="post" @card-click="router.push(`/${post.id}`)" />
+      <BlogPostCard
+        v-for="post in posts"
+        :key="post.id"
+        :post="post"
+        @card-click="router.push(`/${post.id}`)"
+        @updated="fetchFollowPosts()"
+      />
     </div>
   </el-scrollbar>
   <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="fetchFollowPosts()" />

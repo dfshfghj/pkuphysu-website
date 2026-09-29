@@ -17,6 +17,7 @@
         v-if="forumStore.getPostById(pid)"
         :post="forumStore.getPostById(pid)"
         @deleted="handlePostDeleted"
+        @updated="forumStore.fetchPostById(pid)"
       />
       <div class="border-b border-(--c-border)"></div>
 

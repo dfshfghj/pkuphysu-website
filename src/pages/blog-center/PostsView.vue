@@ -14,6 +14,7 @@
         :post="post"
         @card-click="router.push(`/${post.id}`)"
         @deleted="handlePostDeleted"
+        @updated="forumStore.fetchPostById($event)"
       />
     </div>
   </el-scrollbar>

@@ -67,7 +67,7 @@ const props = defineProps({
   },
   darkMode: {
     type: Boolean,
-    default: false,
+    default: undefined,
   },
   postId: {
     type: Number,
