@@ -82,7 +82,7 @@ export const useForumStore = defineStore("forum", {
           return;
         }
 
-        const params = buildForumListParams(config, { limit: 20 });
+        const params = buildForumListParams(config, { limit: 20, commentLimit: 2 });
         const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
         const res = await requestApi(apiUrl);
@@ -106,6 +106,7 @@ export const useForumStore = defineStore("forum", {
         const params = buildForumListParams(config, {
           limit: 20,
           begin: this.posts.at(-1)!.id,
+          commentLimit: 2,
         });
         const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 

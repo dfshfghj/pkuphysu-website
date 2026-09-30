@@ -116,8 +116,6 @@ declare module 'vue' {
     IconRiHomeLine: typeof import('~icons/ri/home-line')['default']
     IconRiNotification3Line: typeof import('~icons/ri/notification3-line')['default']
     IconRiSettings3Line: typeof import('~icons/ri/settings3-line')['default']
-    IconRiStarFill: typeof import('~icons/ri/star-fill')['default']
-    IconRiStarLine: typeof import('~icons/ri/star-line')['default']
     Input: typeof import('./components/ui/input/Input.vue')['default']
     Item: typeof import('./components/ui/item/Item.vue')['default']
     ItemActions: typeof import('./components/ui/item/ItemActions.vue')['default']

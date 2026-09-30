@@ -28,13 +28,14 @@ describe("forum-search helpers", () => {
   it("builds forum list params without id tokens", () => {
     const params = buildForumListParams(
       { query: ["keyword", ":tag", "#42"], tag: "extra" },
-      { begin: 10, limit: 20 }
+      { begin: 10, limit: 20, commentLimit: 2 }
     );
 
     expect(params.getAll("keyword")).toEqual(["keyword"]);
     expect(params.getAll("tag")).toEqual(["tag", "extra"]);
     expect(params.get("begin")).toBe("10");
     expect(params.get("limit")).toBe("20");
+    expect(params.get("comment_limit")).toBe("2");
     expect(extractPostIdToken(["keyword", ":tag", "#42"])).toBe(42);
   });
 });

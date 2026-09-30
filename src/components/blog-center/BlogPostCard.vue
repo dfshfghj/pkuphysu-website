@@ -69,6 +69,17 @@
 
       <MarkdownRenderer :dark-mode="darkMode" :content="post.text" class="cursor-pointer" @click="handleClick" />
     </CollapsibleDiv>
+    <div
+      v-if="previewComments.length"
+      class="flex cursor-pointer flex-col gap-0.5 px-5 pt-1 text-xs md:px-12.5"
+      @click="handleClick"
+    >
+      <div v-for="comment in previewComments" :key="comment.cid" class="line-clamp-2 break-words text-(--c-secondary)">
+        <span class="text-(--c-title)">{{ comment.username }}</span
+        >: <span v-if="comment.mention" class="mr-1 text-(--c-title)">{{ comment.mention }}</span
+        ><span v-html="comment.html"></span>
+      </div>
+    </div>
     <div v-if="post.edit_count" class="px-5 text-xs text-(--c-secondary) md:px-12.5">
       已编辑 {{ post.edit_count }} 次
     </div>
@@ -98,6 +109,7 @@ import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
 import { requestApi } from "@/api/api";
 import { formatTime } from "@/utils";
+import { buildPreviewComments } from "@/utils/preview";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { useForumStore } from "@/stores/forum";
 import { useUserStore } from "@/stores/user";
@@ -140,6 +152,7 @@ const editVisible = ref(false);
 const historyVisible = ref(false);
 const editTarget = ref<{ id: number; content: string; tags: string[] } | null>(null);
 const timeInfo = computed(() => formatTime(props.post.timestamp));
+const previewComments = computed(() => buildPreviewComments(props.post.comments));
 const isAdmin = computed(() => userStore.role === 2);
 const isOwn = computed(() => Number(props.post.userid) === Number(userStore.userid));
 const canDelete = computed(() => isOwn.value || isAdmin.value);

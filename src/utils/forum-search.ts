@@ -10,6 +10,7 @@ interface ForumQueryConfig {
 interface ForumQueryOptions {
   begin?: number | string;
   limit?: number;
+  commentLimit?: number;
 }
 
 const ID_PREFIX = "#";
@@ -115,6 +116,10 @@ export const buildForumListParams = (
 
   if (options.begin !== undefined) {
     params.append("begin", String(options.begin));
+  }
+
+  if (options.commentLimit !== undefined) {
+    params.append("comment_limit", String(options.commentLimit));
   }
 
   return params;
