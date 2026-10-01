@@ -140,6 +140,15 @@
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+      <div
+        class="mx-5 mb-5 flex cursor-pointer items-center gap-2 text-sm transition-opacity hover:opacity-70"
+        @click="router.push('/about')"
+      >
+        <el-icon :size="16">
+          <Document />
+        </el-icon>
+        <span>关于本站</span>
+      </div>
       <div class="flex-1"></div>
     </div>
   </div>
@@ -154,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeftBold, Star, StarFilled, Refresh, Search } from "@element-plus/icons-vue";
+import { ArrowLeftBold, Star, StarFilled, Refresh, Search, Document } from "@element-plus/icons-vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
 import BottomNav from "@/components/layouts/BottomNav.vue";
 import { toast } from "vue-sonner";

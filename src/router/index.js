@@ -18,6 +18,12 @@ const routes = [
     component: () => import("../pages/AuthV2.vue"),
     meta: { noHeader: true },
   },
+  {
+    path: "/about",
+    name: "About",
+    component: () => import("../pages/About.vue"),
+    meta: { noHeader: true },
+  },
   // {
   //  path: "/random_draw/invest",
   //  name: "EveParty",

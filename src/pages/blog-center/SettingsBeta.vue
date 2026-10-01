@@ -80,6 +80,17 @@
         </Item>
         <Item variant="outline">
           <ItemMedia>
+            <InfoIcon />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>关于本站</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <Button variant="outline" size="sm" @click="router.push('/about')"> 查看 </Button>
+          </ItemActions>
+        </Item>
+        <Item variant="outline">
+          <ItemMedia>
             <LogOutIcon />
           </ItemMedia>
           <ItemContent>
@@ -125,7 +136,7 @@ import Button from "@/components/ui/button/Button.vue";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { toast } from "vue-sonner";
-import { AlertCircleIcon, Edit, LogOutIcon, ShieldCheckIcon } from "lucide-vue-next";
+import { AlertCircleIcon, Edit, InfoIcon, LogOutIcon, ShieldCheckIcon } from "lucide-vue-next";
 import { sha256 } from "@/utils";
 
 interface User {

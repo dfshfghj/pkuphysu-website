@@ -167,6 +167,15 @@
                 >pkuphysu-backend</a
               >
             </p>
+            <div
+              class="my-5 flex cursor-pointer items-center gap-2 text-sm transition-opacity hover:opacity-70"
+              @click="router.push('/about')"
+            >
+              <el-icon :size="16">
+                <Document />
+              </el-icon>
+              <span>关于本站</span>
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -181,7 +190,17 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeftBold, Star, StarFilled, Refresh, Search, Message, Plus, Setting } from "@element-plus/icons-vue";
+import {
+  ArrowLeftBold,
+  Star,
+  StarFilled,
+  Refresh,
+  Search,
+  Message,
+  Plus,
+  Setting,
+  Document,
+} from "@element-plus/icons-vue";
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
 import { isDark } from "@/composables/theme";
