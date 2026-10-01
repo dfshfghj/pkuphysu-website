@@ -23,14 +23,17 @@
               更换
             </el-button>
           </el-upload>
+          <div class="flex-1"></div>
+          <Button variant="outline" size="sm" class="m-3" @click="goProfile">
+            <UserIcon />
+            我的主页
+          </Button>
         </div>
       </div>
       <div class="p-4">
         <form v-if="currentUser" @submit.prevent="updateProfile">
           <FieldLabel class="p-2" for="username"> 用户名 </FieldLabel>
           <Input class="box-border" id="username" v-model="currentUser.username" required />
-          <FieldLabel class="p-2" for="bio"> 个性签名 </FieldLabel>
-          <Textarea id="bio" v-model="currentUser.bio" class="box-border resize-none" />
           <Field class="p-2 justify-end" orientation="horizontal">
             <Button type="submit" class="border" size="sm"> 更新 </Button>
           </Field>
@@ -136,7 +139,7 @@ import Button from "@/components/ui/button/Button.vue";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { toast } from "vue-sonner";
-import { AlertCircleIcon, Edit, InfoIcon, LogOutIcon, ShieldCheckIcon } from "lucide-vue-next";
+import { AlertCircleIcon, Edit, InfoIcon, LogOutIcon, ShieldCheckIcon, UserIcon } from "lucide-vue-next";
 import { sha256 } from "@/utils";
 
 interface User {
@@ -159,6 +162,13 @@ const currentUser = ref<User>({} as User);
 const handleLogout = () => {
   userStore.logout();
   router.push("/login");
+};
+
+const goProfile = () => {
+  if (!userStore.userid) {
+    return;
+  }
+  router.push({ name: "UserProfile", params: { id: userStore.userid } });
 };
 
 const passwordForm = reactive({
@@ -194,7 +204,6 @@ const updateProfile = async () => {
     method: "PUT",
     body: JSON.stringify({
       username: currentUser.value.username,
-      bio: currentUser.value.bio,
     }),
   });
   const result = await res.json();

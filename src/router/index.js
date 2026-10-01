@@ -86,6 +86,12 @@ const routes = [
         meta: { login: true },
       },
       {
+        path: "u/:id",
+        name: "UserProfile",
+        component: () => import("../pages/Profile.vue"),
+        meta: { login: true },
+      },
+      {
         path: "messages",
         name: "Messages",
         component: () => import("../pages/blog-center/Messages.vue"),

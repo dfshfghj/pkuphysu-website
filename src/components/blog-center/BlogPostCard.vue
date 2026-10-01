@@ -3,16 +3,35 @@
     <CollapsibleDiv :max-height="500">
       <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
         <div class="flex">
-          <HoverCard>
+          <HoverCard :open="hoverCardOpen" @update:open="handleHoverOpen">
             <HoverCardTrigger>
-              <UserAvatar class="mr-2" :userid="post.userid" />
+              <UserAvatar class="mr-2" :userid="post.userid" @click.stop="goProfile" />
             </HoverCardTrigger>
-            <HoverCardContent>
-              <UserAvatar :userid="post.userid" :size="50" />
+            <HoverCardContent v-if="!hoverCardDismissed" class="w-60">
+              <div class="flex items-center gap-3">
+                <UserAvatar :userid="post.userid" :size="50" @click.stop="goProfile" />
+                <span class="min-w-0 flex-1 cursor-pointer truncate font-bold hover:underline" @click.stop="goProfile">
+                  {{ post.username }}
+                </span>
+              </div>
+              <div class="mt-3 flex items-center border-t border-(--c-border) pt-2 text-center">
+                <div class="flex flex-1 flex-col">
+                  <span class="font-bold">{{ hoverStats?.post_count ?? "-" }}</span>
+                  <span class="text-xs text-(--c-secondary)">帖子</span>
+                </div>
+                <div class="flex flex-1 flex-col">
+                  <span class="font-bold">{{ hoverStats?.comment_count ?? "-" }}</span>
+                  <span class="text-xs text-(--c-secondary)">评论</span>
+                </div>
+                <div class="flex flex-1 flex-col">
+                  <span class="font-bold">{{ hoverStats?.likes_received ?? "-" }}</span>
+                  <span class="text-xs text-(--c-secondary)">获赞</span>
+                </div>
+              </div>
             </HoverCardContent>
           </HoverCard>
           <div class="flex-1">
-            <span> {{ post.username }} </span>
+            <span class="cursor-pointer hover:underline" @click.stop="goProfile"> {{ post.username }} </span>
             <code> #{{ post.id }} </code>
             <div class="flex flex-row-reverse w-full items-center">
               <DropdownMenu>
@@ -128,6 +147,7 @@ import {
 
 const forumStore = useForumStore();
 const userStore = useUserStore();
+const router = useRouter();
 
 const props = defineProps({
   post: {
@@ -179,6 +199,48 @@ const handleEdit = async () => {
 
 const handleClick = () => {
   emit("card-click");
+};
+
+// 悬浮卡里的统计按需拉取，避免帖子列表为每个作者都带一次统计查询
+const hoverStats = ref<{ post_count: number; comment_count: number; likes_received: number } | null>(null);
+const hoverStatsLoading = ref(false);
+
+// 受控的悬浮卡开关：跳转时要把 open 明确置回 false，
+// 否则回到列表（keep-alive 缓存了实例）再悬浮时不会产生 false→true 的跃迁，
+// reka-ui 就不会再 emit update:open，浮层将永久失效。
+const hoverCardOpen = ref(false);
+// 跳转瞬间用来同步摘掉浮层的开关
+const hoverCardDismissed = ref(false);
+
+const loadHoverStats = async () => {
+  if (hoverStats.value || hoverStatsLoading.value) return;
+
+  hoverStatsLoading.value = true;
+  try {
+    const res = await requestApi(`/api/v2/users/${props.post.userid}/stats`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result = await res.json();
+    hoverStats.value = result.data;
+  } catch (error) {
+    console.error("Load user stats failed:", error);
+  } finally {
+    hoverStatsLoading.value = false;
+  }
+};
+
+const handleHoverOpen = (open: boolean) => {
+  hoverCardOpen.value = open;
+  if (!open) return;
+
+  hoverCardDismissed.value = false;
+  loadHoverStats();
+};
+
+const goProfile = async () => {
+  hoverCardDismissed.value = true;
+  hoverCardOpen.value = false;
+  await nextTick();
+  router.push({ name: "UserProfile", params: { id: props.post.userid } });
 };
 
 const handleLike = async () => {
