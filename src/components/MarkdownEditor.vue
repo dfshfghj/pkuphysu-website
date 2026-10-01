@@ -44,7 +44,35 @@ const props = defineProps({
     type: Array as PropType<(string | Record<string, unknown>)[]>,
     default: undefined,
   },
+  extraToolbar: {
+    type: Array as PropType<(string | Record<string, unknown>)[]>,
+    default: undefined,
+  },
 });
+
+const DEFAULT_TOOLBAR: (string | Record<string, unknown>)[] = [
+  "headings",
+  "bold",
+  "italic",
+  "strike",
+  "link",
+  "|",
+  "list",
+  "ordered-list",
+  "check",
+  "code",
+  "table",
+  "upload",
+  "|",
+  "undo",
+  "redo",
+  "|",
+  "edit-mode",
+  {
+    name: "more",
+    toolbar: ["both", "export", "outline"],
+  },
+];
 
 const emit = defineEmits(["update:modelValue", "change", "save"]);
 
@@ -82,29 +110,7 @@ const initVditor = () => {
     image: {
       isPreview: false,
     },
-    toolbar: props.toolbar ?? [
-      "headings",
-      "bold",
-      "italic",
-      "strike",
-      "link",
-      "|",
-      "list",
-      "ordered-list",
-      "check",
-      "code",
-      "table",
-      "upload",
-      "|",
-      "undo",
-      "redo",
-      "|",
-      "edit-mode",
-      {
-        name: "more",
-        toolbar: ["both", "export", "outline"],
-      },
-    ],
+    toolbar: [...(props.toolbar ?? DEFAULT_TOOLBAR), ...(props.extraToolbar ?? [])],
     toolbarConfig: {
       hide: props.hideToolbar,
     },

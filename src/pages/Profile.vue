@@ -14,7 +14,6 @@
       <template v-else>
         <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">用户主页</h2>
 
-        <!-- 用户信息 -->
         <div class="flex items-start gap-4 px-6 pt-5">
           <UserAvatar :userid="String(userid)" :size="72" />
           <div class="min-w-0 flex-1">
@@ -32,7 +31,6 @@
           <Button v-if="isSelf" class="shrink-0" variant="outline" size="sm" @click="openEditor">编辑主页</Button>
         </div>
 
-        <!-- 用户自定义内容 -->
         <section class="mt-6 px-6">
           <div class="rounded-md border border-(--c-border) p-4">
             <div class="mb-2 flex items-center justify-between gap-3">
@@ -48,7 +46,6 @@
           </div>
         </section>
 
-        <!-- 最近发布的帖子 -->
         <section class="mt-6">
           <h3 class="pl-6 text-base font-bold sm:font-serif">最近发布</h3>
           <BlogPostCard
@@ -66,28 +63,27 @@
         </section>
       </template>
     </div>
-  </el-scrollbar>
 
-  <!-- 编辑自定义内容 -->
-  <Dialog :open="editorVisible" @update:open="editorVisible = $event">
-    <DialogContent class="sm:max-w-2xl">
-      <DialogHeader>
-        <DialogTitle>编辑主页内容</DialogTitle>
-        <DialogDescription>支持 Markdown，会展示在你的用户主页上，所有人可见。</DialogDescription>
-      </DialogHeader>
-      <MarkdownEditor v-model="draft" :dark-mode="isDark" :min-height="260" />
-      <div class="flex items-center justify-between text-xs text-(--c-secondary)">
-        <span>{{ draft.length }} / {{ maxLength }}</span>
-        <span v-if="draft.length > maxLength" class="text-(--red-6)">内容过长</span>
-      </div>
-      <DialogFooter>
-        <Button variant="outline" :disabled="saving" @click="editorVisible = false">取消</Button>
-        <Button :disabled="saving || draft.length > maxLength" @click="saveProfile">
-          {{ saving ? "保存中…" : "保存" }}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+    <Dialog :open="editorVisible" @update:open="editorVisible = $event">
+      <DialogContent class="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>编辑主页内容</DialogTitle>
+          <DialogDescription>支持 Markdown，会展示在你的用户主页上，所有人可见。</DialogDescription>
+        </DialogHeader>
+        <MarkdownEditor v-model="draft" :dark-mode="isDark" :min-height="260" />
+        <div class="flex items-center justify-between text-xs text-(--c-secondary)">
+          <span>{{ draft.length }} / {{ maxLength }}</span>
+          <span v-if="draft.length > maxLength" class="text-(--red-6)">内容过长</span>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" :disabled="saving" @click="editorVisible = false">取消</Button>
+          <Button :disabled="saving || draft.length > maxLength" @click="saveProfile">
+            {{ saving ? "保存中…" : "保存" }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </el-scrollbar>
 </template>
 
 <script setup lang="ts">

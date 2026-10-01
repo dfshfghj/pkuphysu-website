@@ -35,6 +35,7 @@ import vditorPackage from "vditor/package.json";
 import "@/styles/github-markdown.css";
 
 const vditorRef = ref<HTMLDivElement | null>(null);
+const router = useRouter();
 
 const props = defineProps({
   content: {
@@ -43,15 +44,36 @@ const props = defineProps({
   },
 });
 
-const initMarkdown = () => {
-  vditorRef.value!.innerHTML = props.content;
-  Vditor.mathRender(vditorRef.value!, {
-    cdn: `/vditor/${vditorPackage.version}`,
-  });
+const handleContentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null;
+  const link = target?.closest?.("a[href]") as HTMLAnchorElement | null;
+  if (!link) {
+    return;
+  }
+
+  const href = link.getAttribute("href") ?? "";
+  if (!href.startsWith("/")) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+  router.push(href);
 };
 
 onMounted(() => {
-  initMarkdown();
+  const root = vditorRef.value;
+  if (!root) {
+    return;
+  }
+
+  root.innerHTML = props.content;
+  Vditor.mathRender(root, { cdn: `/vditor/${vditorPackage.version}` });
+  root.addEventListener("click", handleContentClick, true);
+});
+
+onBeforeUnmount(() => {
+  vditorRef.value?.removeEventListener("click", handleContentClick, true);
 });
 </script>
 

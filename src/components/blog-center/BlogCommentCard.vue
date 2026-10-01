@@ -41,7 +41,7 @@
       <span v-if="comment.quote" class="text-sm text-(--c-secondary)!">
         {{ `@${comment.quote.username}: ` }}
       </span>
-      <MarkdownRenderer :content="comment.text" />
+      <ForumContent :content="comment.text" />
     </CollapsibleDiv>
   </div>
   <ForumReportDialog
@@ -65,7 +65,7 @@ import { MoreFilled } from "@element-plus/icons-vue";
 import { formatTime } from "@/utils";
 import { requestApi } from "@/api/api";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
-import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
+import ForumContent from "@/components/blog-center/ForumContent.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { useForumStore } from "@/stores/forum";
 import { useUserStore } from "@/stores/user";
