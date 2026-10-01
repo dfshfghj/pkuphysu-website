@@ -102,6 +102,11 @@ const MarkdownRendererStub = defineComponent({
   template: "<div />",
 });
 
+const ForumContentStub = defineComponent({
+  name: "ForumContent",
+  template: "<div />",
+});
+
 const UserAvatarStub = defineComponent({
   name: "UserAvatar",
   template: "<div />",
@@ -192,6 +197,7 @@ describe("forum report buttons", () => {
         stubs: {
           CollapsibleDiv: CollapsibleDivStub,
           MarkdownRenderer: MarkdownRendererStub,
+          ForumContent: ForumContentStub,
           UserAvatar: UserAvatarStub,
           HoverCard: HoverCardStub,
           HoverCardTrigger: HoverCardTriggerStub,
@@ -243,6 +249,7 @@ describe("forum report buttons", () => {
         stubs: {
           CollapsibleDiv: CollapsibleDivStub,
           MarkdownRenderer: MarkdownRendererStub,
+          ForumContent: ForumContentStub,
           UserAvatar: UserAvatarStub,
           ForumReportDialog: ForumReportDialogStub,
           AdminDeleteDialog: AdminDeleteDialogStub,
@@ -291,6 +298,7 @@ describe("forum report buttons", () => {
         stubs: {
           CollapsibleDiv: CollapsibleDivStub,
           MarkdownRenderer: MarkdownRendererStub,
+          ForumContent: ForumContentStub,
           UserAvatar: UserAvatarStub,
           HoverCard: HoverCardStub,
           HoverCardTrigger: HoverCardTriggerStub,
@@ -328,6 +336,7 @@ describe("forum report buttons", () => {
         stubs: {
           CollapsibleDiv: CollapsibleDivStub,
           MarkdownRenderer: MarkdownRendererStub,
+          ForumContent: ForumContentStub,
           UserAvatar: UserAvatarStub,
           ForumReportDialog: ForumReportDialogStub,
           AdminDeleteDialog: AdminDeleteDialogStub,
@@ -366,6 +375,7 @@ const authorPostProps = {
 const authorStubs = {
   CollapsibleDiv: CollapsibleDivStub,
   MarkdownRenderer: MarkdownRendererStub,
+  ForumContent: ForumContentStub,
   UserAvatar: UserAvatarStub,
   HoverCard: HoverCardStub,
   HoverCardTrigger: HoverCardTriggerStub,
@@ -400,7 +410,6 @@ describe("post card author hover card", () => {
       global: { stubs: authorStubs },
     });
 
-    // 未悬浮时不请求，统计位显示占位符
     expect(vi.mocked(requestApi)).not.toHaveBeenCalled();
     expect(wrapper.find(".hover-card").attributes("data-open")).toBe("false");
     expect(wrapper.find(".hover-card-content").text()).toContain("-");
@@ -418,7 +427,6 @@ describe("post card author hover card", () => {
     expect(content).toContain("19");
     expect(content).toContain("5");
 
-    // 结果已缓存，重复悬浮不再请求
     hoverCard.vm.$emit("update:open", false);
     hoverCard.vm.$emit("update:open", true);
     await flushPromises();
@@ -427,13 +435,10 @@ describe("post card author hover card", () => {
     await wrapper.find(".hover-card-content span").trigger("click");
     await flushPromises();
 
-    // 跳转前浮层必须被同步摘掉：否则参考元素随列表消失后，浮层会被重新定位到左上角
     expect(wrapper.find(".hover-card-content").exists()).toBe(false);
-    // open 也要归位，否则 keep-alive 回到列表后浮层会"自带打开"或再也打不开
     expect(wrapper.find(".hover-card").attributes("data-open")).toBe("false");
     expect(mocks.routerPush).toHaveBeenCalledWith({ name: "UserProfile", params: { id: 1 } });
 
-    // 列表被 keep-alive 缓存，重新悬浮时应恢复浮层，且统计命中缓存不再请求
     hoverCard.vm.$emit("update:open", true);
     await flushPromises();
     expect(wrapper.find(".hover-card").attributes("data-open")).toBe("true");

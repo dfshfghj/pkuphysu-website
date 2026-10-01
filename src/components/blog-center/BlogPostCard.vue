@@ -86,7 +86,7 @@
         </div>
       </div>
 
-      <MarkdownRenderer :dark-mode="darkMode" :content="post.text" class="cursor-pointer" @click="handleClick" />
+      <ForumContent :content="post.text" class="cursor-pointer" @click="handleClick" />
     </CollapsibleDiv>
     <div
       v-if="previewComments.length"
@@ -124,7 +124,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Star, StarFilled, ChatLineRound, MoreFilled } from "@element-plus/icons-vue";
-import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
+import ForumContent from "@/components/blog-center/ForumContent.vue";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
 import { requestApi } from "@/api/api";
 import { formatTime } from "@/utils";
@@ -201,15 +201,10 @@ const handleClick = () => {
   emit("card-click");
 };
 
-// 悬浮卡里的统计按需拉取，避免帖子列表为每个作者都带一次统计查询
 const hoverStats = ref<{ post_count: number; comment_count: number; likes_received: number } | null>(null);
 const hoverStatsLoading = ref(false);
 
-// 受控的悬浮卡开关：跳转时要把 open 明确置回 false，
-// 否则回到列表（keep-alive 缓存了实例）再悬浮时不会产生 false→true 的跃迁，
-// reka-ui 就不会再 emit update:open，浮层将永久失效。
 const hoverCardOpen = ref(false);
-// 跳转瞬间用来同步摘掉浮层的开关
 const hoverCardDismissed = ref(false);
 
 const loadHoverStats = async () => {

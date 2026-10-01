@@ -18,11 +18,13 @@
         :dark-mode="darkMode"
         :height="isNarrow ? 'calc(100vh - 210px)' : 800"
         :toolbar="isNarrow ? narrowToolbar : undefined"
+        :extra-toolbar="extraToolbar"
       />
       <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">
         {{ isEdit ? "保存" : "发布" }}
       </Button>
     </div>
+    <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
   </div>
 </template>
 
@@ -30,6 +32,8 @@
 import { Close } from "@element-plus/icons-vue";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
+import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
+import { buildPostQuoteMarkdown } from "@/utils/post-quote";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
 import { useMediaQuery } from "@vueuse/core";
@@ -59,6 +63,40 @@ const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 const isNarrow = useMediaQuery("(max-width: 639px)");
 const narrowToolbar = ["upload", "|", "undo", "redo"];
 const isEdit = computed(() => !!props.editTarget);
+
+const quoteVisible = ref(false);
+
+const QUOTE_POST_ICON = `<svg viewBox="0 0 16 16" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  <rect x="4" y="5" width="2.5" height="2.5" rx="0.6" fill="currentColor"/>
+  <rect x="7.5" y="5" width="4.5" height="1.4" rx="0.7" fill="currentColor"/>
+  <rect x="4" y="9" width="8" height="1.4" rx="0.7" fill="currentColor"/>
+</svg>`;
+
+const extraToolbar = [
+  "|",
+  {
+    name: "quote-post",
+    tip: "引用帖子",
+    icon: QUOTE_POST_ICON,
+    click: () => {
+      quoteVisible.value = true;
+    },
+  },
+];
+
+const insertQuote = (id: number) => {
+  const markdown = `\n\n${buildPostQuoteMarkdown(id)}\n\n`;
+  const editor = editorRef.value?.vditor;
+
+  if (editor) {
+    editor.insertValue(markdown);
+    content.value = editor.getValue();
+    return;
+  }
+
+  content.value = `${content.value}${markdown}`;
+};
 
 const fetchTags = async () => {
   try {
@@ -127,6 +165,16 @@ const submit = async () => {
 </script>
 
 <style scoped>
+.editor:deep(.el-input__wrapper) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.editor:deep(.vditor) {
+  --panel-background-color: var(--card);
+  --textarea-background-color: var(--card);
+}
+
 .editor:deep(.vditor-editor) {
   max-height: calc(100vh - 200px);
 }

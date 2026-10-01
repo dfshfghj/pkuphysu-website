@@ -42,7 +42,11 @@
         <el-icon @click="toggleEdit(false)" class="absolute! bottom-40 right-6">
           <ArrowDownBold />
         </el-icon>
-        <Button variant="outline" @click="handleSubmit" class="absolute bottom-2 right-2 m-y-1"> 发送 </Button>
+        <div class="absolute bottom-2 right-2 m-y-1 flex items-center gap-2">
+          <Button variant="outline" @click="quoteVisible = true"> 引用 </Button>
+          <Button variant="outline" @click="handleSubmit"> 发送 </Button>
+        </div>
+        <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
       </div>
     </div>
   </transition>
@@ -51,6 +55,8 @@
 <script setup lang="ts">
 import { ArrowUpBold, ArrowDownBold } from "@element-plus/icons-vue";
 import MarkdownEditor from "../MarkdownEditor.vue";
+import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
+import { buildPostQuoteMarkdown } from "@/utils/post-quote";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { ref } from "vue";
@@ -78,9 +84,23 @@ const props = defineProps({
 const content = ref("");
 const isEditing = ref(false);
 const editorRef = ref(null);
+const quoteVisible = ref(false);
 
 const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;
+};
+
+const insertQuote = (id: number) => {
+  const markdown = `\n\n${buildPostQuoteMarkdown(id)}\n\n`;
+  const editor = editorRef.value?.vditor;
+
+  if (editor) {
+    editor.insertValue(markdown);
+    content.value = editor.getValue();
+    return;
+  }
+
+  content.value = `${content.value}${markdown}`;
 };
 
 const handleSubmit = async () => {
