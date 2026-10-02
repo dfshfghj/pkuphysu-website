@@ -16,8 +16,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <el-config-provider>
-    <RouterView />
-  </el-config-provider>
-  <Toaster />
+  <RouterView />
+  <Toaster position="top-center" />
 </template>

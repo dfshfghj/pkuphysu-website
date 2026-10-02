@@ -208,3 +208,10 @@ defineExpose({
   border: none;
 }
 </style>
+
+<style scoped>
+.vditor-container {
+  --panel-background-color: var(--card);
+  --textarea-background-color: var(--card);
+}
+</style>

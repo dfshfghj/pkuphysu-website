@@ -70,6 +70,7 @@ export const useForumStore = defineStore("forum", {
       }
     },
     async fetchPosts(config = { tag: "", query: [] }) {
+      this.postsLoading = true;
       try {
         this.endOfPosts = false;
         const postId = extractPostIdToken(config.query);
@@ -96,6 +97,8 @@ export const useForumStore = defineStore("forum", {
         this.posts = data.data;
       } catch {
         console.error("Fetch posts failed:");
+      } finally {
+        this.postsLoading = false;
       }
     },
     async loadMorePosts(config = { tag: "", query: [] }) {
@@ -126,6 +129,7 @@ export const useForumStore = defineStore("forum", {
     },
     // Comments相关actions
     async fetchComments(postId: number) {
+      this.commentsLoading = true;
       try {
         this.endOfComments = false;
         const res = await requestApi(`/api/v2/forum/comments/${postId}?limit=20&sort=${this.ascSort ? "asc" : "desc"}`);
@@ -139,6 +143,8 @@ export const useForumStore = defineStore("forum", {
         this.comments = data.data;
       } catch (err) {
         console.error("Fetch comments failed:", err);
+      } finally {
+        this.commentsLoading = false;
       }
     },
     async loadMoreComments(postId: number) {

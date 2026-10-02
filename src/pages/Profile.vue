@@ -1,11 +1,5 @@
 <template>
-  <el-scrollbar ref="mainScrollbar" :distance="400" @end-reached="loadMorePosts">
-    <el-backtop
-      target="#app > div.flex > div.flex-1.min-w-0.h-screen > div.el-scrollbar > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default"
-      :right="20"
-      :bottom="30"
-    >
-    </el-backtop>
+  <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
     <div class="min-h-lvh pb-10">
       <template v-if="notFound">
         <div class="px-6 py-20 text-center text-(--c-secondary)">该用户不存在或已被删除</div>
@@ -19,13 +13,19 @@
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
               <span class="truncate text-lg font-bold sm:font-serif">{{ user.username || "加载中…" }}</span>
-              <el-tag v-if="user.verified" size="small" effect="plain" type="success">已认证</el-tag>
-              <el-tag v-if="user.role === 2" size="small" effect="plain">管理员</el-tag>
+              <Badge v-if="user.verified" variant="outline" class="text-(--green-6)">已认证</Badge>
+              <Badge v-if="user.role === 2" variant="outline">管理员</Badge>
             </div>
             <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-(--c-secondary) unselectable">
-              <span><b class="text-(--c-title)">{{ stats.post_count }}</b> 帖子</span>
-              <span><b class="text-(--c-title)">{{ stats.comment_count }}</b> 评论</span>
-              <span><b class="text-(--c-title)">{{ stats.likes_received }}</b> 获赞</span>
+              <span
+                ><b class="text-(--c-title)">{{ stats.post_count }}</b> 帖子</span
+              >
+              <span
+                ><b class="text-(--c-title)">{{ stats.comment_count }}</b> 评论</span
+              >
+              <span
+                ><b class="text-(--c-title)">{{ stats.likes_received }}</b> 获赞</span
+              >
             </div>
           </div>
           <Button v-if="isSelf" class="shrink-0" variant="outline" size="sm" @click="openEditor">编辑主页</Button>
@@ -48,54 +48,63 @@
 
         <section class="mt-6">
           <h3 class="pl-6 text-base font-bold sm:font-serif">最近发布</h3>
-          <BlogPostCard
-            v-for="post in posts"
-            :key="post.id"
-            :post="post"
-            @card-click="router.push(`/${post.id}`)"
-            @deleted="handlePostDeleted"
-            @updated="refreshPost"
-          />
-          <p v-if="!posts.length && loaded" class="px-6 py-10 text-center text-sm text-(--c-secondary)">
-            TA 还没有公开的帖子
-          </p>
+          <ListLoading v-if="!loaded" />
+          <template v-else-if="posts.length">
+            <BlogPostCard
+              v-for="post in posts"
+              :key="post.id"
+              :post="post"
+              @card-click="router.push(`/${post.id}`)"
+              @deleted="handlePostDeleted"
+              @updated="refreshPost"
+            />
+          </template>
+          <p v-else class="px-6 py-10 text-center text-sm text-(--c-secondary)">TA 还没有公开的帖子</p>
           <p v-if="endOfPosts && posts.length" class="end-flag">没有更多了</p>
         </section>
       </template>
+      <Dialog :open="editorVisible" @update:open="editorVisible = $event">
+        <DialogContent class="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>编辑主页内容</DialogTitle>
+            <DialogDescription>支持 Markdown，会展示在你的用户主页上，所有人可见。</DialogDescription>
+          </DialogHeader>
+          <MarkdownEditor v-model="draft" :dark-mode="isDark" :min-height="260" />
+          <div class="flex items-center justify-between text-xs text-(--c-secondary)">
+            <span>{{ draft.length }} / {{ maxLength }}</span>
+            <span v-if="draft.length > maxLength" class="text-(--red-6)">内容过长</span>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" :disabled="saving" @click="editorVisible = false">取消</Button>
+            <Button :disabled="saving || draft.length > maxLength" @click="saveProfile">
+              {{ saving ? "保存中…" : "保存" }}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-
-    <Dialog :open="editorVisible" @update:open="editorVisible = $event">
-      <DialogContent class="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>编辑主页内容</DialogTitle>
-          <DialogDescription>支持 Markdown，会展示在你的用户主页上，所有人可见。</DialogDescription>
-        </DialogHeader>
-        <MarkdownEditor v-model="draft" :dark-mode="isDark" :min-height="260" />
-        <div class="flex items-center justify-between text-xs text-(--c-secondary)">
-          <span>{{ draft.length }} / {{ maxLength }}</span>
-          <span v-if="draft.length > maxLength" class="text-(--red-6)">内容过长</span>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" :disabled="saving" @click="editorVisible = false">取消</Button>
-          <Button :disabled="saving || draft.length > maxLength" @click="saveProfile">
-            {{ saving ? "保存中…" : "保存" }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  </el-scrollbar>
+  </ScrollPane>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { requestApi } from "@/api/api";
+import ScrollPane from "@/components/ScrollPane.vue";
+import ListLoading from "@/components/ListLoading.vue";
 import { useUserStore } from "@/stores/user";
 import UserAvatar from "@/components/UserAvatar.vue";
 import BlogPostCard from "@/components/blog-center/BlogPostCard.vue";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import Button from "@/components/ui/button/Button.vue";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { isDark } from "@/composables/theme";
 import { formatTime } from "@/utils";
 import { toast } from "vue-sonner";
@@ -115,7 +124,7 @@ const userStore = useUserStore();
 const PAGE_SIZE = 10;
 
 const userid = computed(() => Number(route.params.id));
-const mainScrollbar = ref();
+const mainScrollbar = ref<InstanceType<typeof ScrollPane> | null>(null);
 const user = ref<Partial<ProfileUser>>({});
 const profile = ref<{ content: string; updated_at: number | null }>({ content: "", updated_at: null });
 const stats = ref({ post_count: 0, comment_count: 0, likes_received: 0 });
@@ -133,9 +142,7 @@ const maxLength = ref(5000);
 const saving = ref(false);
 
 const scrollToTop = () => {
-  if (mainScrollbar.value) {
-    mainScrollbar.value.scrollTo({ top: 0 });
-  }
+  mainScrollbar.value?.scrollTo({ top: 0 });
 };
 
 const loadProfile = async () => {

@@ -48,9 +48,9 @@ describe("QuotePostDialog", () => {
     vi.useRealTimers();
   });
 
-  it("初始提示搜索或直接输入 #id", () => {
+  it("初始不展示结果，也不发起请求", () => {
     const wrapper = mountDialog();
-    expect(wrapper.text()).toContain("输入关键词搜索，或直接输入 #123");
+    expect(wrapper.findAll(".quote-option")).toHaveLength(0);
     expect(mocks.requestApi).not.toHaveBeenCalled();
   });
 
@@ -84,28 +84,30 @@ describe("QuotePostDialog", () => {
     const wrapper = mountDialog();
     await typeAndSettle(wrapper, "物理");
 
-    expect(mocks.requestApi).toHaveBeenCalledWith("/api/v2/forum/posts?keyword=%E7%89%A9%E7%90%86&limit=8&comment_limit=0");
+    expect(mocks.requestApi).toHaveBeenCalledWith(
+      "/api/v2/forum/posts?keyword=%E7%89%A9%E7%90%86&limit=8&comment_limit=0"
+    );
     expect(wrapper.findAll(".quote-option")).toHaveLength(2);
   });
 
-  it("搜不到给出提示", async () => {
+  it("搜不到时展示空态", async () => {
     mocks.requestApi.mockResolvedValueOnce(okResponse([]));
 
     const wrapper = mountDialog();
     await typeAndSettle(wrapper, "不存在的关键词");
 
     expect(wrapper.findAll(".quote-option")).toHaveLength(0);
-    expect(wrapper.text()).toContain("没有匹配的帖子");
+    expect(wrapper.text()).toContain("没有更多");
   });
 
-  it("帖子不存在或不可见时给出提示", async () => {
+  it("帖子不存在或不可见时展示空态", async () => {
     mocks.requestApi.mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) });
 
     const wrapper = mountDialog();
     await typeAndSettle(wrapper, "#999");
 
     expect(wrapper.findAll(".quote-option")).toHaveLength(0);
-    expect(wrapper.text()).toContain("找不到帖子 #999");
+    expect(wrapper.text()).toContain("没有更多");
   });
 
   it("选中后抛出 select 并关闭弹窗", async () => {

@@ -2,16 +2,17 @@
   <div class="posts-container">
     <h2 class="page-title font-serif">文章</h2>
 
-    <!-- 加载状态 -->
-    <el-skeleton v-if="loading" :rows="6" animated style="margin: 20px" />
+    <div v-if="loading" class="mx-5 space-y-3">
+      <Skeleton v-for="row in 6" :key="row" class="h-24 w-full" />
+    </div>
 
-    <!-- 错误提示 -->
-    <el-alert v-else-if="error" :title="error" type="error" show-icon style="margin: 20px" />
+    <Alert v-else-if="error" variant="destructive" class="mx-5">
+      <AlertTitle>{{ error }}</AlertTitle>
+    </Alert>
 
-    <!-- 文章列表 -->
     <div v-else class="posts-list">
       <a v-for="(post, index) in posts" :key="index" :href="post.url" style="text-decoration: none">
-        <div shadow="hover" class="post-card">
+        <div class="post-card">
           <div class="time">
             <span>{{ post.publish_time }}</span>
           </div>
@@ -22,25 +23,54 @@
             <span>{{ post.description }}</span>
           </div>
           <div>
-            <el-tag type="info" size="small">{{ post.tag }}</el-tag>
+            <Badge variant="secondary">{{ post.tag }}</Badge>
           </div>
         </div>
       </a>
     </div>
     <div class="pagination-container">
-      <el-pagination
-        @current-change="handlePageChange"
-        :current-page="currentPage"
-        :page-size="pageSize"
+      <Pagination
+        :page="currentPage"
         :total="count"
-        layout="prev, pager, next, total"
-      />
+        :items-per-page="pageSize"
+        :sibling-count="1"
+        show-edges
+        @update:page="handlePageChange"
+      >
+        <PaginationContent v-slot="{ items }">
+          <PaginationPrevious>
+            <ChevronLeft class="size-4" />
+          </PaginationPrevious>
+          <template v-for="(item, index) in items" :key="index">
+            <PaginationItem v-if="item.type === 'page'" :value="item.value" :is-active="item.value === currentPage">
+              {{ item.value }}
+            </PaginationItem>
+            <PaginationEllipsis v-else :index="index" />
+          </template>
+          <PaginationNext>
+            <ChevronRight class="size-4" />
+          </PaginationNext>
+          <span class="ml-2 text-sm text-(--c-secondary)">共 {{ count }} 篇</span>
+        </PaginationContent>
+      </Pagination>
     </div>
   </div>
 </template>
 
 <script setup>
 import { requestApi } from "../api/api";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft, ChevronRight } from "lucide-vue-next";
 
 const posts = ref([]);
 const count = ref(0);
@@ -77,10 +107,6 @@ onMounted(() => {
 <style scoped>
 span {
   color: var(--c-text);
-}
-
-.small {
-  font-size: 14px;
 }
 
 .posts-container {
@@ -131,11 +157,6 @@ span {
 }
 .detail {
   margin: 8px;
-}
-
-.link {
-  font-size: 0.9rem;
-  float: right;
 }
 
 .pagination-container {

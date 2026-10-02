@@ -86,7 +86,7 @@ const isActive = (names: string[]) => names.includes(String(route.name));
 }
 
 .nav-btn--active {
-  color: var(--el-color-primary);
+  color: var(--c-brand);
 }
 
 .nav-btn-post {
@@ -97,7 +97,7 @@ const isActive = (names: string[]) => names.includes(String(route.name));
   height: 34px;
   margin: -6px 0 -4px;
   border-radius: 9999px;
-  color: var(--el-color-white);
-  background-color: var(--el-color-primary);
+  color: #fff;
+  background-color: var(--c-brand);
 }
 </style>

@@ -1,100 +1,109 @@
 <template>
   <div class="tag-input-container">
-    <div class="tags-wrapper">
-      <el-tag v-for="tag in internalTags" :key="tag" closable @close="removeTag(tag)">
-        {{ tag }}
-      </el-tag>
-      <el-autocomplete
-        v-model="inputValue"
-        :fetch-suggestions="querySearch"
-        placeholder="输入标签"
-        @select="handleSelect"
-        @keydown.enter="handleEnter"
+    <TagsInput
+      ref="rootEl"
+      :model-value="modelValue"
+      delimiter=" "
+      add-on-blur
+      class="tags-wrapper border-0 shadow-none focus-within:border-0 focus-within:ring-0"
+      @update:model-value="emit('update:modelValue', $event)"
+    >
+      <TagsInputItem v-for="tag in modelValue" :key="tag" :value="tag">
+        <TagsInputItemText />
+        <TagsInputItemDelete />
+      </TagsInputItem>
+      <TagsInputInput
+        :placeholder="modelValue.length ? '' : '输入标签'"
         class="tag-input"
+        @input="handleInput"
+        @focus="handleFocus"
+        @keydown.esc="open = false"
       />
-    </div>
+    </TagsInput>
+
+    <Popover :open="open" @update:open="open = $event">
+      <PopoverContent
+        :reference="anchor"
+        align="start"
+        class="p-1"
+        @open-auto-focus.prevent
+        @close-auto-focus.prevent
+        @interact-outside="keepOpenForInput"
+      >
+        <Command>
+          <CommandList>
+            <CommandItem
+              v-for="item in matches"
+              :key="item"
+              :value="item"
+              @pointerdown.prevent
+              @select="selectSuggestion(item)"
+            >
+              {{ item }}
+            </CommandItem>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, watch } from "vue";
+import { Command, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import {
+  TagsInput,
+  TagsInputInput,
+  TagsInputItem,
+  TagsInputItemDelete,
+  TagsInputItemText,
+} from "@/components/ui/tags-input";
 
-const props = defineProps({
-  // 外部传入的建议列表，格式为 { value: string }[]
-  suggestions: {
-    type: Array,
-    default: () => [],
-  },
-  // 支持 v-model 绑定
-  modelValue: {
-    type: Array,
-    default: () => [],
-  },
+const props = defineProps<{
+  suggestions: { value: string }[];
+  modelValue: string[];
+}>();
+
+const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
+
+const rootEl = ref<{ $el: HTMLElement } | null>(null);
+const anchor = computed(() => rootEl.value?.$el);
+const draft = ref("");
+const open = ref(false);
+
+const matches = computed(() => {
+  const keyword = draft.value.trim().toLowerCase();
+  return props.suggestions
+    .map((item) => item.value)
+    .filter((value) => !props.modelValue.includes(value))
+    .filter((value) => !keyword || value.toLowerCase().includes(keyword));
 });
 
-const emit = defineEmits(["update:modelValue"]);
-
-// 使用内部状态，避免直接监听props变化导致的循环
-const internalTags = ref([...props.modelValue]);
-const inputValue = ref("");
-
-// 只在组件挂载或外部modelValue真正变化时同步（避免循环）
-let isInternalUpdate = false;
-
-// 监听外部 modelValue 变化
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    if (!isInternalUpdate) {
-      internalTags.value = [...newVal];
-    }
-    isInternalUpdate = false;
-  },
-  { deep: true }
-);
-
-// 搜索建议
-const querySearch = (queryString, cb) => {
-  const results = queryString ? props.suggestions.filter(createFilter(queryString)) : props.suggestions;
-  cb(results);
+const handleInput = (event: Event) => {
+  draft.value = (event.target as HTMLInputElement).value;
+  open.value = matches.value.length > 0;
 };
 
-const createFilter = (queryString) => {
-  return (item) => {
-    return item.value.toLowerCase().includes(queryString.toLowerCase());
-  };
+const handleFocus = () => {
+  open.value = matches.value.length > 0;
 };
 
-// 选择建议
-const handleSelect = (item) => {
-  addTag(item.value);
-};
-
-// 回车添加
-const handleEnter = (event) => {
-  event.preventDefault();
-  if (inputValue.value.trim()) {
-    addTag(inputValue.value.trim());
+const selectSuggestion = (value: string) => {
+  if (!props.modelValue.includes(value)) {
+    emit("update:modelValue", [...props.modelValue, value]);
   }
+  // TagsInputInput 的输入值只存在于 DOM 上，这里直接清空即可
+  const input = rootEl.value?.$el.querySelector("input");
+  if (input) input.value = "";
+  draft.value = "";
+  open.value = false;
 };
 
-// 添加标签
-const addTag = (tag) => {
-  if (tag && !internalTags.value.includes(tag)) {
-    internalTags.value.push(tag);
-    // 标记为内部更新，避免触发props监听器
-    isInternalUpdate = true;
-    emit("update:modelValue", [...internalTags.value]);
+const keepOpenForInput = (event: Event) => {
+  const target = event.target as Node | null;
+  if (target && rootEl.value?.$el.contains(target)) {
+    event.preventDefault();
   }
-  inputValue.value = "";
-};
-
-// 删除标签
-const removeTag = (tag) => {
-  internalTags.value = internalTags.value.filter((t) => t !== tag);
-  // 标记为内部更新，避免触发props监听器
-  isInternalUpdate = true;
-  emit("update:modelValue", [...internalTags.value]);
 };
 </script>
 

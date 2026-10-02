@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { Menu, Setting, ArrowLeft, ArrowRight, Tickets } from "@element-plus/icons-vue";
+import { Database, LayoutDashboard, PanelLeftClose, PanelLeftOpen } from "lucide-vue-next";
+
 const isCollapsed = ref(false);
 
 const toggleSidebar = () => {
@@ -8,38 +9,21 @@ const toggleSidebar = () => {
 </script>
 
 <template>
-  <div class="adminContainer">
-    <el-menu router default-active="/admin/dashboard" class="el-menu-vertical-demo" :collapse="isCollapsed">
-      <el-menu-item class="collapse-toggle" @click="toggleSidebar">
-        <el-icon>
-          <ArrowLeft v-if="!isCollapsed" />
-          <ArrowRight v-else />
-        </el-icon>
-      </el-menu-item>
-      <el-menu-item index="/admin/dashboard">
-        <el-icon>
-          <Menu />
-        </el-icon>
-        <template #title> DashBoard </template>
-      </el-menu-item>
-      <el-menu-item index="/admin/dba">
-        <el-icon>
-          <Setting />
-        </el-icon>
-        <template #title> 数据库管理 </template>
-      </el-menu-item>
-      <el-sub-menu index="/admin/random-draw">
-        <template #title>
-          <el-icon>
-            <Tickets />
-          </el-icon>
-          <span>抽奖管理</span>
-        </template>
-        <el-menu-item index="/admin/random-draw?event=抽奖&word=一等奖抽奖&prize=0">一等奖</el-menu-item>
-        <el-menu-item index="/admin/random-draw?event=抽奖&word=二等奖抽奖&prize=1">二等奖</el-menu-item>
-        <el-menu-item index="/admin/random-draw?event=抽奖&word=三等奖抽奖&prize=2">三等奖</el-menu-item>
-      </el-sub-menu>
-    </el-menu>
+  <div class="admin-container">
+    <nav :class="['admin-nav', isCollapsed ? 'admin-nav--collapsed' : 'admin-nav--expanded']">
+      <button type="button" class="nav-item collapse-toggle" @click="toggleSidebar">
+        <PanelLeftClose v-if="!isCollapsed" class="size-5" />
+        <PanelLeftOpen v-else class="size-5" />
+      </button>
+      <RouterLink to="/admin/dashboard" class="nav-item" active-class="nav-item--active">
+        <LayoutDashboard class="size-5" />
+        <span v-if="!isCollapsed">DashBoard</span>
+      </RouterLink>
+      <RouterLink to="/admin/dba" class="nav-item" active-class="nav-item--active">
+        <Database class="size-5" />
+        <span v-if="!isCollapsed">数据库管理</span>
+      </RouterLink>
+    </nav>
     <div :class="['main-content', isCollapsed ? 'main-content--collapsed' : 'main-content--expanded']">
       <RouterView />
     </div>
@@ -47,13 +31,57 @@ const toggleSidebar = () => {
 </template>
 
 <style scoped>
-.adminContainer {
+.admin-container {
   display: flex;
 }
 
-.el-menu {
+.admin-nav {
   position: fixed;
-  height: calc(100vh - var(--el-menu-item-height) - 4px);
+  top: 0;
+  left: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  box-sizing: border-box;
+  transition: width 0.5s ease;
+}
+
+.admin-nav--expanded {
+  width: 200px;
+}
+
+.admin-nav--collapsed {
+  width: 100px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--c-text);
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background: var(--c-hover);
+}
+
+.nav-item--active {
+  background: var(--gray-2);
+}
+
+.collapse-toggle {
+  justify-content: flex-start;
 }
 
 .main-content {

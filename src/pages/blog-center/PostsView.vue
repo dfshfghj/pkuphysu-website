@@ -1,38 +1,37 @@
 <template>
-  <el-scrollbar ref="mainScrollbar" :distance="400" @end-reached="loadMorePosts">
-    <el-backtop
-      target="#app > div.flex > div.flex-1.min-w-0.h-screen > div.el-scrollbar > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default"
-      :right="20"
-      :bottom="30"
-    >
-    </el-backtop>
+  <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
     <div class="min-h-lvh">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">主页</h2>
-      <BlogPostCard
-        v-for="post in forumStore.posts"
-        :key="post.id"
-        :post="post"
-        @card-click="router.push(`/${post.id}`)"
-        @deleted="handlePostDeleted"
-        @updated="forumStore.fetchPostById($event)"
-      />
+      <ListLoading v-if="forumStore.postsLoading && !forumStore.posts.length" />
+      <EmptyState v-else-if="!forumStore.posts.length" description="还没有帖子" />
+      <template v-else>
+        <BlogPostCard
+          v-for="post in forumStore.posts"
+          :key="post.id"
+          :post="post"
+          @card-click="router.push(`/${post.id}`)"
+          @deleted="handlePostDeleted"
+          @updated="forumStore.fetchPostById($event)"
+        />
+      </template>
+      <ListLoading v-if="forumStore.postsLoading && forumStore.posts.length" />
     </div>
-  </el-scrollbar>
+  </ScrollPane>
 </template>
 <script setup lang="ts">
 import { requestApi } from "@/api/api";
+import ScrollPane from "@/components/ScrollPane.vue";
+import ListLoading from "@/components/ListLoading.vue";
+import EmptyState from "@/components/EmptyState.vue";
 import { useForumStore } from "@/stores/forum";
-import { ref } from "vue";
 
 const router = useRouter();
 const forumStore = useForumStore();
 
-const mainScrollbar = ref();
+const mainScrollbar = ref<InstanceType<typeof ScrollPane> | null>(null);
 
 const scrollToTop = () => {
-  if (mainScrollbar.value) {
-    mainScrollbar.value.scrollTo({ top: 0 });
-  }
+  mainScrollbar.value?.scrollTo({ top: 0 });
 };
 
 const loadMorePosts = async () => {

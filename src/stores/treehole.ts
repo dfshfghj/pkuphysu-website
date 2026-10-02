@@ -70,6 +70,7 @@ export const useTreeholeStore = defineStore("treehole", {
       }
     },
     async fetchPosts(config = { tag: "", query: [] }) {
+      this.postsLoading = true;
       try {
         const params = new URLSearchParams();
         const hashQuery = config.query.find((item) => typeof item === "string" && item.trim().startsWith("#"));
@@ -132,6 +133,8 @@ export const useTreeholeStore = defineStore("treehole", {
         this.posts = data.data;
       } catch {
         console.error("Fetch posts failed:");
+      } finally {
+        this.postsLoading = false;
       }
     },
     async loadMorePosts() {
@@ -188,6 +191,7 @@ export const useTreeholeStore = defineStore("treehole", {
     },
     // Comments相关actions
     async fetchComments(postId: number) {
+      this.commentsLoading = true;
       try {
         this.endOfComments = false;
         const res = await requestApi(`/api/dev/comments/${postId}?limit=20&sort=${this.ascSort ? "1" : "0"}`);
@@ -201,6 +205,8 @@ export const useTreeholeStore = defineStore("treehole", {
         this.comments = data.data;
       } catch (err) {
         console.error("Fetch comments failed:", err);
+      } finally {
+        this.commentsLoading = false;
       }
     },
     async loadMoreComments(postId: number) {

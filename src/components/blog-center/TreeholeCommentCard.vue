@@ -5,13 +5,10 @@
         <div class="flex">
           <div class="flex-1">
             <span> {{ comment.username }} </span>
-            <el-icon
-              :size="16"
-              class="float-right text-center opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
+            <Copy
+              class="float-right size-4 text-center opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
               @click="handleCopy"
-            >
-              <CopyDocument />
-            </el-icon>
+            />
             <div>
               <span>
                 {{ formatTime(comment.timestamp).relativeTime }}
@@ -41,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { CopyDocument } from "@element-plus/icons-vue";
+import { Copy } from "lucide-vue-next";
 import { formatTime } from "@/utils";
 import { requestApi } from "@/api/api";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";

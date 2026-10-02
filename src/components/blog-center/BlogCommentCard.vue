@@ -9,9 +9,7 @@
             <div class="flex flex-row-reverse w-full items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                  <el-icon :size="16" class="mr-4 cursor-pointer text-(--c-secondary)" @click.stop>
-                    <MoreFilled />
-                  </el-icon>
+                  <Ellipsis class="mr-4 size-4 scale-125 fill-current cursor-pointer" @click.stop />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
@@ -23,10 +21,10 @@
               </DropdownMenu>
               <div class="float-right mr-4" @click.stop="handleLike">
                 {{ props.comment.likenum }}
-                <el-icon :size="12">
+                <span class="inline-flex items-center align-middle text-[10px]">
                   <IconRiHeartFill v-if="props.comment.is_like" />
                   <IconRiHeartLine v-else />
-                </el-icon>
+                </span>
               </div>
               <span class="flex min-w-0 flex-1 items-center">
                 <span class="truncate">
@@ -61,7 +59,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { MoreFilled } from "@element-plus/icons-vue";
+import { Ellipsis } from "lucide-vue-next";
 import { formatTime } from "@/utils";
 import { requestApi } from "@/api/api";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";

@@ -2,9 +2,7 @@
   <div class="flex">
     <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30">
       <div class="control-btn sm:font-serif font-bold pt-5" @click="goPosts">
-        <el-icon :size="20">
-          <Refresh />
-        </el-icon>
+        <RotateCw class="size-5" />
         <span class="control-btn-label">最新</span>
       </div>
       <div class="flex-1" id="space"></div>
@@ -34,17 +32,12 @@
     <div class="flex flex-col flex-1 min-w-0 h-screen pb-14 sm:pb-0">
       <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
         <div class="control-search p-1 m-2 bg-card">
-          <el-input-tag
-            collapse-tags
-            collapse-tags-tooltip
-            :max-collapse-tags="3"
+          <SearchTagInput
             v-model="treeholeStore.searchConfig.query"
-            trigger="Space"
             placeholder="搜索内容 或 #id 或 :tag"
+            @search="navigateToSearch()"
           />
-          <el-icon :size="20" @click="navigateToSearch()">
-            <Search />
-          </el-icon>
+          <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
         </div>
       </div>
       <div
@@ -52,43 +45,27 @@
       >
         <div class="control-bar">
           <template v-if="isDetail">
-            <el-icon :size="20" class="cursor-pointer ml-4 mr-2" @click="router.back()">
-              <ArrowLeftBold />
-            </el-icon>
+            <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
             <span class="text-(--c-secondary)!">#{{ route.params.id }}</span>
             <span class="page-title">详情</span>
           </template>
           <template v-else>
             <div class="control-btn p-2" @click="goFollow">
-              <el-icon :size="20">
-                <StarFilled v-if="isFollowPage" />
-                <Star v-else />
-              </el-icon>
+              <Star v-if="isFollowPage" class="size-5 fill-current" />
+              <Star v-else class="size-5" />
               <span class="control-btn-label">关注</span>
             </div>
             <div class="control-search flex-1">
-              <el-input-tag
-                collapse-tags
-                collapse-tags-tooltip
-                :max-collapse-tags="3"
+              <SearchTagInput
                 v-model="treeholeStore.searchConfig.query"
-                trigger="Space"
                 placeholder="搜索内容 或 #id 或 :tag"
+                @search="navigateToSearch()"
               />
-              <el-icon :size="20" @click="navigateToSearch()">
-                <Search />
-              </el-icon>
+              <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
             </div>
-            <el-button
-              v-if="!userStore.isLoggedIn"
-              link
-              type="primary"
-              plain
-              @click="router.push('/login')"
-              class="border-none"
-            >
+            <Button v-if="!userStore.isLoggedIn" variant="link" @click="router.push('/login')" class="border-none">
               登录
-            </el-button>
+            </Button>
           </template>
         </div>
       </div>
@@ -100,17 +77,12 @@
     </div>
     <div class="flex-col w-3/10 border-l border-(--c-border) hidden md:flex">
       <div class="control-search p-1 m-3">
-        <el-input-tag
-          collapse-tags
-          collapse-tags-tooltip
-          :max-collapse-tags="3"
+        <SearchTagInput
           v-model="treeholeStore.searchConfig.query"
-          trigger="Space"
           placeholder="搜索内容 或 #id 或 :tag"
+          @search="navigateToSearch()"
         />
-        <el-icon :size="20" @click="navigateToSearch()">
-          <Search />
-        </el-icon>
+        <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
       </div>
       <Accordion type="single" collapsible class="p-5" default-value="item-3">
         <AccordionItem value="item-1">
@@ -144,9 +116,7 @@
         class="mx-5 mb-5 flex cursor-pointer items-center gap-2 text-sm transition-opacity hover:opacity-70"
         @click="router.push('/about')"
       >
-        <el-icon :size="16">
-          <Document />
-        </el-icon>
+        <FileText class="size-4" />
         <span>关于本站</span>
       </div>
       <div class="flex-1"></div>
@@ -163,14 +133,13 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeftBold, Star, StarFilled, Refresh, Search, Document } from "@element-plus/icons-vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
 import BottomNav from "@/components/layouts/BottomNav.vue";
+import SearchTagInput from "@/components/SearchTagInput.vue";
+import { Button } from "@/components/ui/button";
 import { toast } from "vue-sonner";
-import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
 import { useTreeholeStore } from "@/stores/treehole";
-import { computed, onBeforeMount, onUnmounted, ref } from "vue";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -182,6 +151,7 @@ import PostsView from "./PostsView.vue";
 import FollowView from "./FollowView.vue";
 import { RouterView, type LocationQueryRaw } from "vue-router";
 import { Accordion } from "@/components/ui/accordion";
+import { ChevronLeft, FileText, RotateCw, Search, Star } from "lucide-vue-next";
 
 const router = useRouter();
 const route = useRoute();
@@ -226,7 +196,7 @@ const navigateToSearch = () => {
 
     treeholeStore.searchConfig.query.forEach((item) => {
       if (item.startsWith(":")) {
-        tags.push(item.substring(1)); // 移除冒号
+        tags.push(item.substring(1));
       } else if (!item.startsWith("#")) {
         keywords.push(item);
       }
@@ -253,7 +223,7 @@ const navigateToSearch = () => {
       router.push({ path: "/treehole/search", query });
     }
   } else {
-    router.push({ path: "/treehole" }); // 当搜索条件为空时，跳转到首页
+    router.push({ path: "/treehole" });
   }
 };
 
@@ -300,57 +270,12 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-:deep(.el-input__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
-:deep(.el-input-tag__wrapper) {
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
-.control-search:deep(.el-select__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
 .control-search {
   display: flex;
   align-items: center;
   border: 1px solid var(--c-border);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   border-radius: 9999px;
-}
-
-:deep(.el-tabs) {
-  max-height: 100%;
-}
-
-.end-flag {
-  text-align: center;
-  font-size: 18px;
-  padding-top: 10px;
-  padding-bottom: 20px;
-}
-
-.trans {
-  background-color: color-mix(in srgb, var(--card), transparent 10%);
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.editor:deep(.vditor-editor) {
-  max-height: calc(100vh - 200px);
 }
 
 .card {
@@ -398,11 +323,6 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background: color-mix(in oklab, var(--background) 70%, transparent);
-}
-
-:deep(.vditor) {
-  --panel-background-color: var(--card);
-  --textarea-background-color: var(--card);
 }
 
 @media (max-width: 1024px) {

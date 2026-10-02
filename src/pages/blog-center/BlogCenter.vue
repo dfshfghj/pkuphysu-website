@@ -2,39 +2,27 @@
   <div class="flex">
     <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2">
       <div class="control-btn sm:font-serif font-bold p-2" @click="goPosts">
-        <el-icon :size="20">
-          <Refresh />
-        </el-icon>
+        <RotateCw class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">最新</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="goFollow">
-        <el-icon :size="20">
-          <Star />
-        </el-icon>
+        <Star class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">关注</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="editing = true">
-        <el-icon :size="20">
-          <Plus />
-        </el-icon>
+        <Plus class="size-5 scale-[1.25]" :stroke-width="1.5" />
         <span class="control-btn-label">发布</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/messages')">
-        <el-icon :size="20">
-          <Message />
-        </el-icon>
+        <Mail class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">消息</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/settings')">
-        <el-icon :size="20">
-          <Setting />
-        </el-icon>
+        <Settings class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">设置</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/switch')">
-        <el-icon :size="20">
-          <Book />
-        </el-icon>
+        <Book class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">板块</span>
       </div>
       <div class="flex-1" id="space"></div>
@@ -64,17 +52,8 @@
     <div class="flex flex-col flex-1 min-w-0 h-screen pb-14 sm:pb-0">
       <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
         <div class="control-search p-1 m-2 bg-card">
-          <el-input-tag
-            collapse-tags
-            collapse-tags-tooltip
-            :max-collapse-tags="3"
-            v-model="searchDraft"
-            trigger="Space"
-            placeholder="搜索内容 或 #id 或 :tag"
-          />
-          <el-icon :size="20" @click="navigateToSearch()">
-            <Search />
-          </el-icon>
+          <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
+          <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
         </div>
       </div>
       <div
@@ -82,43 +61,27 @@
       >
         <div class="control-bar">
           <template v-if="isDetail">
-            <el-icon :size="20" class="cursor-pointer ml-4 mr-2" @click="router.back()">
-              <ArrowLeftBold />
-            </el-icon>
+            <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
             <span class="text-(--c-secondary)!">#{{ route.params.id }}</span>
             <span class="page-title">详情</span>
           </template>
           <template v-else>
             <div class="control-btn p-2" @click="goFollow">
-              <el-icon :size="20">
-                <StarFilled v-if="isFollowPage" />
-                <Star v-else />
-              </el-icon>
+              <Star v-if="isFollowPage" class="size-5 fill-current" />
+              <Star v-else class="size-5" />
               <span class="control-btn-label">关注</span>
             </div>
             <div class="control-search flex-1">
-              <el-input-tag
-                collapse-tags
-                collapse-tags-tooltip
-                :max-collapse-tags="3"
+              <SearchTagInput
                 v-model="searchDraft"
-                trigger="Space"
                 placeholder="搜索内容 或 #id 或 :tag"
+                @search="navigateToSearch()"
               />
-              <el-icon :size="20" @click="navigateToSearch()">
-                <Search />
-              </el-icon>
+              <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
             </div>
-            <el-button
-              v-if="!userStore.isLoggedIn"
-              link
-              type="primary"
-              plain
-              @click="router.push('/login')"
-              class="border-none"
-            >
+            <Button v-if="!userStore.isLoggedIn" variant="link" @click="router.push('/login')" class="border-none">
               登录
-            </el-button>
+            </Button>
           </template>
         </div>
       </div>
@@ -130,17 +93,8 @@
     </div>
     <div class="flex-col w-3/10 border-l border-(--c-border) hidden md:flex">
       <div class="control-search p-1 m-3">
-        <el-input-tag
-          collapse-tags
-          collapse-tags-tooltip
-          :max-collapse-tags="3"
-          v-model="searchDraft"
-          trigger="Space"
-          placeholder="搜索内容 或 #id 或 :tag"
-        />
-        <el-icon :size="20" @click="navigateToSearch()">
-          <Search />
-        </el-icon>
+        <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
+        <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
       </div>
       <Accordion type="single" collapsible class="p-5" default-value="item-3">
         <AccordionItem value="item-1">
@@ -171,9 +125,7 @@
               class="my-5 flex cursor-pointer items-center gap-2 text-sm transition-opacity hover:opacity-70"
               @click="router.push('/about')"
             >
-              <el-icon :size="16">
-                <Document />
-              </el-icon>
+              <FileText class="size-4" />
               <span>关于本站</span>
             </div>
           </AccordionContent>
@@ -190,22 +142,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ArrowLeftBold,
-  Star,
-  StarFilled,
-  Refresh,
-  Search,
-  Message,
-  Plus,
-  Setting,
-  Document,
-} from "@element-plus/icons-vue";
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
+import SearchTagInput from "@/components/SearchTagInput.vue";
+import { Button } from "@/components/ui/button";
 import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
-import { computed, nextTick, onBeforeMount, onUnmounted, ref, watch } from "vue";
 import { buildSearchRouteQuery, getSearchTokensFromRouteQuery } from "@/utils/forum-search";
 import {
   DropdownMenu,
@@ -219,7 +161,7 @@ import PostsView from "./PostsView.vue";
 import FollowView from "./FollowView.vue";
 import { RouterView, type LocationQueryRaw } from "vue-router";
 import { Accordion } from "@/components/ui/accordion";
-import { Book } from "lucide-vue-next";
+import { ChevronLeft, Book, FileText, Mail, Plus, RotateCw, Search, Settings, Star } from "lucide-vue-next";
 
 const router = useRouter();
 const route = useRoute();
@@ -268,7 +210,7 @@ const navigateToSearch = () => {
       router.push({ path: "/search", query });
     }
   } else {
-    router.push({ path: "/" }); // 当搜索条件为空时，跳转到首页
+    router.push({ path: "/" });
   }
 };
 
@@ -347,57 +289,12 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-:deep(.el-input__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
-:deep(.el-input-tag__wrapper) {
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
-.control-search:deep(.el-select__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
 .control-search {
   display: flex;
   align-items: center;
   border: 1px solid var(--c-border);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   border-radius: 9999px;
-}
-
-:deep(.el-tabs) {
-  max-height: 100%;
-}
-
-.end-flag {
-  text-align: center;
-  font-size: 18px;
-  padding-top: 10px;
-  padding-bottom: 20px;
-}
-
-.trans {
-  background-color: color-mix(in srgb, var(--card), transparent 10%);
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.editor:deep(.vditor-editor) {
-  max-height: calc(100vh - 200px);
 }
 
 .card {
@@ -445,11 +342,6 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background: color-mix(in oklab, var(--background) 70%, transparent);
-}
-
-:deep(.vditor) {
-  --panel-background-color: var(--card);
-  --textarea-background-color: var(--card);
 }
 
 @media (max-width: 1024px) {
