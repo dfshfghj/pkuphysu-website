@@ -44,10 +44,34 @@
 不引入自定义语法的原因：这样 lute / vditor / bluemonday 全链路零改动就能原样保留，也不影响把
 Markdown 原文复制到别处。
 
-插入入口有两处，插入文本统一为 `\n\n[#id](/id)\n\n`（独立段落，渲染时就是引用卡片）：
+插入入口有两处，插入文本为 `\n\n[#id](/id)\n\n`（独立段落，渲染时就是引用卡片）：
 
 - 发帖编辑器 `BlogPostEditor`：工具栏「引用帖子」按钮（通过 `MarkdownEditor` 的 `extraToolbar` 追加）
 - 评论框 `BlogCommentEditor`：工具栏是隐藏的，所以「引用」按钮放在「发送」旁边
+
+### 树洞引用
+
+树洞帖用同一条链接规则，只是 `href` 指向 `/treehole/<id>`，插入文本是 `\n\n[#id](/treehole/id)\n\n`：
+
+```
+[#123](/treehole/123)
+```
+
+引用选择弹窗 `QuotePostDialog` 有「站内 / 树洞」两个来源。树洞是匿名的，所以「树洞」来源的选项与引用卡片
+`TreeholeQuoteHoverCard` 都只显示 `#id`、时间与正文，**不显示作者**。树洞没有批量引用接口，只能按 pid 逐条取，
+`utils/treehole-quote.ts` 按 id 缓存并合并并发请求；取不到的（`data` 为 null）记为不可见，避免反复重试。
+
+## 树洞已迁出站外
+
+树洞浏览页已从本站移除，迁到独立站点（env `VITE_TREEHOLE_URL`），站内只保留引用能力。
+
+- 站内遗留的 `/treehole/*` 链接，点击时由 `utils/treehole-link.ts` 的全局捕获监听一步新窗口打开外部站点，
+  目标是 `${VITE_TREEHOLE_URL}?post=%23<pid>`（外部站点会把 `?post=` 的值填进搜索框）。
+  **展示模式与 Vditor 编辑模式统一走这条路径**：编辑模式下 Vditor 对链接走原生整页跳转，等页面重载完
+  再 `window.open` 已经没有用户手势，会被浏览器当弹窗拦掉。
+- `router` 的 `TreeholeRedirect` 只是直接输入 URL 时的兜底，做同页跳转。
+- 取树洞数据一律走 `/api/dev/chapi/api/v3/hole/...`。开发用 vite proxy、生产用 nginx 都会剥掉 `/api/dev`
+  再转发到树洞镜像的 `/chapi/...`；直接请求裸 `/chapi/...` 在生产会命中 SPA 的 HTML fallback。
 
 ## 单根组件
 

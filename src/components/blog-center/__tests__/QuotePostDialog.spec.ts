@@ -118,7 +118,7 @@ describe("QuotePostDialog", () => {
 
     await wrapper.find(".quote-option").trigger("click");
 
-    expect(wrapper.emitted("select")).toEqual([[45]]);
+    expect(wrapper.emitted("select")).toEqual([[{ source: "forum", id: 45 }]]);
     expect(wrapper.emitted("update:visible")).toEqual([[false]]);
   });
 
@@ -130,6 +130,44 @@ describe("QuotePostDialog", () => {
 
     await wrapper.find("input").trigger("keydown.enter");
 
-    expect(wrapper.emitted("select")).toEqual([[45]]);
+    expect(wrapper.emitted("select")).toEqual([[{ source: "forum", id: 45 }]]);
+  });
+
+  it("切到树洞后按关键词搜索树洞帖子，选项不带作者", async () => {
+    mocks.requestApi.mockResolvedValueOnce(okResponse({ list: [{ pid: 1, text: "<p>物理</p>" }], total: 1 }));
+
+    const wrapper = mountDialog();
+    await wrapper.findAll(".quote-source-tab")[1].trigger("click");
+    await typeAndSettle(wrapper, "物理");
+
+    expect(mocks.requestApi).toHaveBeenCalledWith(
+      "/api/dev/chapi/api/v3/hole/list_comments?keyword=%E7%89%A9%E7%90%86&limit=8&page=1&comment_limit=0&comment_stream=1"
+    );
+    const options = wrapper.findAll(".quote-option");
+    expect(options).toHaveLength(1);
+    expect(options[0].text()).toContain("#1");
+    expect(options[0].text()).not.toContain("甲");
+  });
+
+  it("树洞下 #id 直接查树洞单帖", async () => {
+    mocks.requestApi.mockResolvedValueOnce(okResponse({ pid: 45, text: "<p>内容</p>" }));
+
+    const wrapper = mountDialog();
+    await wrapper.findAll(".quote-source-tab")[1].trigger("click");
+    await typeAndSettle(wrapper, "#45");
+
+    expect(mocks.requestApi).toHaveBeenCalledWith("/api/dev/chapi/api/v3/hole/get?pid=45");
+  });
+
+  it("树洞下选中发出 treehole 来源", async () => {
+    mocks.requestApi.mockResolvedValueOnce(okResponse({ list: [{ pid: 45, text: "<p>内容</p>" }], total: 1 }));
+
+    const wrapper = mountDialog();
+    await wrapper.findAll(".quote-source-tab")[1].trigger("click");
+    await typeAndSettle(wrapper, "内容");
+
+    await wrapper.find(".quote-option").trigger("click");
+
+    expect(wrapper.emitted("select")).toEqual([[{ source: "treehole", id: 45 }]]);
   });
 });

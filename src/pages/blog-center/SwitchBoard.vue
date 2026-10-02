@@ -12,15 +12,6 @@
       >
         <span class="text-md font-bold">{{ board.name }}</span>
       </Item>
-      <Item
-        :key="'treehole'"
-        variant="outline"
-        size="default"
-        class="cursor-pointer hover:bg-accent/50 transition-all mx-4"
-        @click="router.push('/treehole')"
-      >
-        <span class="text-md font-bold">树洞</span>
-      </Item>
     </div>
   </div>
 </template>

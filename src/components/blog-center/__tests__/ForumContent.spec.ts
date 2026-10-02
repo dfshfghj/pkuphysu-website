@@ -2,6 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ForumContent from "@/components/blog-center/ForumContent.vue";
 import { clearPostQuoteCache } from "@/utils/post-quote";
+import { clearTreeholeQuoteCache } from "@/utils/treehole-quote";
 
 const mocks = vi.hoisted(() => ({
   routerPush: vi.fn(),
@@ -42,6 +43,7 @@ const hoverLink = async (wrapper: ReturnType<typeof mountWith>, index = 0) => {
 describe("ForumContent 的引用行为", () => {
   beforeEach(() => {
     clearPostQuoteCache();
+    clearTreeholeQuoteCache();
     mocks.routerPush.mockReset();
     mocks.requestApi.mockReset();
     document.body.innerHTML = "";
@@ -57,6 +59,28 @@ describe("ForumContent 的引用行为", () => {
     expect(wrapper.find("p a").exists()).toBe(true);
     expect(mocks.requestApi).not.toHaveBeenCalled();
     expect(quoteCard()).toBeNull();
+  });
+
+  it("树洞引用链接 hover 弹出无作者的树洞卡片", async () => {
+    mocks.requestApi.mockResolvedValueOnce(okResponse({ pid: 45, text: "<p>树洞正文</p>", timestamp: 1790782994 }));
+
+    const wrapper = mountWith('<p>见 <a href="/treehole/45" rel="nofollow">#45</a> 这条</p>');
+    await flushPromises();
+
+    const link = wrapper.find("a");
+    expect(link.attributes("data-treehole-quote")).toBe("45");
+    expect(link.attributes("data-post-quote")).toBeUndefined();
+
+    await link.trigger("mouseover");
+    await flushPromises();
+
+    expect(mocks.requestApi).toHaveBeenCalledWith("/api/dev/chapi/api/v3/hole/get?pid=45");
+
+    const card = quoteCard();
+    expect(card).not.toBeNull();
+    expect(card!.textContent).toContain("树洞");
+    expect(card!.textContent).toContain("#45");
+    expect(card!.querySelector(".post-quote-body")?.textContent).toContain("树洞正文");
   });
 
   it("hover 时弹出卡片并展示被引帖的完整正文", async () => {
