@@ -8,6 +8,7 @@
       <BlogPostCard
         v-if="forumStore.getPostById(pid)"
         :post="forumStore.getPostById(pid)"
+        :show-preview-comments="false"
         @deleted="handlePostDeleted"
         @updated="forumStore.fetchPostById(pid)"
       />

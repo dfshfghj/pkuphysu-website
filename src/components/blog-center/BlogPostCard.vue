@@ -85,7 +85,7 @@
       <ForumContent :content="post.text" class="cursor-pointer" @click="handleClick" />
     </CollapsibleDiv>
     <div
-      v-if="previewComments.length"
+      v-if="showPreviewComments && previewComments.length"
       class="flex cursor-pointer flex-col gap-0.5 px-5 pt-1 text-xs md:px-12.5"
       @click="handleClick"
     >
@@ -153,6 +153,10 @@ const props = defineProps({
   darkMode: {
     type: Boolean,
     default: undefined,
+  },
+  showPreviewComments: {
+    type: Boolean,
+    default: true,
   },
 });
 
