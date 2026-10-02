@@ -2,7 +2,7 @@
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
     <div class="min-h-lvh">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">搜索结果</h2>
-      <ListLoading v-if="postsLoading && !posts.length" :rows="4" />
+      <ListLoading v-if="postsLoading && !posts.length" />
       <EmptyState v-else-if="!posts.length" description="没有找到相关帖子" />
       <template v-else>
         <BlogPostCard
@@ -13,6 +13,7 @@
           @updated="fetchPosts()"
         />
       </template>
+      <ListLoading v-if="postsLoading && posts.length" />
     </div>
   </ScrollPane>
 </template>

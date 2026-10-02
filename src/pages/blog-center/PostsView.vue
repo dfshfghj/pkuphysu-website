@@ -2,7 +2,7 @@
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
     <div class="min-h-lvh">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">主页</h2>
-      <ListLoading v-if="forumStore.postsLoading && !forumStore.posts.length" :rows="4" />
+      <ListLoading v-if="forumStore.postsLoading && !forumStore.posts.length" />
       <EmptyState v-else-if="!forumStore.posts.length" description="还没有帖子" />
       <template v-else>
         <BlogPostCard
@@ -14,6 +14,7 @@
           @updated="forumStore.fetchPostById($event)"
         />
       </template>
+      <ListLoading v-if="forumStore.postsLoading && forumStore.posts.length" />
     </div>
   </ScrollPane>
 </template>

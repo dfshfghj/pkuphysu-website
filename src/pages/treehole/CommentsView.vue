@@ -21,11 +21,7 @@
           <span> {{ treeholeStore.ascSort ? "顺序" : "逆序" }} </span>
         </div>
       </div>
-      <ListLoading
-        v-if="treeholeStore.commentsLoading && !treeholeStore.comments.length"
-        :rows="3"
-        item-class="h-16"
-      />
+      <ListLoading v-if="treeholeStore.commentsLoading && !treeholeStore.comments.length" />
       <EmptyState v-else-if="!treeholeStore.comments.length" description="还没有评论" />
       <template v-else>
         <TreeholeCommentCard
@@ -35,6 +31,7 @@
           @click="toggleQuote(comment.cid, comment.username)"
         />
       </template>
+      <ListLoading v-if="treeholeStore.commentsLoading && treeholeStore.comments.length" />
     </div>
   </ScrollPane>
 </template>

@@ -48,7 +48,7 @@
 
         <section class="mt-6">
           <h3 class="pl-6 text-base font-bold sm:font-serif">最近发布</h3>
-          <ListLoading v-if="!loaded" :rows="3" />
+          <ListLoading v-if="!loaded" />
           <template v-else-if="posts.length">
             <BlogPostCard
               v-for="post in posts"

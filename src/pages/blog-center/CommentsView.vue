@@ -20,7 +20,7 @@
           <span> {{ ascSort ? "顺序" : "逆序" }} </span>
         </div>
       </div>
-      <ListLoading v-if="commentsLoading && !comments.length" :rows="3" item-class="h-16" />
+      <ListLoading v-if="commentsLoading && !comments.length" />
       <EmptyState v-else-if="!comments.length" description="还没有评论" />
       <template v-else>
         <BlogCommentCard
@@ -32,6 +32,7 @@
           @click="toggleQuote(comment.cid, comment.username)"
         />
       </template>
+      <ListLoading v-if="commentsLoading && comments.length" />
       <div class="pb-50"></div>
       <BlogCommentEditor
         :post-id="pid"

@@ -2,7 +2,7 @@
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
     <div class="min-h-lvh">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">主页</h2>
-      <ListLoading v-if="treeholeStore.postsLoading && !treeholeStore.posts.length" :rows="4" />
+      <ListLoading v-if="treeholeStore.postsLoading && !treeholeStore.posts.length" />
       <EmptyState v-else-if="!treeholeStore.posts.length" description="还没有帖子" />
       <template v-else>
         <TreeholePostCard
@@ -12,6 +12,7 @@
           @card-click="router.push(`/treehole/${post.id}`)"
         />
       </template>
+      <ListLoading v-if="loadMoreLoading" />
     </div>
   </ScrollPane>
 </template>
