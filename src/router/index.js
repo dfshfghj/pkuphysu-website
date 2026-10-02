@@ -2,11 +2,6 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/user";
 
 const routes = [
-  // {
-  //   path: "/",
-  //   name: "Home",
-  //   component: () => import("../pages/Home.vue"),
-  // },
   {
     path: "/redirect",
     name: "Redirect",
@@ -24,23 +19,6 @@ const routes = [
     component: () => import("../pages/About.vue"),
     meta: { noHeader: true },
   },
-  // {
-  //  path: "/random_draw/invest",
-  //  name: "EveParty",
-  //  component: () => import("../pages/EveParty.vue"),
-  //  meta: { login: true },
-  // },
-  // {
-  //   path: "/puzzle",
-  //   name: "Puzzle",
-  //   component: () => import("../pages/Puzzle.vue"),
-  //   meta: { login: true },
-  // },
-  // {
-  //   path: "/doc",
-  //   name: "Document",
-  //   component: () => import("../pages/Document.vue"),
-  // },
   {
     path: "/posts",
     name: "Posts",
@@ -145,15 +123,6 @@ const routes = [
         meta: { login: true },
       },
     ],
-  },
-  {
-    path: "/admin/random-draw",
-    name: "RandomDraw",
-    component: () => import("../pages/admin/RandomDraw.vue"),
-    meta: {
-      noHeader: true,
-      admin: true,
-    },
   },
   {
     path: "/admin",

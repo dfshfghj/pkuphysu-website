@@ -6,33 +6,28 @@
           <div class="flex-1">
             <span> {{ post.username }} </span>
             <code> #{{ post.id }} </code>
-            <el-icon
-              :size="16"
-              class="float-right text-center opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
+            <Copy
+              class="float-right size-4 text-center opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity"
               @click.stop="handleCopy"
-            >
-              <CopyDocument />
-            </el-icon>
+            />
             <div>
               <div class="float-right mr-4">
                 {{ followNum }}
-                <el-icon :size="12">
-                  <StarFilled v-if="isFollowed" />
-                  <Star v-else />
-                </el-icon>
+                <span class="inline-flex items-center align-middle text-[10px]">
+                  <Star class="size-3 fill-current" v-if="isFollowed" />
+                  <Star v-else class="size-3" />
+                </span>
               </div>
               <div class="float-right mr-4">
                 {{ likeNum }}
-                <el-icon :size="12">
+                <span class="inline-flex items-center align-middle text-[10px]">
                   <IconRiHeartFill v-if="isLiked" />
                   <IconRiHeartLine v-else />
-                </el-icon>
+                </span>
               </div>
               <div class="float-right mr-4" v-if="post.reply">
                 {{ post.reply }}
-                <el-icon :size="12">
-                  <ChatLineRound />
-                </el-icon>
+                <MessageSquare class="inline-block size-3 align-middle" />
               </div>
               <span>
                 {{ formatTime(post.timestamp).relativeTime }}
@@ -69,7 +64,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { Star, StarFilled, ChatLineRound, CopyDocument } from "@element-plus/icons-vue";
+import { Copy, MessageSquare, Star } from "lucide-vue-next";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
 import { formatTime } from "@/utils";

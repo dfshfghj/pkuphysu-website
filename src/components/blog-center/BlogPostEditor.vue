@@ -5,9 +5,7 @@
   >
     <div class="editor h-full w-full bg-background p-2 sm:h-auto sm:w-auto sm:mx-2 sm:rounded-md lg:mx-12">
       <div class="mt-2.5 ml-2.5 flex items-center">
-        <el-icon size="20" @click="close">
-          <Close />
-        </el-icon>
+        <X class="size-5 cursor-pointer" @click="close" />
         <span class="sm:hidden pl-4 text-lg font-bold">发布</span>
       </div>
       <AutoCompleteTagInput v-model="selectedTags" :suggestions="tagSuggestions" />
@@ -29,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { Close } from "@element-plus/icons-vue";
+import { X } from "lucide-vue-next";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";

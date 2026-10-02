@@ -1,25 +1,46 @@
 <template>
-  <el-dialog v-model="internalVisible" title="设置密码" width="500" align-center>
-    <el-form :model="passwordForm" label-width="auto">
-      <el-form-item label="新密码">
-        <el-input v-model="passwordForm.newPassword" type="password" placeholder="请输入至少6位密码" />
-      </el-form-item>
-      <el-form-item label="确认密码">
-        <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="请再次输入密码" />
-      </el-form-item>
-    </el-form>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleCancel">稍后设置</el-button>
-        <el-button type="primary" @click="handleSubmit">提交</el-button>
+  <Dialog :open="internalVisible" @update:open="handleVisibleChange">
+    <DialogContent class="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>设置密码</DialogTitle>
+        <DialogDescription>设置密码后可用账号密码登录，请妥善保管。</DialogDescription>
+      </DialogHeader>
+      <div class="grid gap-4">
+        <div class="grid gap-2">
+          <Label for="new-password">新密码</Label>
+          <Input id="new-password" v-model="passwordForm.newPassword" type="password" placeholder="请输入至少6位密码" />
+        </div>
+        <div class="grid gap-2">
+          <Label for="confirm-password">确认密码</Label>
+          <Input
+            id="confirm-password"
+            v-model="passwordForm.confirmPassword"
+            type="password"
+            placeholder="请再次输入密码"
+          />
+        </div>
       </div>
-    </template>
-  </el-dialog>
+      <DialogFooter>
+        <Button variant="outline" @click="handleCancel">稍后设置</Button>
+        <Button @click="handleSubmit">提交</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { sha256 } from "../../utils";
 import { useUserStore } from "../../stores/user";
@@ -32,7 +53,14 @@ const passwordForm = reactive({
   confirmPassword: "",
 });
 
-// 组件挂载时检查是否需要设置密码
+const handleVisibleChange = (visible: boolean) => {
+  if (!visible) {
+    handleCancel();
+    return;
+  }
+  internalVisible.value = visible;
+};
+
 const checkUserPasswordStatus = async () => {
   if (!userStore.isLoggedIn) return;
 
@@ -41,9 +69,8 @@ const checkUserPasswordStatus = async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
-    // 检查 has_password 字段
     if (data.data && data.data.has_password === false) {
-      ElMessage.warning("您尚未设置密码，请尽快设置以保障账户安全");
+      toast.warning("您尚未设置密码，请尽快设置以保障账户安全");
       internalVisible.value = true;
     }
   } catch {
@@ -57,19 +84,18 @@ onMounted(() => {
 
 const handleCancel = () => {
   internalVisible.value = false;
-  // 重置表单
   passwordForm.newPassword = "";
   passwordForm.confirmPassword = "";
 };
 
 const handleSubmit = async () => {
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    ElMessage.error("两次输入的密码不一致");
+    toast.error("两次输入的密码不一致");
     return;
   }
 
   if (passwordForm.newPassword.length < 6) {
-    ElMessage.error("密码长度至少6位");
+    toast.error("密码长度至少6位");
     return;
   }
 
@@ -84,16 +110,16 @@ const handleSubmit = async () => {
 
     const result = await res.json();
     if (res.ok) {
-      ElMessage.success("密码设置成功");
+      toast.success("密码设置成功");
       internalVisible.value = false;
       passwordForm.newPassword = "";
       passwordForm.confirmPassword = "";
       emit("success");
     } else {
-      ElMessage.error(result.message || "设置密码失败");
+      toast.error(result.message || "设置密码失败");
     }
   } catch (error) {
-    ElMessage.error("网络错误");
+    toast.error("网络错误");
     console.error("Password change failed:", error);
   }
 };

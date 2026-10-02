@@ -1,27 +1,39 @@
 <template>
-  <el-scrollbar>
+  <ScrollPane>
     <div class="mx-auto min-h-lvh w-full max-w-4xl px-4 py-6">
       <div class="mb-4 flex items-center gap-3">
-        <el-icon :size="20" class="cursor-pointer" @click="router.back()">
-          <ArrowLeftBold />
-        </el-icon>
+        <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer" @click="router.back()" />
         <h1 class="text-xl font-bold sm:font-serif">关于本站</h1>
         <div class="flex-1"></div>
         <RouterLink to="/" class="text-sm text-(--c-secondary) hover:text-(--c-title)">进入论坛</RouterLink>
       </div>
 
-      <el-tabs v-model="currentDoc">
-        <el-tab-pane v-for="doc in docs" :key="doc.name" :label="doc.label" :name="doc.name">
+      <Tabs v-model="currentDoc" class="mt-px gap-0">
+        <TabsList
+          class="h-10 w-full items-stretch justify-start gap-10 rounded-none border-b border-(--c-border) bg-transparent p-0"
+        >
+          <TabsTrigger
+            v-for="doc in docs"
+            :key="doc.name"
+            :value="doc.name"
+            class="h-full flex-none rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 text-[15px] text-(--c-secondary) shadow-none data-[state=active]:border-(--c-brand) data-[state=active]:bg-transparent data-[state=active]:text-(--c-brand) data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
+          >
+            {{ doc.label }}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent v-for="doc in docs" :key="doc.name" :value="doc.name" class="pt-[14px]">
           <div class="markdown-body" v-html="doc.html"></div>
-        </el-tab-pane>
-      </el-tabs>
+        </TabsContent>
+      </Tabs>
     </div>
-  </el-scrollbar>
+  </ScrollPane>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeftBold } from "@element-plus/icons-vue";
+import ScrollPane from "@/components/ScrollPane.vue";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { renderMarkdown } from "@/utils/markdown";
+import { ChevronLeft } from "lucide-vue-next";
 import "@/styles/github-markdown.css";
 import "katex/dist/katex.min.css";
 
@@ -31,7 +43,6 @@ interface DocEntry {
   html: string;
 }
 
-// 仓库根目录的 .md 会自动出现在这里，新增文件不用改代码
 const LABELS: Record<string, string> = {
   "CHANGELOG.md": "更新日志",
   "TODO.md": "待办事项",
@@ -58,9 +69,3 @@ const docs: DocEntry[] = Object.entries(modules)
 const currentDoc = ref(docs[0]?.name ?? "");
 const router = useRouter();
 </script>
-
-<style scoped>
-:deep(.el-tabs__item) {
-  font-size: 15px;
-}
-</style>

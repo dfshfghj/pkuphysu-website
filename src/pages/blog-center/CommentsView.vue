@@ -1,16 +1,8 @@
 <template>
-  <el-scrollbar :distance="400" @end-reached="loadMoreComments">
-    <el-backtop
-      target="#app > div.flex > div.flex-1.min-w-0.h-screen > div.el-scrollbar > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default"
-      :right="20"
-      :bottom="30"
-    >
-    </el-backtop>
+  <ScrollPane :distance="400" back-top @end-reached="loadMoreComments">
     <div class="min-h-lvh">
       <h2 class="hidden sm:flex items-center text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">
-        <el-icon :size="20" class="cursor-pointer" @click="router.back()">
-          <ArrowLeftBold />
-        </el-icon>
+        <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer" @click="router.back()" />
         <span>详情</span>
       </h2>
       <BlogPostCard
@@ -23,29 +15,23 @@
 
       <div class="flex pl-6 pt-3">
         <span class="text-lg sm:font-serif font-bold"> 评论 </span>
-        <div
-          class="sort-toggle flex items-center content-center cursor-pointer text-sm pl-4"
-          @click="
-            toggleSort();
-          "
-        >
-          <el-icon>
-            <Histogram />
-          </el-icon>
+        <div class="sort-toggle flex items-center content-center cursor-pointer text-sm pl-4" @click="toggleSort()">
+          <ChartColumn class="size-4" />
           <span> {{ ascSort ? "顺序" : "逆序" }} </span>
         </div>
       </div>
-      <BlogCommentCard
-        v-for="comment in comments"
-        :key="comment.cid"
-        :comment="comment"
-        @like-update="handleLikeUpdate"
-        @deleted="handleCommentDeleted"
-        @click="toggleQuote(comment.cid, comment.username)"
-      />
-      <div class="text-center mt-5" v-if="comments.length === 0">
-        <span class="text-sm"> 暂无更多评论 </span>
-      </div>
+      <ListLoading v-if="commentsLoading && !comments.length" :rows="3" item-class="h-16" />
+      <EmptyState v-else-if="!comments.length" description="还没有评论" />
+      <template v-else>
+        <BlogCommentCard
+          v-for="comment in comments"
+          :key="comment.cid"
+          :comment="comment"
+          @like-update="handleLikeUpdate"
+          @deleted="handleCommentDeleted"
+          @click="toggleQuote(comment.cid, comment.username)"
+        />
+      </template>
       <div class="pb-50"></div>
       <BlogCommentEditor
         :post-id="pid"
@@ -55,16 +41,18 @@
         @success="fetchComments(pid)"
       />
     </div>
-  </el-scrollbar>
+  </ScrollPane>
 </template>
 
 <script setup lang="ts">
-import { Histogram, ArrowLeftBold } from "@element-plus/icons-vue";
 import { isDark } from "@/composables/theme";
 import { requestApi } from "@/api/api";
+import ScrollPane from "@/components/ScrollPane.vue";
+import ListLoading from "@/components/ListLoading.vue";
+import EmptyState from "@/components/EmptyState.vue";
 import { useRoute, useRouter } from "vue-router";
 import { type Comment, useForumStore } from "@/stores/forum";
-import { computed, onMounted, ref, watch } from "vue";
+import { ChartColumn, ChevronLeft } from "lucide-vue-next";
 
 const route = useRoute();
 const router = useRouter();
@@ -89,6 +77,7 @@ const toggleQuote = (id: number, name: string) => {
 };
 
 const fetchComments = async (postId: number) => {
+  commentsLoading.value = true;
   try {
     endOfComments.value = false;
     const res = await requestApi(`/api/v2/forum/comments/${postId}?limit=20&sort=${ascSort.value ? "asc" : "desc"}`);
@@ -101,11 +90,13 @@ const fetchComments = async (postId: number) => {
     }
   } catch (error) {
     console.error("Fetch comments failed:", error);
+  } finally {
+    commentsLoading.value = false;
   }
 };
 
-const loadMoreComments = async (direction?: string) => {
-  if ((direction && direction !== "bottom") || endOfComments.value || commentsLoading.value || comments.value.length === 0) {
+const loadMoreComments = async () => {
+  if (endOfComments.value || commentsLoading.value || comments.value.length === 0) {
     return;
   }
 
@@ -166,47 +157,3 @@ onMounted(async () => {
   await fetchComments(pid.value);
 });
 </script>
-
-<style scoped>
-:deep(.el-input__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
-:deep(.el-input-tag__wrapper) {
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
-.control-search:deep(.el-select__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
-.control-search {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--c-border);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-  border-radius: 9999px;
-}
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.editor:deep(.vditor-editor) {
-  max-height: calc(100vh - 200px);
-}
-
-:deep(.vditor) {
-  --panel-background-color: var(--card);
-  --textarea-background-color: var(--card);
-}
-</style>

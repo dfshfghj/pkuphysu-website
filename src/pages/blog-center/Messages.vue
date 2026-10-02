@@ -1,10 +1,5 @@
 <template>
-  <el-scrollbar class="h-screen! flex-1" :distance="400">
-    <el-backtop
-      target="#app > div.flex > div.flex-1.min-w-0.h-screen > div.el-scrollbar > div.el-scrollbar__wrap.el-scrollbar__wrap--hidden-default"
-      :right="20"
-      :bottom="30"
-    ></el-backtop>
+  <ScrollPane class="h-screen! flex-1" :distance="400" back-top>
     <div class="min-h-lvh">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">消息</h2>
       <Item variant="outline" v-for="notification in notifications" class="m-4">
@@ -17,10 +12,11 @@
         <span class="text-sm"> 暂无更多消息 </span>
       </div>
     </div>
-  </el-scrollbar>
+  </ScrollPane>
 </template>
 <script setup lang="ts">
 import { requestApi } from "@/api/api";
+import ScrollPane from "@/components/ScrollPane.vue";
 
 interface Notification {
   id: number;

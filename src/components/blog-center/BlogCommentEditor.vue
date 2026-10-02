@@ -23,9 +23,7 @@
           <span> {{ content.trim() ? content.trim() : "评论" }} </span>
         </div>
       </div>
-      <el-icon @click="toggleEdit(true)">
-        <ArrowUpBold />
-      </el-icon>
+      <ChevronUp :stroke-width="3" class="size-5 cursor-pointer" @click="toggleEdit(true)" />
     </div>
     <div
       class="box-border flex p-1 bg-card border-t border-(--c-border) rounded-t absolute z-9999 bottom-0 w-full unselectable"
@@ -39,9 +37,7 @@
             {{ `@${quoteName}: ` }}
           </span>
         </div>
-        <el-icon @click="toggleEdit(false)" class="absolute! bottom-40 right-6">
-          <ArrowDownBold />
-        </el-icon>
+        <ChevronDown :stroke-width="3" class="absolute! bottom-40 right-6 size-5 cursor-pointer" @click="toggleEdit(false)" />
         <div class="absolute bottom-2 right-2 m-y-1 flex items-center gap-2">
           <Button variant="outline" @click="quoteVisible = true"> 引用 </Button>
           <Button variant="outline" @click="handleSubmit"> 发送 </Button>
@@ -53,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowUpBold, ArrowDownBold } from "@element-plus/icons-vue";
+import { ChevronDown, ChevronUp } from "lucide-vue-next";
 import MarkdownEditor from "../MarkdownEditor.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
 import { buildPostQuoteMarkdown } from "@/utils/post-quote";

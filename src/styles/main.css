@@ -25,6 +25,7 @@
   --c-contrast-bg: rgba(255, 255, 255, 0.9);
 
   --c-pku: #9b0000;
+  --c-brand: #409eff;
 
   --bs-font-sans-serif: "Noto Sans SC", Arial, sans-serif;
   --bs-body-font-family: var(--bs-font-sans-serif);
@@ -56,6 +57,7 @@
 
   --c-acrylic-bg: rgba(20, 20, 20, 0.5);
   --c-contrast-bg: rgba(0, 0, 0, 0.9);
+  --c-brand: #409eff;
 }
 
 * {
@@ -253,7 +255,6 @@ code {
 
 /* 所有 control-btn 的 hover 改为灰色 */
 #app .control-btn:hover,
-#app .control-btn:hover .el-icon,
 #app .control-btn:hover span {
   color: var(--c-ui-hover-text) !important;
 }
@@ -263,7 +264,6 @@ code {
 }
 
 /* 修正上一版中图标、文字单独产生背景的问题 */
-#app .control-btn:hover .el-icon,
 #app .control-btn:hover span {
   background-color: transparent !important;
 }
@@ -273,14 +273,7 @@ code {
 #app .tag:hover,
 #app .card-header .float-right:hover,
 #app .card .copy-btn:hover,
-#app .ctl-panel span:hover,
-#app .el-dropdown-menu__item:hover,
-#app .el-pager li:not(.is-active):hover,
-#app .el-pagination button:hover:not(:disabled),
-#app .el-menu--horizontal .el-menu-item:not(.is-disabled):not(.is-active):hover,
-#app .el-menu--horizontal .el-sub-menu__title:not(.is-disabled):hover,
-#app .el-menu--vertical .el-menu-item:not(.is-active):hover,
-#app .el-menu--vertical .el-sub-menu__title:hover {
+#app .ctl-panel span:hover {
   color: var(--c-ui-hover-text) !important;
 }
 
@@ -289,19 +282,9 @@ code {
 #app .card.mt-10:hover,
 #app .card.comment-card:hover,
 #app .post-card:hover,
-#app .item-card:hover,
-#app .el-dropdown-menu__item:hover,
-#app .el-pager li:not(.is-active):hover,
-#app .el-pagination button:hover:not(:disabled) {
+#app .item-card:hover {
   background-color: var(--c-ui-hover-bg) !important;
   border-color: var(--c-ui-hover-border) !important;
-}
-
-#app .el-menu--horizontal .el-menu-item:not(.is-disabled):not(.is-active):hover,
-#app .el-menu--horizontal .el-sub-menu__title:not(.is-disabled):hover,
-#app .el-menu--vertical .el-menu-item:not(.is-active):hover,
-#app .el-menu--vertical .el-sub-menu__title:hover {
-  background-color: var(--c-ui-hover-bg) !important;
 }
 
 /* 帖子、评论和文章卡片的灰色描边 */

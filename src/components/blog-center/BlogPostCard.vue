@@ -36,9 +36,7 @@
             <div class="flex flex-row-reverse w-full items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                  <el-icon :size="16" class="mr-4 cursor-pointer text-(--c-secondary)" @click.stop>
-                    <MoreFilled />
-                  </el-icon>
+                  <Ellipsis class="mr-4 size-4 scale-125 fill-current cursor-pointer" @click.stop />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
@@ -52,23 +50,21 @@
               </DropdownMenu>
               <div class="float-right mr-4" @click.stop="handleFollow">
                 {{ followNum }}
-                <el-icon :size="12">
-                  <StarFilled v-if="isFollowed" />
-                  <Star v-else />
-                </el-icon>
+                <span class="inline-flex items-center align-middle text-[10px]">
+                  <Star class="size-3 fill-current" v-if="isFollowed" />
+                  <Star v-else class="size-3" />
+                </span>
               </div>
               <div class="float-right mr-4" @click.stop="handleLike">
                 {{ likeNum }}
-                <el-icon :size="12">
+                <span class="inline-flex items-center align-middle text-[10px]">
                   <IconRiHeartFill v-if="isLiked" />
                   <IconRiHeartLine v-else />
-                </el-icon>
+                </span>
               </div>
               <div class="float-right mr-4" v-if="post.reply" @click.stop="">
                 {{ post.reply }}
-                <el-icon :size="12">
-                  <ChatLineRound />
-                </el-icon>
+                <MessageSquare class="inline-block size-3 align-middle" />
               </div>
               <span class="flex min-w-0 flex-1 items-center">
                 <span class="truncate">
@@ -123,7 +119,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Star, StarFilled, ChatLineRound, MoreFilled } from "@element-plus/icons-vue";
+import { Ellipsis, MessageSquare, Star } from "lucide-vue-next";
 import ForumContent from "@/components/blog-center/ForumContent.vue";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
 import { requestApi } from "@/api/api";

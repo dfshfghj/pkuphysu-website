@@ -70,12 +70,12 @@ const DialogStub = defineComponent({
   template: '<div v-if="open" class="dialog-stub"><slot /></div>',
 });
 
-const ElScrollbarStub = defineComponent({
-  name: "ElScrollbar",
+const ScrollPaneStub = defineComponent({
+  name: "ScrollPane",
   emits: ["end-reached"],
   template: "<div><slot /></div>",
   methods: {
-    // el-scrollbar 通过 ref 暴露 scrollTo，桩件需要提供同名方法
+    // ScrollPane 通过 ref 暴露 scrollTo，桩件需要提供同名方法
     scrollTo() {},
   },
 });
@@ -91,9 +91,8 @@ const stubs = {
   DialogTitle: slotStub("DialogTitle"),
   DialogDescription: slotStub("DialogDescription"),
   DialogFooter: slotStub("DialogFooter"),
-  ElScrollbar: ElScrollbarStub,
-  ElBacktop: defineComponent({ name: "ElBacktop", template: "<div />" }),
-  ElTag: defineComponent({ name: "ElTag", template: "<span><slot /></span>" }),
+  ScrollPane: ScrollPaneStub,
+  Badge: defineComponent({ name: "Badge", template: "<span><slot /></span>" }),
 };
 
 const profileResponse = (overrides: Record<string, unknown> = {}) => ({
@@ -223,11 +222,19 @@ describe("Profile", () => {
 
     await wrapper.find(".markdown-editor").setValue("超过十个字符的自定义内容");
     expect(wrapper.text()).toContain("内容过长");
-    expect(wrapper.findAll("button").find((btn) => btn.text().includes("保存"))!.attributes("disabled")).toBeDefined();
+    expect(
+      wrapper
+        .findAll("button")
+        .find((btn) => btn.text().includes("保存"))!
+        .attributes("disabled")
+    ).toBeDefined();
 
     // 长度合规时保存失败应把服务端消息透出给用户
     await wrapper.find(".markdown-editor").setValue("短");
-    await wrapper.findAll("button").find((btn) => btn.text().includes("保存"))!.trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((btn) => btn.text().includes("保存"))!
+      .trigger("click");
     await flushPromises();
 
     expect(mocks.toastError).toHaveBeenCalledWith("主页内容最多 5000 个字符");
