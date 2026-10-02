@@ -3,6 +3,7 @@
     <TagsInput
       ref="rootEl"
       :model-value="modelValue"
+      delimiter=" "
       add-on-blur
       class="tags-wrapper border-0 shadow-none focus-within:border-0 focus-within:ring-0"
       @update:model-value="emit('update:modelValue', $event)"
@@ -12,7 +13,7 @@
         <TagsInputItemDelete />
       </TagsInputItem>
       <TagsInputInput
-        placeholder="输入标签"
+        :placeholder="modelValue.length ? '' : '输入标签'"
         class="tag-input"
         @input="handleInput"
         @focus="handleFocus"

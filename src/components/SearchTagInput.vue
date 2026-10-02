@@ -18,10 +18,26 @@ const props = withDefaults(
   { placeholder: "", maxCollapseTags: 3 }
 );
 
-const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
+const emit = defineEmits<{
+  "update:modelValue": [value: string[]];
+  search: [];
+}>();
 
 const visibleTags = computed(() => props.modelValue.slice(0, props.maxCollapseTags));
 const hiddenTags = computed(() => props.modelValue.slice(props.maxCollapseTags));
+
+// 回车时先把输入框中未提交的内容收进 tag，再触发搜索
+const handleEnter = (event: KeyboardEvent) => {
+  if (event.isComposing) return;
+  event.preventDefault();
+  const input = event.target as HTMLInputElement;
+  const value = input.value.trim();
+  if (value && !props.modelValue.includes(value)) {
+    emit("update:modelValue", [...props.modelValue, value]);
+  }
+  input.value = "";
+  emit("search");
+};
 </script>
 
 <template>
@@ -44,6 +60,6 @@ const hiddenTags = computed(() => props.modelValue.slice(props.maxCollapseTags))
         <Badge v-for="tag in hiddenTags" :key="tag" variant="secondary">{{ tag }}</Badge>
       </PopoverContent>
     </Popover>
-    <TagsInputInput :placeholder="placeholder" />
+    <TagsInputInput :placeholder="modelValue.length ? '' : placeholder" @keydown.enter="handleEnter" />
   </TagsInput>
 </template>

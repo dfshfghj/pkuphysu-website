@@ -10,7 +10,7 @@
         <span class="control-btn-label">关注</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="editing = true">
-        <Plus class="size-5 scale-[1.25] " :stroke-width="1.5" />
+        <Plus class="size-5 scale-[1.25]" :stroke-width="1.5" />
         <span class="control-btn-label">发布</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/messages')">
@@ -52,7 +52,7 @@
     <div class="flex flex-col flex-1 min-w-0 h-screen pb-14 sm:pb-0">
       <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
         <div class="control-search p-1 m-2 bg-card">
-          <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" />
+          <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
           <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
         </div>
       </div>
@@ -72,7 +72,11 @@
               <span class="control-btn-label">关注</span>
             </div>
             <div class="control-search flex-1">
-              <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" />
+              <SearchTagInput
+                v-model="searchDraft"
+                placeholder="搜索内容 或 #id 或 :tag"
+                @search="navigateToSearch()"
+              />
               <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
             </div>
             <Button v-if="!userStore.isLoggedIn" variant="link" @click="router.push('/login')" class="border-none">
@@ -89,7 +93,7 @@
     </div>
     <div class="flex-col w-3/10 border-l border-(--c-border) hidden md:flex">
       <div class="control-search p-1 m-3">
-        <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" />
+        <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
         <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
       </div>
       <Accordion type="single" collapsible class="p-5" default-value="item-3">
