@@ -1,7 +1,7 @@
 {
   "name": "pkuphysu-website",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "lint-staged": {
     "*.{js,ts,jsx,tsx,vue}": [
@@ -33,9 +33,7 @@
   "dependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@element-plus/icons-vue": "^2.3.2",
     "@fingerprintjs/fingerprintjs": "^5.1.0",
-    "@iconify-json/ep": "^1.2.4",
     "@iconify-json/ri": "^1.2.10",
     "@mdit/plugin-img-lazyload": "^0.22.2",
     "@mdit/plugin-img-size": "^0.22.5",
@@ -49,7 +47,6 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.20",
     "dompurify": "^3.3.3",
-    "element-plus": "^2.13.6",
     "highlight.js": "^11.11.1",
     "js-sha256": "^0.11.1",
     "jsencrypt": "^3.5.4",

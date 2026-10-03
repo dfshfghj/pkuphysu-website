@@ -70,6 +70,7 @@ export const useForumStore = defineStore("forum", {
       }
     },
     async fetchPosts(config = { tag: "", query: [] }) {
+      this.postsLoading = true;
       try {
         this.endOfPosts = false;
         const postId = extractPostIdToken(config.query);
@@ -82,7 +83,7 @@ export const useForumStore = defineStore("forum", {
           return;
         }
 
-        const params = buildForumListParams(config, { limit: 20 });
+        const params = buildForumListParams(config, { limit: 20, commentLimit: 2 });
         const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
         const res = await requestApi(apiUrl);
@@ -96,6 +97,8 @@ export const useForumStore = defineStore("forum", {
         this.posts = data.data;
       } catch {
         console.error("Fetch posts failed:");
+      } finally {
+        this.postsLoading = false;
       }
     },
     async loadMorePosts(config = { tag: "", query: [] }) {
@@ -106,6 +109,7 @@ export const useForumStore = defineStore("forum", {
         const params = buildForumListParams(config, {
           limit: 20,
           begin: this.posts.at(-1)!.id,
+          commentLimit: 2,
         });
         const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
@@ -125,6 +129,7 @@ export const useForumStore = defineStore("forum", {
     },
     // Comments相关actions
     async fetchComments(postId: number) {
+      this.commentsLoading = true;
       try {
         this.endOfComments = false;
         const res = await requestApi(`/api/v2/forum/comments/${postId}?limit=20&sort=${this.ascSort ? "asc" : "desc"}`);
@@ -138,6 +143,8 @@ export const useForumStore = defineStore("forum", {
         this.comments = data.data;
       } catch (err) {
         console.error("Fetch comments failed:", err);
+      } finally {
+        this.commentsLoading = false;
       }
     },
     async loadMoreComments(postId: number) {

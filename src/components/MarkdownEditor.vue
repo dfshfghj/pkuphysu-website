@@ -9,6 +9,7 @@ import Vditor from "vditor";
 import vditorPackage from "vditor/package.json";
 import "vditor/dist/index.css";
 import { nextTick } from "vue";
+import { isDark } from "@/composables/theme";
 
 const props = defineProps({
   modelValue: {
@@ -33,20 +34,52 @@ const props = defineProps({
   },
   darkMode: {
     type: Boolean,
-    default: false,
+    default: undefined,
   },
   hideToolbar: {
     type: Boolean,
     default: false,
   },
+  toolbar: {
+    type: Array as PropType<(string | Record<string, unknown>)[]>,
+    default: undefined,
+  },
+  extraToolbar: {
+    type: Array as PropType<(string | Record<string, unknown>)[]>,
+    default: undefined,
+  },
 });
+
+const DEFAULT_TOOLBAR: (string | Record<string, unknown>)[] = [
+  "headings",
+  "bold",
+  "italic",
+  "strike",
+  "link",
+  "|",
+  "list",
+  "ordered-list",
+  "check",
+  "code",
+  "table",
+  "upload",
+  "|",
+  "undo",
+  "redo",
+  "|",
+  "edit-mode",
+  {
+    name: "more",
+    toolbar: ["both", "export", "outline"],
+  },
+];
 
 const emit = defineEmits(["update:modelValue", "change", "save"]);
 
 const vditorRef = ref<HTMLElement | null>(null);
 const vditor = ref<Vditor | null>(null);
 const currentMode = ref(props.mode);
-const isDarkMode = ref(props.darkMode);
+const isDarkMode = ref(props.darkMode ?? isDark.value);
 let isInternalUpdate = false;
 
 onMounted(async () => {
@@ -77,29 +110,7 @@ const initVditor = () => {
     image: {
       isPreview: false,
     },
-    toolbar: [
-      "headings",
-      "bold",
-      "italic",
-      "strike",
-      "link",
-      "|",
-      "list",
-      "ordered-list",
-      "check",
-      "code",
-      "table",
-      "upload",
-      "|",
-      "undo",
-      "redo",
-      "|",
-      "edit-mode",
-      {
-        name: "more",
-        toolbar: ["both", "export", "outline"],
-      },
-    ],
+    toolbar: [...(props.toolbar ?? DEFAULT_TOOLBAR), ...(props.extraToolbar ?? [])],
     toolbarConfig: {
       hide: props.hideToolbar,
     },
@@ -171,7 +182,7 @@ watch(
 );
 
 watch(
-  () => props.darkMode,
+  () => props.darkMode ?? isDark.value,
   (newVal) => {
     if (newVal !== isDarkMode.value) {
       isDarkMode.value = newVal;
@@ -195,5 +206,12 @@ defineExpose({
   height: 8px;
   background-color: var(--panel-background-color);
   border: none;
+}
+</style>
+
+<style scoped>
+.vditor-container {
+  --panel-background-color: var(--card);
+  --textarea-background-color: var(--card);
 }
 </style>

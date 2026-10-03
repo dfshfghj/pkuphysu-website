@@ -1,40 +1,28 @@
 <template>
   <div class="flex">
-    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30">
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="goPosts">
-        <el-icon :size="20">
-          <Refresh />
-        </el-icon>
+    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2">
+      <div class="control-btn sm:font-serif font-bold p-2" @click="goPosts">
+        <RotateCw class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">最新</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="goFollow">
-        <el-icon :size="20">
-          <Star />
-        </el-icon>
+      <div class="control-btn sm:font-serif font-bold p-2" @click="goFollow">
+        <Star class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">关注</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="editing = true">
-        <el-icon :size="20">
-          <Plus />
-        </el-icon>
+      <div class="control-btn sm:font-serif font-bold p-2" @click="editing = true">
+        <Plus class="size-5 scale-[1.25]" :stroke-width="1.5" />
         <span class="control-btn-label">发布</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="router.push('/messages')">
-        <el-icon :size="20">
-          <Message />
-        </el-icon>
+      <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/messages')">
+        <Mail class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">消息</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="router.push('/settings')">
-        <el-icon :size="20">
-          <Setting />
-        </el-icon>
+      <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/settings')">
+        <Settings class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">设置</span>
       </div>
-      <div class="control-btn sm:font-serif font-bold pt-5" @click="router.push('/switch')">
-        <el-icon :size="20">
-          <Book />
-        </el-icon>
+      <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/switch')">
+        <Book class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">板块</span>
       </div>
       <div class="flex-1" id="space"></div>
@@ -61,80 +49,40 @@
         </DropdownMenu>
       </div>
     </div>
-    <div class="flex flex-col flex-1 min-w-0 h-screen">
+    <div class="flex flex-col flex-1 min-w-0 h-screen pb-14 sm:pb-0">
       <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
         <div class="control-search p-1 m-2 bg-card">
-          <el-input-tag
-            collapse-tags
-            collapse-tags-tooltip
-            :max-collapse-tags="3"
-            v-model="searchDraft"
-            trigger="Space"
-            placeholder="搜索内容 或 #id 或 :tag"
-          />
-          <el-icon :size="20" @click="navigateToSearch()">
-            <Search />
-          </el-icon>
+          <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
+          <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
         </div>
       </div>
       <div
         class="text-(--c-title) pb-[0.7em] sticky top-0 left-0 w-full shadow-[0_0_25px_rgba(0,0,0,0.4)] bg-card z-10 unselectable sm:hidden"
       >
         <div class="control-bar">
-          <div class="control-btn p-2" @click="goPosts">
-            <el-icon :size="20">
-              <Refresh />
-            </el-icon>
-            <span class="control-btn-label">最新</span>
-          </div>
-          <div class="control-btn p-2" @click="goFollow">
-            <el-icon :size="20">
-              <Star />
-            </el-icon>
-            <span class="control-btn-label">关注</span>
-          </div>
-          <div class="control-search flex-1">
-            <el-input-tag
-              collapse-tags
-              collapse-tags-tooltip
-              :max-collapse-tags="3"
-              v-model="searchDraft"
-              trigger="Space"
-              placeholder="搜索内容 或 #id 或 :tag"
-            />
-            <el-icon :size="20" @click="navigateToSearch()">
-              <Search />
-            </el-icon>
-          </div>
-          <div class="control-btn p-2" @click="editing = true">
-            <el-icon :size="20">
-              <Plus />
-            </el-icon>
-            <span class="control-btn-label">发布</span>
-          </div>
-          <div class="control-btn p-2" @click="router.push('/messages')">
-            <el-icon :size="20">
-              <Message />
-            </el-icon>
-            <span class="control-btn-label">消息</span>
-          </div>
-          <div v-if="userStore.isLoggedIn" class="flex">
-            <DropdownMenu>
-              <DropdownMenuTrigger class="flex items-center bg-transparent border-0 cursor-pointer">
-                <UserAvatar />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem @click="router.push('/settings')"> 设置 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem @click="userStore.logout()">
-                  <span>退出登录</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <el-button v-else link type="primary" plain @click="router.push('/login')" class="border-none">
-            登录
-          </el-button>
+          <template v-if="isDetail">
+            <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
+            <span class="text-(--c-secondary)!">#{{ route.params.id }}</span>
+            <span class="page-title">详情</span>
+          </template>
+          <template v-else>
+            <div class="control-btn p-2" @click="goFollow">
+              <Star v-if="isFollowPage" class="size-5 fill-current" />
+              <Star v-else class="size-5" />
+              <span class="control-btn-label">关注</span>
+            </div>
+            <div class="control-search flex-1">
+              <SearchTagInput
+                v-model="searchDraft"
+                placeholder="搜索内容 或 #id 或 :tag"
+                @search="navigateToSearch()"
+              />
+              <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
+            </div>
+            <Button v-if="!userStore.isLoggedIn" variant="link" @click="router.push('/login')" class="border-none">
+              登录
+            </Button>
+          </template>
         </div>
       </div>
       <router-view v-slot="{ Component, route }">
@@ -145,17 +93,8 @@
     </div>
     <div class="flex-col w-3/10 border-l border-(--c-border) hidden md:flex">
       <div class="control-search p-1 m-3">
-        <el-input-tag
-          collapse-tags
-          collapse-tags-tooltip
-          :max-collapse-tags="3"
-          v-model="searchDraft"
-          trigger="Space"
-          placeholder="搜索内容 或 #id 或 :tag"
-        />
-        <el-icon :size="20" @click="navigateToSearch()">
-          <Search />
-        </el-icon>
+        <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
+        <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
       </div>
       <Accordion type="single" collapsible class="p-5" default-value="item-3">
         <AccordionItem value="item-1">
@@ -182,6 +121,13 @@
                 >pkuphysu-backend</a
               >
             </p>
+            <div
+              class="my-5 flex cursor-pointer items-center gap-2 text-sm transition-opacity hover:opacity-70"
+              @click="router.push('/about')"
+            >
+              <FileText class="size-4" />
+              <span>关于本站</span>
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -191,16 +137,17 @@
   <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="handlePostCreated" />
   <PasswordDialog />
 
+  <BottomNav :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
   <div class="bg-img"></div>
 </template>
 
 <script setup lang="ts">
-import { Star, Refresh, Search, Message, Plus, Setting } from "@element-plus/icons-vue";
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
+import SearchTagInput from "@/components/SearchTagInput.vue";
+import { Button } from "@/components/ui/button";
 import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
-import { nextTick, onBeforeMount, onUnmounted, ref, watch } from "vue";
 import { buildSearchRouteQuery, getSearchTokensFromRouteQuery } from "@/utils/forum-search";
 import {
   DropdownMenu,
@@ -209,11 +156,12 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import UserAvatar from "@/components/UserAvatar.vue";
+import BottomNav from "@/components/layouts/BottomNav.vue";
 import PostsView from "./PostsView.vue";
 import FollowView from "./FollowView.vue";
 import { RouterView, type LocationQueryRaw } from "vue-router";
 import { Accordion } from "@/components/ui/accordion";
-import { Book } from "lucide-vue-next";
+import { ChevronLeft, Book, FileText, Mail, Plus, RotateCw, Search, Settings, Star } from "lucide-vue-next";
 
 const router = useRouter();
 const route = useRoute();
@@ -221,6 +169,8 @@ const userStore = useUserStore();
 
 const editing = ref(false);
 const searchDraft = ref<string[]>([]);
+const isFollowPage = computed(() => route.name === "FollowView");
+const isDetail = computed(() => route.name === "CommentsView");
 const currentPageRef = ref<InstanceType<typeof PostsView> | InstanceType<typeof FollowView> | null>(null);
 const pendingPostsForceRefresh = ref(false);
 const pendingFollowForceRefresh = ref(false);
@@ -260,7 +210,7 @@ const navigateToSearch = () => {
       router.push({ path: "/search", query });
     }
   } else {
-    router.push({ path: "/" }); // 当搜索条件为空时，跳转到首页
+    router.push({ path: "/" });
   }
 };
 
@@ -314,6 +264,7 @@ onUnmounted(() => {
 .control-bar {
   line-height: 2em;
   padding-top: 10px;
+  padding-right: 0.5rem;
   display: flex;
   align-items: center;
 }
@@ -331,19 +282,11 @@ onUnmounted(() => {
   vertical-align: 0.05em;
 }
 
-:deep(.el-input__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
-:deep(.el-input-tag__wrapper) {
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
-.control-search:deep(.el-select__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
+.page-title {
+  font-size: 16px;
+  font-weight: bold;
+  padding-left: 0.5rem;
+  white-space: nowrap;
 }
 
 .control-search {
@@ -352,36 +295,6 @@ onUnmounted(() => {
   border: 1px solid var(--c-border);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   border-radius: 9999px;
-}
-
-:deep(.el-tabs) {
-  max-height: 100%;
-}
-
-.end-flag {
-  text-align: center;
-  font-size: 18px;
-  padding-top: 10px;
-  padding-bottom: 20px;
-}
-
-.trans {
-  background-color: color-mix(in srgb, var(--card), transparent 10%);
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.editor:deep(.vditor-editor) {
-  max-height: calc(100vh - 200px);
 }
 
 .card {
@@ -429,11 +342,6 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background: color-mix(in oklab, var(--background) 70%, transparent);
-}
-
-:deep(.vditor) {
-  --panel-background-color: var(--card);
-  --textarea-background-color: var(--card);
 }
 
 @media (max-width: 1024px) {

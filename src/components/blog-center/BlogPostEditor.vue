@@ -3,25 +3,38 @@
     v-show="visible"
     class="fixed inset-0 bg-black/50 z-9999 pointer-events-auto overflow-auto acrylic unselectable content-center"
   >
-    <div class="editor p-2 mx-2 content-center bg-background rounded-md lg:mx-12">
-      <div class="mt-2.5 ml-2.5">
-        <el-icon size="20" @click="close">
-          <Close />
-        </el-icon>
+    <div class="editor h-full w-full bg-background p-2 sm:h-auto sm:w-auto sm:mx-2 sm:rounded-md lg:mx-12">
+      <div class="mt-2.5 ml-2.5 flex items-center">
+        <X class="size-5 cursor-pointer" @click="close" />
+        <span class="sm:hidden pl-4 text-lg font-bold">发布</span>
       </div>
       <AutoCompleteTagInput v-model="selectedTags" :suggestions="tagSuggestions" />
-      <MarkdownEditor ref="editorRef" v-model="content" :dark-mode="darkMode" :height="800" />
-      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">发布</Button>
+      <p class="p-2 sm:hidden border-t">正文</p>
+      <MarkdownEditor
+        ref="editorRef"
+        v-model="content"
+        :dark-mode="darkMode"
+        :height="isNarrow ? 'calc(100vh - 210px)' : 800"
+        :toolbar="isNarrow ? narrowToolbar : undefined"
+        :extra-toolbar="extraToolbar"
+      />
+      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">
+        {{ isEdit ? "保存" : "发布" }}
+      </Button>
     </div>
+    <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Close } from "@element-plus/icons-vue";
+import { X } from "lucide-vue-next";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
+import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
+import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
+import { useMediaQuery } from "@vueuse/core";
 import { ref, watch } from "vue";
 
 const props = defineProps({
@@ -31,7 +44,11 @@ const props = defineProps({
   },
   darkMode: {
     type: Boolean,
-    default: false,
+    default: undefined,
+  },
+  editTarget: {
+    type: Object as PropType<{ id: number; content: string; tags: string[] } | null>,
+    default: null,
   },
 });
 
@@ -41,6 +58,43 @@ const content = ref("");
 const selectedTags = ref([]);
 const tagSuggestions = ref([]);
 const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
+const isNarrow = useMediaQuery("(max-width: 639px)");
+const narrowToolbar = ["upload", "|", "undo", "redo"];
+const isEdit = computed(() => !!props.editTarget);
+
+const quoteVisible = ref(false);
+
+const QUOTE_POST_ICON = `<svg viewBox="0 0 16 16" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  <rect x="4" y="5" width="2.5" height="2.5" rx="0.6" fill="currentColor"/>
+  <rect x="7.5" y="5" width="4.5" height="1.4" rx="0.7" fill="currentColor"/>
+  <rect x="4" y="9" width="8" height="1.4" rx="0.7" fill="currentColor"/>
+</svg>`;
+
+const extraToolbar = [
+  "|",
+  {
+    name: "quote-post",
+    tip: "引用帖子",
+    icon: QUOTE_POST_ICON,
+    click: () => {
+      quoteVisible.value = true;
+    },
+  },
+];
+
+const insertQuote = (selection: QuoteSelection) => {
+  const markdown = `\n\n${buildQuoteMarkdown(selection)}\n\n`;
+  const editor = editorRef.value?.vditor;
+
+  if (editor) {
+    editor.insertValue(markdown);
+    content.value = editor.getValue();
+    return;
+  }
+
+  content.value = `${content.value}${markdown}`;
+};
 
 const fetchTags = async () => {
   try {
@@ -57,8 +111,13 @@ const fetchTags = async () => {
 watch(
   () => props.visible,
   (newVal) => {
-    if (newVal) {
-      fetchTags();
+    if (!newVal) {
+      return;
+    }
+    fetchTags();
+    if (props.editTarget) {
+      content.value = props.editTarget.content;
+      selectedTags.value = [...props.editTarget.tags];
     }
   }
 );
@@ -76,17 +135,24 @@ const submit = async () => {
     return;
   }
 
+  const editing = props.editTarget;
   try {
-    const res = await requestApi("/api/v2/forum/posts", {
-      method: "POST",
+    const res = await requestApi(editing ? `/api/v2/forum/posts/${editing.id}` : "/api/v2/forum/posts", {
+      method: editing ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: currentContent,
         tags: selectedTags.value,
       }),
     });
-    if (!res.ok) throw new Error("上传失败");
+    const data = await res.json().catch(() => null);
 
-    toast.success("发布成功");
+    if (!res.ok) {
+      toast.error(data?.message || "操作失败");
+      return;
+    }
+
+    toast.success(data?.data?.message || (editing ? "修改成功" : "发布成功"));
     emit("success");
     close();
   } catch (error) {
@@ -97,6 +163,16 @@ const submit = async () => {
 </script>
 
 <style scoped>
+.editor:deep(.el-input__wrapper) {
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.editor:deep(.vditor) {
+  --panel-background-color: var(--card);
+  --textarea-background-color: var(--card);
+}
+
 .editor:deep(.vditor-editor) {
   max-height: calc(100vh - 200px);
 }

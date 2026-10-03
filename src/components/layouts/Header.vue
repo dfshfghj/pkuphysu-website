@@ -2,8 +2,17 @@
 import { computed } from "vue";
 import { toggleDark, isDark } from "../../composables/theme";
 import { useUserStore } from "../../stores/user";
-import { Delete, More, Setting } from "@element-plus/icons-vue";
+import { Ellipsis, Moon, Settings, Sun, Trash2 } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 import UserAvatar from "../UserAvatar.vue";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -15,7 +24,7 @@ const isScrolled = computed(() => scrollTop.value > 50);
 const handleCommand = (command) => {
   if (command === "logout") {
     userStore.logout();
-    ElMessage.success("已退出登录");
+    toast.success("已退出登录");
     router.push("/login");
   } else if (command === "settings") {
     router.push("/settings");
@@ -29,69 +38,59 @@ const gotoDocs = () => {
 
 <template>
   <div :class="['menu-wrapper acrylic unselectable', { scrolled: isScrolled }]">
-    <el-menu :class="{ scrolled: isScrolled }" mode="horizontal" :ellipsis="false" router popper-class="acrylic">
-      <el-menu-item index="/">
-        <div class="flex items-center justify-center gap-2" style="display: flex; align-items: center">
-          <img src="../../assets/logo_white.svg" class="logo" v-if="isDark" />
-          <img src="../../assets/logo_black.svg" class="logo" v-else />
-          <b id="title" class="font-serif">物院学生会</b>
-        </div>
-      </el-menu-item>
-      <el-sub-menu index="1" id="more">
-        <template #title>
-          <el-icon>
-            <More />
-          </el-icon>
-        </template>
-        <el-menu-item index="/"> 论坛 </el-menu-item>
-        <el-menu-item @click="window.location.href = '/docs'"> 文档 </el-menu-item>
-        <el-menu-item index="/posts"> 文章 </el-menu-item>
-      </el-sub-menu>
-      <el-menu-item index="/" id="document"> 论坛 </el-menu-item>
-      <el-menu-item id="document" @click="gotoDocs"> 文档 </el-menu-item>
-      <el-menu-item index="/posts" id="posts"> 文章 </el-menu-item>
+    <nav class="header-bar">
+      <RouterLink to="/" class="header-brand">
+        <img src="../../assets/logo_white.svg" class="logo" v-if="isDark" />
+        <img src="../../assets/logo_black.svg" class="logo" v-else />
+        <b id="title" class="font-serif">物院学生会</b>
+      </RouterLink>
 
-      <el-menu-item h="full" @click="toggleDark()" id="toggleDark">
-        <button
-          class="cursor-pointer border-none bg-transparent"
-          style="height: var(--ep-menu-item-height); padding: 0"
-        >
-          <el-icon-sunny v-if="!isDark" width="20px" height="20px" />
-          <el-icon-moon v-else width="20px" height="20px" />
-        </button>
-      </el-menu-item>
-      <el-menu-item>
-        <div v-if="userStore.isLoggedIn" style="display: flex">
-          <el-dropdown @command="handleCommand">
+      <DropdownMenu>
+        <DropdownMenuTrigger id="more" class="header-link">
+          <Ellipsis class="size-5" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem @click="router.push('/')">论坛</DropdownMenuItem>
+          <DropdownMenuItem @click="gotoDocs">文档</DropdownMenuItem>
+          <DropdownMenuItem @click="router.push('/posts')">文章</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <RouterLink to="/" class="header-link header-link--mobile-hidden">论坛</RouterLink>
+      <button type="button" class="header-link header-link--mobile-hidden" @click="gotoDocs">文档</button>
+      <RouterLink to="/posts" class="header-link header-link--mobile-hidden">文章</RouterLink>
+
+      <button type="button" class="header-link header-link--mobile-hidden" @click="toggleDark()">
+        <Sun v-if="!isDark" class="size-5" />
+        <Moon v-else class="size-5" />
+      </button>
+
+      <div class="header-user">
+        <DropdownMenu v-if="userStore.isLoggedIn">
+          <DropdownMenuTrigger class="cursor-pointer border-none bg-transparent p-0">
             <UserAvatar />
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="settings">
-                  <el-icon>
-                    <Setting />
-                  </el-icon>
-                  <span>个人设置</span>
-                </el-dropdown-item>
-                <el-dropdown-item command="logout" divided style="color: #f56c6c">
-                  <el-icon>
-                    <Delete />
-                  </el-icon>
-                  <span>退出登录</span>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-        <el-button v-else link type="primary" plain @click="$router.push('/login')" class="border-none">
-          登录
-        </el-button>
-      </el-menu-item>
-    </el-menu>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem @click="handleCommand('settings')">
+              <Settings class="size-4" />
+              <span>个人设置</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem class="text-(--red-6)" @click="handleCommand('logout')">
+              <Trash2 class="size-4" />
+              <span>退出登录</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button v-else variant="link" @click="router.push('/login')" class="border-none"> 登录 </Button>
+      </div>
+    </nav>
   </div>
 </template>
 
-<style>
+<style scoped>
 .menu-wrapper {
+  --header-height: 56px;
   position: sticky;
   border-bottom: 1px solid var(--c-border);
   width: 100%;
@@ -102,25 +101,44 @@ const gotoDocs = () => {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.el-menu--horizontal.el-menu {
-  border: none;
+.header-bar {
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 10px;
 }
 
-.el-menu {
-  border: none;
-  background-color: transparent;
-}
-
-.el-menu :deep(.el-menu-item:hover) {
-  background-color: rgba(230, 247, 255, 0.2) !important;
-}
-
-.el-menu :deep(.el-sub-menu__title:hover) {
-  background-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-.el-menu--horizontal > .el-menu-item:nth-child(1) {
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-right: auto;
+  text-decoration: none;
+}
+
+.header-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: var(--c-text);
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.header-link:hover {
+  background-color: rgba(230, 247, 255, 0.2);
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 10px;
 }
 
 .logo {
@@ -128,35 +146,26 @@ const gotoDocs = () => {
   margin-right: 20px;
 }
 
-.submenu-icon {
-  visibility: hidden;
+#more {
+  display: none;
 }
 
 @media (max-width: 768px) {
-  .el-menu {
-    --el-menu-base-level-padding: 10px;
+  .header-link {
+    padding: 0 6px;
   }
 
-  #title,
-  #document,
-  #toggleDark,
-  #posts {
-    visibility: hidden;
-    width: 0px;
-    padding: 0px;
+  .header-link--mobile-hidden,
+  #title {
+    display: none;
+  }
+
+  #more {
+    display: flex;
   }
 
   .logo {
     margin-right: 0px;
-  }
-
-  .submenu-icon {
-    visibility: visible;
-  }
-
-  .submenu-title {
-    visibility: hidden;
-    width: 0px;
   }
 
   .menu-wrapper.scrolled {
@@ -165,14 +174,6 @@ const gotoDocs = () => {
     border-radius: 30px;
     top: 20px;
     margin: 0px 10%;
-  }
-}
-
-@media (min-width: 768px) {
-  #more {
-    visibility: hidden;
-    width: 0px;
-    padding: 0px;
   }
 }
 </style>

@@ -1,36 +1,33 @@
 <template>
-  <el-scrollbar class="h-screen! flex-1">
+  <ScrollPane class="h-screen! flex-1">
     <div class="min-h-lvh">
-      <h2 class="text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">设置</h2>
+      <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">设置</h2>
       <div class="p-4 mt-10">
         <Label class="p-2" for="picture"> 头像 </Label>
         <div class="flex items-end">
           <UserAvatar class="min-w-0 m-3" :userid="userStore.userid || ''" :size="70" />
-          <el-upload
-            :action="avatarUpload"
-            :headers="{ Authorization: 'Bearer ' + userStore.token }"
-            :show-file-list="false"
-            :on-success="handleUploadSuccess"
-            :before-upload="beforeUpload"
-            :limit="1"
-            :auto-upload="true"
+          <input
+            ref="fileInput"
+            type="file"
             accept=".jpg,.jpeg,.png,.gif"
-          >
-            <el-button size="small">
-              <el-icon>
-                <Edit />
-              </el-icon>
-              更换
-            </el-button>
-          </el-upload>
+            class="hidden"
+            @change="handleAvatarChange"
+          />
+          <Button variant="outline" size="sm" @click="fileInput?.click()">
+            <Pencil class="size-4" />
+            更换
+          </Button>
+          <div class="flex-1"></div>
+          <Button variant="outline" size="sm" class="m-3" @click="goProfile">
+            <UserIcon />
+            我的主页
+          </Button>
         </div>
       </div>
       <div class="p-4">
         <form v-if="currentUser" @submit.prevent="updateProfile">
           <FieldLabel class="p-2" for="username"> 用户名 </FieldLabel>
           <Input class="box-border" id="username" v-model="currentUser.username" required />
-          <FieldLabel class="p-2" for="bio"> 个性签名 </FieldLabel>
-          <Textarea id="bio" v-model="currentUser.bio" class="box-border resize-none" />
           <Field class="p-2 justify-end" orientation="horizontal">
             <Button type="submit" class="border" size="sm"> 更新 </Button>
           </Field>
@@ -78,6 +75,28 @@
             </Dialog>
           </ItemActions>
         </Item>
+        <Item variant="outline">
+          <ItemMedia>
+            <InfoIcon />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>关于本站</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <Button variant="outline" size="sm" @click="router.push('/about')"> 查看 </Button>
+          </ItemActions>
+        </Item>
+        <Item variant="outline">
+          <ItemMedia>
+            <LogOutIcon />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>退出登录</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <Button variant="outline" size="sm" @click="handleLogout"> 退出 </Button>
+          </ItemActions>
+        </Item>
         <Item variant="outline" class="text-(--red-7)">
           <ItemMedia>
             <AlertCircleIcon />
@@ -105,16 +124,17 @@
         </Item>
       </div>
     </div>
-  </el-scrollbar>
+  </ScrollPane>
 </template>
 <script setup lang="ts">
 import { useUserStore } from "@/stores/user";
 import { requestApi } from "@/api/api";
+import ScrollPane from "@/components/ScrollPane.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { toast } from "vue-sonner";
-import { AlertCircleIcon, Edit, ShieldCheckIcon } from "lucide-vue-next";
+import { AlertCircleIcon, InfoIcon, LogOutIcon, Pencil, ShieldCheckIcon, UserIcon } from "lucide-vue-next";
 import { sha256 } from "@/utils";
 
 interface User {
@@ -131,7 +151,21 @@ interface User {
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const avatarUpload = `${API_BASE}/api/v2/user/avatar`;
 const userStore = useUserStore();
+const router = useRouter();
 const currentUser = ref<User>({} as User);
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const handleLogout = () => {
+  userStore.logout();
+  router.push("/login");
+};
+
+const goProfile = () => {
+  if (!userStore.userid) {
+    return;
+  }
+  router.push({ name: "UserProfile", params: { id: userStore.userid } });
+};
 
 const passwordForm = reactive({
   oldPassword: "",
@@ -139,15 +173,15 @@ const passwordForm = reactive({
   confirmNewPassword: "",
 });
 
-const beforeUpload = (file: any) => {
+const beforeUpload = (file: File) => {
   const isImage = ["image/jpeg", "image/jpg", "image/png", "image/gif"].includes(file.type);
   const isLt5M = file.size / 1024 / 1024 < 5;
 
   if (!isImage) {
-    ElMessage.error("只能上传图片格式！");
+    toast.error("只能上传图片格式！");
   }
   if (!isLt5M) {
-    ElMessage.error("图片大小不能超过 5MB！");
+    toast.error("图片大小不能超过 5MB！");
   }
   return isImage && isLt5M;
 };
@@ -161,12 +195,35 @@ const handleUploadSuccess = (response: any) => {
   }
 };
 
+const handleAvatarChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file || !beforeUpload(file)) {
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch(avatarUpload, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + userStore.token },
+      body: formData,
+    });
+    handleUploadSuccess(await res.json());
+  } catch (err) {
+    toast.error("上传失败");
+    console.error("Avatar upload failed:", err);
+  }
+};
+
 const updateProfile = async () => {
   const res = await requestApi("/api/v2/user/me", {
     method: "PUT",
     body: JSON.stringify({
       username: currentUser.value.username,
-      bio: currentUser.value.bio,
     }),
   });
   const result = await res.json();
@@ -180,9 +237,8 @@ const updateProfile = async () => {
 };
 
 const changePassword = async () => {
-  console.log(passwordForm);
   if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
-    ElMessage.error("两次输入的新密码不一致");
+    toast.error("两次输入的新密码不一致");
     return;
   }
 
@@ -208,7 +264,6 @@ onBeforeMount(async () => {
     const result = await res.json();
     if (res.ok) {
       currentUser.value = result.data;
-      console.log(currentUser.value);
     } else {
       toast.error("加载失败");
     }

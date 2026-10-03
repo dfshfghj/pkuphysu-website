@@ -2,14 +2,13 @@
 import path from "node:path";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import viteCompression from 'vite-plugin-compression';
+import viteCompression from "vite-plugin-compression";
 import vueDevTools from "vite-plugin-vue-devtools";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
-import Icons from 'unplugin-icons/vite';
-import IconsResolver from 'unplugin-icons/resolver';
+import Icons from "unplugin-icons/vite";
+import IconsResolver from "unplugin-icons/resolver";
 import tailwindcss from "@tailwindcss/vite";
-import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
 // const certPath = path.resolve(__dirname, "./cert.pem");
 // const keyPath = path.resolve(__dirname, "./key.pem");
@@ -32,8 +31,8 @@ export default defineConfig({
       verbose: true,
       disable: false,
       threshold: 10240,
-      algorithm: 'gzip',
-      ext: '.gz',
+      algorithm: "gzip",
+      ext: ".gz",
       deleteOriginFile: false,
       compressionOptions: {
         level: 9,
@@ -42,9 +41,8 @@ export default defineConfig({
     vueDevTools(),
     AutoImport({
       resolvers: [
-        ElementPlusResolver(),
         IconsResolver({
-          prefix: 'Icon',
+          prefix: "Icon",
         }),
       ],
       imports: ["vue", "vue-router", "pinia"],
@@ -52,12 +50,8 @@ export default defineConfig({
     }),
     Components({
       resolvers: [
-        ElementPlusResolver({
-          // resolveIcons: true,
-          importStyle: "css",
-        }),
         IconsResolver({
-          prefix: 'Icon',
+          prefix: "Icon",
         }),
       ],
       dirs: ["src/components"],
@@ -71,13 +65,13 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   server: {
     proxy: {
       "/api/v2": {
-        target: "http://localhost:8080",
+        target: "http://localhost:8082",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/v2/, ""),
       },

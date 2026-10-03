@@ -1,12 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/user";
+import { buildTreeholeSiteUrl } from "../utils/treehole-quote";
 
 const routes = [
-  // {
-  //   path: "/",
-  //   name: "Home",
-  //   component: () => import("../pages/Home.vue"),
-  // },
   {
     path: "/redirect",
     name: "Redirect",
@@ -18,23 +14,12 @@ const routes = [
     component: () => import("../pages/AuthV2.vue"),
     meta: { noHeader: true },
   },
-  // {
-  //  path: "/random_draw/invest",
-  //  name: "EveParty",
-  //  component: () => import("../pages/EveParty.vue"),
-  //  meta: { login: true },
-  // },
-  // {
-  //   path: "/puzzle",
-  //   name: "Puzzle",
-  //   component: () => import("../pages/Puzzle.vue"),
-  //   meta: { login: true },
-  // },
-  // {
-  //   path: "/doc",
-  //   name: "Document",
-  //   component: () => import("../pages/Document.vue"),
-  // },
+  {
+    path: "/about",
+    name: "About",
+    component: () => import("../pages/About.vue"),
+    meta: { noHeader: true },
+  },
   {
     path: "/posts",
     name: "Posts",
@@ -80,6 +65,12 @@ const routes = [
         meta: { login: true },
       },
       {
+        path: "u/:id",
+        name: "UserProfile",
+        component: () => import("../pages/Profile.vue"),
+        meta: { login: true },
+      },
+      {
         path: "messages",
         name: "Messages",
         component: () => import("../pages/blog-center/Messages.vue"),
@@ -100,47 +91,11 @@ const routes = [
     ],
   },
   {
-    path: "/treehole",
-    name: "Treehole",
-    component: () => import("../pages/treehole/Treehole.vue"),
-    meta: {
-      noHeader: true,
-      login: true,
-    },
-    children: [
-      {
-        path: "",
-        name: "TreeholePostsView",
-        component: () => import("../pages/treehole/PostsView.vue"),
-        meta: { login: true },
-      },
-      {
-        path: "follow",
-        name: "TreeholeFollowView",
-        component: () => import("../pages/treehole/FollowView.vue"),
-        meta: { login: true },
-      },
-      {
-        path: "search/:query?",
-        name: "TreeholeSearchView",
-        component: () => import("../pages/treehole/SearchView.vue"),
-        meta: { login: true },
-      },
-      {
-        path: ":id",
-        name: "TreeholeCommentsView",
-        component: () => import("../pages/treehole/CommentsView.vue"),
-        meta: { login: true },
-      },
-    ],
-  },
-  {
-    path: "/admin/random-draw",
-    name: "RandomDraw",
-    component: () => import("../pages/admin/RandomDraw.vue"),
-    meta: {
-      noHeader: true,
-      admin: true,
+    path: "/treehole/:pathMatch(.*)*",
+    name: "TreeholeRedirect",
+    beforeEnter(to) {
+      window.location.replace(buildTreeholeSiteUrl(to.path));
+      return false;
     },
   },
   {
