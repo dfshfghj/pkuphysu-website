@@ -37,7 +37,11 @@
             {{ `@${quoteName}: ` }}
           </span>
         </div>
-        <ChevronDown :stroke-width="3" class="absolute! bottom-40 right-6 size-5 cursor-pointer" @click="toggleEdit(false)" />
+        <ChevronDown
+          :stroke-width="3"
+          class="absolute! bottom-40 right-6 size-5 cursor-pointer"
+          @click="toggleEdit(false)"
+        />
         <div class="absolute bottom-2 right-2 m-y-1 flex items-center gap-2">
           <Button variant="outline" @click="quoteVisible = true"> 引用 </Button>
           <Button variant="outline" @click="handleSubmit"> 发送 </Button>
@@ -52,7 +56,7 @@
 import { ChevronDown, ChevronUp } from "lucide-vue-next";
 import MarkdownEditor from "../MarkdownEditor.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
-import { buildPostQuoteMarkdown } from "@/utils/post-quote";
+import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { ref } from "vue";
@@ -86,8 +90,8 @@ const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;
 };
 
-const insertQuote = (id: number) => {
-  const markdown = `\n\n${buildPostQuoteMarkdown(id)}\n\n`;
+const insertQuote = (selection: QuoteSelection) => {
+  const markdown = `\n\n${buildQuoteMarkdown(selection)}\n\n`;
   const editor = editorRef.value?.vditor;
 
   if (editor) {

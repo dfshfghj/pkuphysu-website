@@ -184,8 +184,7 @@ declare module 'vue' {
     TooltipContent: typeof import('./components/ui/tooltip/TooltipContent.vue')['default']
     TooltipProvider: typeof import('./components/ui/tooltip/TooltipProvider.vue')['default']
     TooltipTrigger: typeof import('./components/ui/tooltip/TooltipTrigger.vue')['default']
-    TreeholeCommentCard: typeof import('./components/blog-center/TreeholeCommentCard.vue')['default']
-    TreeholePostCard: typeof import('./components/blog-center/TreeholePostCard.vue')['default']
+    TreeholeQuoteHoverCard: typeof import('./components/blog-center/TreeholeQuoteHoverCard.vue')['default']
     UserAvatar: typeof import('./components/UserAvatar.vue')['default']
   }
 }

@@ -1,5 +1,5 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { defineComponent } from "vue";
+import { defineComponent, h } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BlogCommentEditor from "@/components/blog-center/BlogCommentEditor.vue";
 
@@ -30,21 +30,26 @@ vi.mock("vue-sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }));
 
-const QuotePostDialogStub = defineComponent({
-  name: "QuotePostDialog",
-  props: { visible: { type: Boolean, default: false } },
-  emits: ["update:visible", "select"],
-  template: '<button v-if="visible" class="quote-pick" @click="$emit(\'select\', 45)">pick</button>',
-});
+const makeQuoteStub = (selection: { source: string; id: number }) =>
+  defineComponent({
+    name: "QuotePostDialog",
+    props: { visible: { type: Boolean, default: false } },
+    emits: ["update:visible", "select"],
+    setup(props, { emit }) {
+      return () =>
+        props.visible ? h("button", { class: "quote-pick", onClick: () => emit("select", selection) }, "pick") : null;
+    },
+  });
 
-const mountEditor = () =>
+const mountEditor = (selection = { source: "forum", id: 45 }) =>
   mount(BlogCommentEditor, {
     props: { postId: 7 },
-    global: { stubs: { QuotePostDialog: QuotePostDialogStub } },
+    global: { stubs: { QuotePostDialog: makeQuoteStub(selection) } },
   });
 
 describe("BlogCommentEditor 引用帖子", () => {
   beforeEach(() => {
+    mocks.exposeVditor = true;
     mocks.insertValue.mockReset();
     mocks.getValue.mockReset();
     mocks.getValue.mockReturnValue("");
@@ -73,12 +78,30 @@ describe("BlogCommentEditor 引用帖子", () => {
     const wrapper = mountEditor();
     await wrapper.find(".unselectable").trigger("click");
 
-    await wrapper.findAll("button").find((btn) => btn.text() === "引用")!.trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((btn) => btn.text() === "引用")!
+      .trigger("click");
     await flushPromises();
     await wrapper.find(".quote-pick").trigger("click");
     await flushPromises();
 
     expect(mocks.insertValue).not.toHaveBeenCalled();
     expect(wrapper.findComponent({ name: "MarkdownEditor" }).props("modelValue")).toBe("\n\n[#45](/45)\n\n");
+  });
+
+  it("选中树洞帖子时插入树洞引用标记", async () => {
+    const wrapper = mountEditor({ source: "treehole", id: 45 });
+    await wrapper.find(".unselectable").trigger("click");
+
+    await wrapper
+      .findAll("button")
+      .find((btn) => btn.text() === "引用")!
+      .trigger("click");
+    await flushPromises();
+    await wrapper.find(".quote-pick").trigger("click");
+    await flushPromises();
+
+    expect(mocks.insertValue).toHaveBeenCalledWith("\n\n[#45](/treehole/45)\n\n");
   });
 });

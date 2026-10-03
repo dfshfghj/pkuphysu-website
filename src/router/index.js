@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/user";
+import { buildTreeholeSiteUrl } from "../utils/treehole-quote";
 
 const routes = [
   {
@@ -90,39 +91,12 @@ const routes = [
     ],
   },
   {
-    path: "/treehole",
-    name: "Treehole",
-    component: () => import("../pages/treehole/Treehole.vue"),
-    meta: {
-      noHeader: true,
-      login: true,
+    path: "/treehole/:pathMatch(.*)*",
+    name: "TreeholeRedirect",
+    beforeEnter(to) {
+      window.location.replace(buildTreeholeSiteUrl(to.path));
+      return false;
     },
-    children: [
-      {
-        path: "",
-        name: "TreeholePostsView",
-        component: () => import("../pages/treehole/PostsView.vue"),
-        meta: { login: true },
-      },
-      {
-        path: "follow",
-        name: "TreeholeFollowView",
-        component: () => import("../pages/treehole/FollowView.vue"),
-        meta: { login: true },
-      },
-      {
-        path: "search/:query?",
-        name: "TreeholeSearchView",
-        component: () => import("../pages/treehole/SearchView.vue"),
-        meta: { login: true },
-      },
-      {
-        path: ":id",
-        name: "TreeholeCommentsView",
-        component: () => import("../pages/treehole/CommentsView.vue"),
-        meta: { login: true },
-      },
-    ],
   },
   {
     path: "/admin",

@@ -5,13 +5,38 @@
         <DialogTitle>引用帖子</DialogTitle>
       </DialogHeader>
 
-      <Input v-model="query" placeholder="搜索关键词或#pid" @keydown.enter.prevent="selectFirst" />
+      <div class="quote-source">
+        <button
+          type="button"
+          class="quote-source-tab"
+          :class="{ 'quote-source-tab--active': source === 'forum' }"
+          @click="switchSource('forum')"
+        >
+          站内
+        </button>
+        <button
+          type="button"
+          class="quote-source-tab"
+          :class="{ 'quote-source-tab--active': source === 'treehole' }"
+          @click="switchSource('treehole')"
+        >
+          树洞
+        </button>
+      </div>
+
+      <Input
+        v-model="query"
+        :placeholder="source === 'treehole' ? '搜索树洞关键词或#pid' : '搜索关键词或#pid'"
+        @keydown.enter.prevent="selectFirst"
+      />
 
       <div class="quote-list">
         <p v-if="loading" class="quote-hint">正在加载</p>
         <template v-else>
           <button v-for="item in results" :key="item.id" type="button" class="quote-option" @click="select(item.id)">
-            <span class="quote-option-meta"> #{{ item.id }} · {{ item.username }} </span>
+            <span class="quote-option-meta">
+              #{{ item.id }}<template v-if="item.username"> · {{ item.username }}</template>
+            </span>
             <span class="quote-option-excerpt">{{ item.excerpt }}</span>
           </button>
           <p v-if="searched && !results.length" class="quote-hint">没有更多</p>
@@ -29,13 +54,14 @@
 import { ref, watch } from "vue";
 import { requestApi } from "@/api/api";
 import { buildCommentPreview } from "@/utils/preview";
+import { type QuoteSelection, type QuoteSource } from "@/utils/quote";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 interface QuoteOption {
   id: number;
-  username: string;
+  username?: string;
   excerpt: string;
 }
 
@@ -46,13 +72,17 @@ defineProps({
   },
 });
 
-const emit = defineEmits(["update:visible", "select"]);
+const emit = defineEmits<{
+  "update:visible": [value: boolean];
+  select: [selection: QuoteSelection];
+}>();
 
 const DIRECT_ID_PATTERN = /^#?\s*(\d+)$/;
 const SEARCH_LIMIT = 8;
 const DEBOUNCE_MS = 300;
 
 const query = ref("");
+const source = ref<QuoteSource>("forum");
 const results = ref<QuoteOption[]>([]);
 const loading = ref(false);
 const searched = ref(false);
@@ -61,7 +91,7 @@ let debounceTimer: number | undefined;
 const close = () => emit("update:visible", false);
 
 const select = (id: number) => {
-  emit("select", id);
+  emit("select", { source: source.value, id });
   close();
 };
 
@@ -78,40 +108,66 @@ const handleOpenChange = (open: boolean) => {
   }
 
   query.value = "";
+  source.value = "forum";
   results.value = [];
   searched.value = false;
 };
 
-const toOption = (post: any): QuoteOption => ({
+const switchSource = (next: QuoteSource) => {
+  if (source.value === next) {
+    return;
+  }
+  source.value = next;
+  query.value = "";
+  results.value = [];
+  searched.value = false;
+};
+
+const toForumOption = (post: any): QuoteOption => ({
   id: post.id,
   username: post.username ?? "未知用户",
   excerpt: buildCommentPreview(post.text ?? "") || "（该帖暂无正文）",
 });
 
-const lookupById = async (id: number) => {
-  const res = await requestApi(`/api/v2/forum/posts/${id}`);
+const toTreeholeOption = (post: any): QuoteOption => ({
+  id: post.pid,
+  excerpt: buildCommentPreview(post.text ?? "") || "（该帖暂无正文）",
+});
+
+const lookupById = async (id: number, from: QuoteSource) => {
+  const url =
+    from === "treehole" ? `/api/dev/chapi/api/v3/hole/get?pid=${id}` : `/api/v2/forum/posts/${id}`;
+  const res = await requestApi(url);
   if (!res.ok) {
     results.value = [];
     return;
   }
 
   const result = await res.json();
-  results.value = result?.data ? [toOption(result.data)] : [];
+  const post = result?.data;
+  results.value = post ? [from === "treehole" ? toTreeholeOption(post) : toForumOption(post)] : [];
 };
 
-const search = async (keyword: string) => {
-  const params = new URLSearchParams({
-    keyword,
-    limit: String(SEARCH_LIMIT),
-    comment_limit: "0",
-  });
+const search = async (keyword: string, from: QuoteSource) => {
+  const params = new URLSearchParams({ keyword, limit: String(SEARCH_LIMIT) });
+  let url: string;
+  if (from === "treehole") {
+    params.set("page", "1");
+    params.set("comment_limit", "0");
+    params.set("comment_stream", "1");
+    url = `/api/dev/chapi/api/v3/hole/list_comments?${params.toString()}`;
+  } else {
+    params.set("comment_limit", "0");
+    url = `/api/v2/forum/posts?${params.toString()}`;
+  }
 
-  const res = await requestApi(`/api/v2/forum/posts?${params.toString()}`);
+  const res = await requestApi(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
   const result = await res.json();
-  const list = Array.isArray(result?.data) ? result.data : [];
-  results.value = list.map(toOption);
+  const list = from === "treehole" ? result?.data?.list : result?.data;
+  const items = Array.isArray(list) ? list : [];
+  results.value = items.map(from === "treehole" ? toTreeholeOption : toForumOption);
 };
 
 const run = async () => {
@@ -122,21 +178,24 @@ const run = async () => {
     return;
   }
 
+  const from = source.value;
   loading.value = true;
   searched.value = false;
   try {
     const directId = DIRECT_ID_PATTERN.exec(keyword);
     if (directId) {
-      await lookupById(Number(directId[1]));
+      await lookupById(Number(directId[1]), from);
     } else {
-      await search(keyword);
+      await search(keyword, from);
     }
   } catch (error) {
     results.value = [];
     console.error("Quote post lookup failed:", error);
   } finally {
-    loading.value = false;
-    searched.value = true;
+    if (source.value === from) {
+      loading.value = false;
+      searched.value = true;
+    }
   }
 };
 
@@ -149,6 +208,31 @@ onBeforeUnmount(() => window.clearTimeout(debounceTimer));
 </script>
 
 <style scoped>
+.quote-source {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 8px;
+  background: var(--gray-2);
+}
+
+.quote-source-tab {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.quote-source-tab--active {
+  background: var(--card);
+  color: var(--c-title);
+  font-weight: 600;
+}
+
 .quote-list {
   max-height: 18rem;
   overflow-y: auto;

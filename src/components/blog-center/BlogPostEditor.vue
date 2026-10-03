@@ -31,7 +31,7 @@ import { X } from "lucide-vue-next";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
-import { buildPostQuoteMarkdown } from "@/utils/post-quote";
+import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
 import { useMediaQuery } from "@vueuse/core";
@@ -83,8 +83,8 @@ const extraToolbar = [
   },
 ];
 
-const insertQuote = (id: number) => {
-  const markdown = `\n\n${buildPostQuoteMarkdown(id)}\n\n`;
+const insertQuote = (selection: QuoteSelection) => {
+  const markdown = `\n\n${buildQuoteMarkdown(selection)}\n\n`;
   const editor = editorRef.value?.vditor;
 
   if (editor) {
