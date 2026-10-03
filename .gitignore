@@ -33,9 +33,7 @@ migrations
 *.jpg
 *.jpeg
 *.webp
-*.json
 *.pem
-!package.json
 .secrets.toml
 .env
 .env.development
