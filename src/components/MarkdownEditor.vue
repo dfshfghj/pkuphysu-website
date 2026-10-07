@@ -42,6 +42,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  autofocus: {
+    type: Boolean,
+    default: false,
+  },
   toolbar: {
     type: Array as PropType<(string | Record<string, unknown>)[]>,
     default: undefined,
@@ -177,6 +181,9 @@ const initVditor = () => {
     },
     after: () => {
       setValue(props.modelValue);
+      if (props.autofocus) {
+        vditor.value?.focus();
+      }
     },
     typewriterMode: true,
   });

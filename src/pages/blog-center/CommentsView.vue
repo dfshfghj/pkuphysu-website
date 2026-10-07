@@ -41,6 +41,7 @@
         :quote-name="quoteName"
         :dark-mode="isDark"
         @success="fetchComments(pid)"
+        @clear-quote="clearQuote"
       />
     </div>
   </ScrollPane>
@@ -73,9 +74,13 @@ const toggleQuote = (id: number, name: string) => {
     quote.value = id;
     quoteName.value = name;
   } else {
-    quote.value = 0;
-    quoteName.value = "";
+    clearQuote();
   }
+};
+
+const clearQuote = () => {
+  quote.value = 0;
+  quoteName.value = "";
 };
 
 const fetchComments = async (postId: number) => {
