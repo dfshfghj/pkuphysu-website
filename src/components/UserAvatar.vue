@@ -14,7 +14,7 @@ const userStore = useUserStore();
 
 const props = defineProps({
   userid: {
-    type: String,
+    type: [String, Number],
     default: "",
   },
   size: {
@@ -23,5 +23,5 @@ const props = defineProps({
   },
 });
 
-const userAvatar = ref(`${API_BASE}/api/v2/user/avatar/${props.userid || userStore.userid}`);
+const userAvatar = computed(() => `${API_BASE}/api/v2/user/avatar/${props.userid || userStore.userid}`);
 </script>
