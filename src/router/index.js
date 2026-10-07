@@ -21,11 +21,6 @@ const routes = [
     meta: { noHeader: true },
   },
   {
-    path: "/posts",
-    name: "Posts",
-    component: () => import("../pages/Posts.vue"),
-  },
-  {
     path: "/settings-1",
     name: "Settings",
     component: () => import("../pages/Settings.vue"),

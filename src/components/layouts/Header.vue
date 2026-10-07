@@ -52,13 +52,11 @@ const gotoDocs = () => {
         <DropdownMenuContent align="end">
           <DropdownMenuItem @click="router.push('/')">论坛</DropdownMenuItem>
           <DropdownMenuItem @click="gotoDocs">文档</DropdownMenuItem>
-          <DropdownMenuItem @click="router.push('/posts')">文章</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <RouterLink to="/" class="header-link header-link--mobile-hidden">论坛</RouterLink>
       <button type="button" class="header-link header-link--mobile-hidden" @click="gotoDocs">文档</button>
-      <RouterLink to="/posts" class="header-link header-link--mobile-hidden">文章</RouterLink>
 
       <button type="button" class="header-link header-link--mobile-hidden" @click="toggleDark()">
         <Sun v-if="!isDark" class="size-5" />
