@@ -244,37 +244,38 @@ const goProfile = async () => {
 };
 
 const handleLike = async () => {
+  const prevLiked = isLiked.value;
+  const prevNum = likeNum.value;
+  isLiked.value = !prevLiked;
+  likeNum.value = isLiked.value ? prevNum + 1 : prevNum - 1;
+  forumStore.updatePostLike(props.post.id, isLiked.value, likeNum.value);
+
   try {
     const res = await requestApi(`/api/v2/forum/like/${props.post.id}`, {
       method: "POST",
     });
-
-    // 更新本地状态
-    isLiked.value = !isLiked.value;
-    likeNum.value = isLiked.value ? likeNum.value + 1 : likeNum.value - 1;
-
-    // 更新store中的帖子数据
-    forumStore.updatePostLike(props.post.id, isLiked.value, likeNum.value);
-
-    if (!res.ok) throw new Error("操作失败");
-  } catch (error) {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch (error) {    isLiked.value = prevLiked;
+    likeNum.value = prevNum;
+    forumStore.updatePostLike(props.post.id, prevLiked, prevNum);
     toast.error("操作失败");
     console.error("Like operation failed:", error);
   }
 };
 
 const handleFollow = async () => {
+  const prevFollowed = isFollowed.value;
+  const prevNum = followNum.value;
+  isFollowed.value = !prevFollowed;
+  followNum.value = isFollowed.value ? prevNum + 1 : prevNum - 1;
+
   try {
     const res = await requestApi(`/api/v2/forum/follow/${props.post.id}`, {
       method: "POST",
     });
-
-    // 更新本地状态
-    isFollowed.value = !isFollowed.value;
-    followNum.value = isFollowed.value ? followNum.value + 1 : followNum.value - 1;
-
-    if (!res.ok) throw new Error("操作失败");
-  } catch (error) {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch (error) {    isFollowed.value = prevFollowed;
+    followNum.value = prevNum;
     toast.error("操作失败");
     console.error("Follow operation failed:", error);
   }
