@@ -2,6 +2,13 @@
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
     <div class="min-h-lvh">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">搜索结果</h2>
+      <div v-if="posts.length" class="flex items-center justify-between gap-2 px-6 pt-2">
+        <span class="text-sm text-(--c-secondary)"> 共 {{ posts.length }}{{ endOfPosts ? "" : "+" }} 条结果 </span>
+        <Button variant="ghost" size="sm" @click="clearSearch">
+          <X class="size-4" />
+          清除筛选
+        </Button>
+      </div>
       <ListLoading v-if="postsLoading && !posts.length" />
       <EmptyState v-else-if="!posts.length" description="没有找到相关帖子" />
       <template v-else>
@@ -25,11 +32,17 @@ import ScrollPane from "@/components/ScrollPane.vue";
 import ListLoading from "@/components/ListLoading.vue";
 import EmptyState from "@/components/EmptyState.vue";
 import BlogPostCard from "../../components/blog-center/BlogPostCard.vue";
+import Button from "@/components/ui/button/Button.vue";
+import { X } from "lucide-vue-next";
 import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
 
 const router = useRouter();
 const route = useRoute();
+
+const clearSearch = () => {
+  router.push("/");
+};
 
 const mainScrollbar = ref<InstanceType<typeof ScrollPane> | null>(null);
 const posts = ref([]);
