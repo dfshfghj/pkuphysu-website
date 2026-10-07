@@ -54,13 +54,13 @@ const routes = [
         meta: { login: true },
       },
       {
-        path: ":id",
+        path: ":id(\\d+)",
         name: "CommentsView",
         component: () => import("../pages/blog-center/CommentsView.vue"),
         meta: { login: true },
       },
       {
-        path: "u/:id",
+        path: "u/:id(\\d+)",
         name: "UserProfile",
         component: () => import("../pages/Profile.vue"),
         meta: { login: true },
