@@ -74,12 +74,12 @@ onMounted(async () => {
       box: "border-box",
     });
   }
+});
 
-  onUnmounted(() => {
-    if (resizeObserver.value) {
-      resizeObserver.value.disconnect();
-    }
-  });
+onUnmounted(() => {
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect();
+  }
 });
 
 watch(
