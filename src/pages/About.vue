@@ -16,7 +16,7 @@
             v-for="doc in docs"
             :key="doc.name"
             :value="doc.name"
-            class="h-full flex-none rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 text-[15px] text-(--c-secondary) shadow-none data-[state=active]:border-(--c-brand) data-[state=active]:bg-transparent data-[state=active]:text-(--c-brand) data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
+            class="h-full flex-none rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 text-[15px] text-(--c-secondary) shadow-none data-[state=active]:border-(--c-brand)! data-[state=active]:bg-transparent data-[state=active]:text-(--c-brand)! data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
           >
             {{ doc.label }}
           </TabsTrigger>

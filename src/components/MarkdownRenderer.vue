@@ -113,6 +113,7 @@ onBeforeUnmount(() => {
 
 .markdown-body {
   --bgColor-default: transparent;
+  --fgColor-accent: var(--c-link);
 }
 
 .markdown-body :deep(iframe) {

@@ -1,55 +1,63 @@
 <template>
-  <div class="group rounded-sm my-2 py-3 comment-card" :key="comment.cid" @click="emit('click')">
-    <CollapsibleDiv :max-height="300">
-      <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
-        <div class="flex">
-          <UserAvatar class="mr-2" :userid="comment.userid" />
-          <div class="flex-1">
-            <span> {{ comment.username }} </span>
-            <div class="flex flex-row-reverse w-full items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                  <Ellipsis class="mr-4 size-4 scale-125 fill-current cursor-pointer" @click.stop />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
-                  <DropdownMenuItem @click="reportVisible = true">举报</DropdownMenuItem>
-                  <DropdownMenuItem v-if="canDelete" class="text-(--red-6)" @click="deleteVisible = true">
-                    删除
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <div class="float-right mr-4" @click.stop="handleLike">
-                {{ props.comment.likenum }}
-                <span class="inline-flex items-center align-middle text-[10px]">
-                  <IconRiHeartFill v-if="props.comment.is_like" />
-                  <IconRiHeartLine v-else />
-                </span>
-              </div>
-              <span class="flex min-w-0 flex-1 items-center">
-                <span class="truncate">
-                  {{ timeInfo.relativeTime }}
-                  <span class="hidden sm:inline">{{ timeInfo.formattedTime }}</span>
-                </span>
-              </span>
-            </div>
+  <div
+    class="group comment-card flex cursor-pointer items-start gap-2 rounded-sm border-b border-(--c-border) px-5 py-4 md:pr-12.5 md:pl-6"
+    :key="comment.cid"
+    @click="handleCardClick"
+  >
+    <div class="hidden shrink-0 sm:flex">
+      <UserAvatar :userid="comment.userid" :size="40" />
+    </div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+      <div class="unselectable flex items-center gap-2 text-sm">
+        <div class="shrink-0 sm:hidden">
+          <UserAvatar :userid="comment.userid" :size="28" />
+        </div>
+        <span class="min-w-0 truncate">{{ comment.username }}</span>
+        <span class="ml-auto shrink-0 text-xs text-(--c-secondary)">
+          {{ timeInfo.relativeTime }}
+          <span class="hidden sm:inline">{{ timeInfo.formattedTime }}</span>
+        </span>
+      </div>
+
+      <CollapsibleDiv :max-height="300">
+        <span v-if="comment.quote" class="text-sm text-(--c-secondary)!">
+          <a
+            :href="`/u/${comment.quote.userid}`"
+            :data-mention="String(comment.quote.userid)"
+            class="text-(--c-link) hover:underline"
+            @click="openQuoteAuthor"
+            @mouseenter="showQuoteAuthorCard"
+            >@{{ comment.quote.username }}</a
+          >:
+        </span>
+        <ForumContent :content="comment.text" />
+      </CollapsibleDiv>
+
+      <div class="mt-1 flex items-center text-xs text-(--c-secondary)">
+        <div class="ml-auto flex items-center gap-4">
+          <div class="flex cursor-pointer items-center gap-1" @click.stop="handleLike">
+            {{ props.comment.likenum }}
+            <IconRiHeartFill v-if="props.comment.is_like" class="size-3" />
+            <IconRiHeartLine v-else class="size-3" />
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Ellipsis class="size-4 scale-125 fill-current cursor-pointer" @click.stop />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
+              <DropdownMenuItem @click="reportVisible = true">举报</DropdownMenuItem>
+              <DropdownMenuItem v-if="canDelete" class="text-(--red-6)" @click="deleteVisible = true">
+                删除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-      <span v-if="comment.quote" class="text-sm text-(--c-secondary)!">
-        <a
-          :href="`/u/${comment.quote.userid}`"
-          :data-mention="String(comment.quote.userid)"
-          class="hover:underline"
-          @click="openQuoteAuthor"
-          @mouseenter="showQuoteAuthorCard"
-          >@{{ comment.quote.username }}</a
-        >:
-      </span>
-      <ForumContent :content="comment.text" />
-    </CollapsibleDiv>
-    <UserMentionHoverCard ref="mentionCardRef" />
+    </div>
   </div>
+  <UserMentionHoverCard ref="mentionCardRef" />
   <ForumReportDialog
     v-model="reportVisible"
     :target-id="comment.cid"
@@ -69,7 +77,7 @@
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Ellipsis } from "lucide-vue-next";
-import { formatTime } from "@/utils";
+import { formatTime, shouldIgnoreCardClick } from "@/utils";
 import { requestApi } from "@/api/api";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
 import ForumContent from "@/components/blog-center/ForumContent.vue";
@@ -106,6 +114,11 @@ const openQuoteAuthor = (event: MouseEvent) => {
   event.preventDefault();
   event.stopPropagation();
   router.push(`/u/${props.comment.quote.userid}`);
+};
+
+const handleCardClick = (event: MouseEvent) => {
+  if (shouldIgnoreCardClick(event)) return;
+  emit("click");
 };
 
 const showQuoteAuthorCard = (event: MouseEvent) => {

@@ -79,7 +79,7 @@
           <div class="flex items-center justify-center mt-4 hidden">
             <label class="flex items-center text-xs text-gray-600 dark:text-gray-300">
               <input type="checkbox" v-model="agreeTerms" class="mr-1" required /> 我已阅读并同意
-              <a href="#" class="text-blue-500 hover:text-blue-700 ml-1">服务条款</a>
+              <a href="#" class="text-primary hover:text-primary/80 ml-1">服务条款</a>
             </label>
           </div>
           <div class="text-center mt-3 text-xs text-gray-500">注册成功后可在个人中心设置密码</div>

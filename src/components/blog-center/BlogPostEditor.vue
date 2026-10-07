@@ -152,16 +152,6 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.editor:deep(.el-input__wrapper) {
-  box-shadow: none;
-  background-color: transparent;
-}
-
-.editor:deep(.vditor) {
-  --panel-background-color: var(--card);
-  --textarea-background-color: var(--card);
-}
-
 .editor:deep(.vditor-editor) {
   max-height: calc(100vh - 200px);
 }

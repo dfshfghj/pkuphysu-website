@@ -129,7 +129,7 @@ const gotoDocs = () => {
 }
 
 .header-link:hover {
-  background-color: rgba(230, 247, 255, 0.2);
+  background-color: var(--c-ui-hover-bg);
 }
 
 .header-user {

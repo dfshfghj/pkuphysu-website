@@ -43,3 +43,12 @@ export function formatTime(timestamp: number) {
 export async function sha256(str: string, salt: string) {
   return JSsha256(`${str}-${salt}`);
 }
+
+export function shouldIgnoreCardClick(event: MouseEvent) {
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("a, button, input, textarea, select, [role='menuitem']")) {
+    return true;
+  }
+  const selection = window.getSelection();
+  return !!selection && !selection.isCollapsed;
+}

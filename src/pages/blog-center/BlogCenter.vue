@@ -1,5 +1,5 @@
 <template>
-  <div class="flex">
+  <div class="flex min-h-screen bg-background">
     <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2">
       <div class="control-btn sm:font-serif font-bold p-2" @click="goPosts">
         <RotateCw class="size-5" :stroke-width="1.5" />
@@ -91,7 +91,7 @@
         </keep-alive>
       </router-view>
     </div>
-    <div class="flex-col w-3/10 border-l border-(--c-border) hidden md:flex">
+    <div class="flex-col w-3/10 hidden md:flex">
       <div class="control-search p-1 m-3">
         <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
         <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
@@ -143,7 +143,6 @@
   <PasswordDialog />
 
   <BottomNav :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
-  <div class="bg-img"></div>
 </template>
 
 <script setup lang="ts">
@@ -337,7 +336,6 @@ onUnmounted(() => {
 }
 
 .comment-card {
-  margin: 5px;
   max-width: none;
 }
 
@@ -346,27 +344,6 @@ onUnmounted(() => {
   padding: 15px 0 10px 0;
   margin-bottom: 10px;
   border-bottom: 1px solid var(--c-border);
-}
-
-.bg-img {
-  position: fixed;
-  z-index: -1;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url("/images/bg-light.webp") center center / cover rgb(255, 255, 255);
-}
-
-.dark .bg-img {
-  background: url("/images/bg.webp") center center / cover rgb(255, 255, 255);
-}
-
-.bg-img::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: color-mix(in oklab, var(--background) 70%, transparent);
 }
 
 @media (max-width: 1024px) {

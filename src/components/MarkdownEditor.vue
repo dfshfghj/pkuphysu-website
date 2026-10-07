@@ -227,16 +227,21 @@ defineExpose({
 </script>
 
 <style>
-.vditor-toolbar--hide {
-  height: 8px;
-  background-color: var(--panel-background-color);
+.vditor-container .vditor {
   border: none;
-}
-</style>
-
-<style scoped>
-.vditor-container {
   --panel-background-color: var(--card);
   --textarea-background-color: var(--card);
+  --toolbar-background-color: var(--card);
+  --border-color: var(--c-border);
+  --toolbar-icon-hover-color: var(--c-ui-hover-text);
+}
+
+.vditor-container .vditor .vditor-toolbar__item .vditor-tooltipped:hover,
+.vditor-container .vditor .vditor-toolbar__item .vditor-tooltipped:focus {
+  background-color: var(--c-ui-hover-bg);
+}
+
+.vditor-container .vditor .vditor-menu--current {
+  color: var(--ring) !important;
 }
 </style>
