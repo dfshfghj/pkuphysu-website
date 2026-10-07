@@ -37,6 +37,7 @@
           v-model="content"
           :dark-mode="darkMode"
           :height="200"
+          :extra-toolbar="extraToolbar"
           autofocus
         />
         <div v-if="quote">
@@ -45,7 +46,6 @@
           </span>
         </div>
         <div class="absolute bottom-2 right-2 m-y-1 flex items-center gap-2">
-          <Button variant="outline" @click="quoteVisible = true"> 引用 </Button>
           <Button variant="outline" @click="handleSubmit"> 发送 </Button>
         </div>
         <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import MarkdownEditor from "../MarkdownEditor.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
-import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
+import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { ref, watch, onMounted, onUnmounted } from "vue";
@@ -86,6 +86,13 @@ const content = ref("");
 const isEditing = ref(false);
 const editorRef = ref(null);
 const quoteVisible = ref(false);
+
+const extraToolbar = [
+  "|",
+  createQuotePostToolbarItem(() => {
+    quoteVisible.value = true;
+  }),
+];
 
 const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;
