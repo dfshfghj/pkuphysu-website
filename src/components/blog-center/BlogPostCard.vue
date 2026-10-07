@@ -109,6 +109,7 @@
     @success="emit('deleted', post.id)"
   />
   <BlogPostEditor
+    v-if="editMounted"
     v-model:visible="editVisible"
     :edit-target="editTarget"
     :dark-mode="darkMode"
@@ -118,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { Ellipsis, MessageSquare, Star } from "lucide-vue-next";
 import ForumContent from "@/components/blog-center/ForumContent.vue";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
@@ -171,6 +172,10 @@ const deleteVisible = ref(false);
 const editVisible = ref(false);
 const historyVisible = ref(false);
 const editTarget = ref<{ id: number; content: string; tags: string[] } | null>(null);
+const editMounted = ref(false);
+watch(editVisible, (visible) => {
+  if (visible) editMounted.value = true;
+});
 const timeInfo = computed(() => formatTime(props.post.timestamp));
 const previewComments = computed(() => buildPreviewComments(props.post.comments));
 const isAdmin = computed(() => userStore.role === 2);
