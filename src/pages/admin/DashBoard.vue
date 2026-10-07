@@ -289,7 +289,7 @@ const handleCreateUser = async () => {
     creatingUser.value = true;
     const hashedPassword = await sha256(newUserForm.password, "hello_pkuphysu");
 
-    const response = await requestApi("/api/v2/user/create", {
+    const response = await requestApi("/api/v2/admin/user/create", {
       method: "POST",
       body: JSON.stringify({
         username: newUserForm.username,
