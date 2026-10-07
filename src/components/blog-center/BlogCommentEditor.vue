@@ -37,7 +37,6 @@
           v-model="content"
           :dark-mode="darkMode"
           :height="200"
-          :hide-toolbar="true"
           autofocus
         />
         <div v-if="quote">
