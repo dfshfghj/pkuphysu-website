@@ -61,6 +61,29 @@ Markdown 原文复制到别处。
 `TreeholeQuoteHoverCard` 都只显示 `#id`、时间与正文，**不显示作者**。树洞没有批量引用接口，只能按 pid 逐条取，
 `utils/treehole-quote.ts` 按 id 缓存并合并并发请求；取不到的（`data` 为 null）记为不可见，避免反复重试。
 
+## 提及标记
+
+与引用同一套思路，提及标记也是一条**标准 Markdown 链接**：
+
+```
+[@username](/u/id)
+```
+
+链接文字是 `@<用户名>`，`href` 指向用户主页 `/u/<id>`；**文字与 href 同时符合**才算提及，
+避免把作者手写的普通站内链接误判。判定在 `utils/mention.ts` 的 `parseMentionLink`。
+
+- **编辑器**：`MarkdownEditor` 用 Vditor 原生 `hint.extend`（`key: "@"`）做自动补全。Vditor 的
+  `hint(value)` 支持返回 Promise，且有 `hint.delay` debounce，因此直接调后端 `GET /users/search`
+  做前缀搜索（`utils/user-search.ts` 带缓存）。刚输入 `@`（关键词为空）时后端返回默认推荐列表，
+  因此候选框会**立即弹出**，无需再敲一个字符。选中后插入 `[@用户名](/u/<id>)`，末尾补一个空格。
+  注意 Vditor 的 `getKey` 只在 `@` 位于**行首或空格之后**才触发提示。
+- **展示**：`ForumContent` 标注 `a[data-mention]` 并挂 `UserMentionHoverCard`（复用 `/users/:id/stats`，
+  与帖子卡片的头像悬浮卡一致）；点击由 `MarkdownRenderer` 的站内链接统一走路由。
+- **评论引用前缀**：`BlogCommentCard` 里引用另一条评论时的 `@作者` 也复用同一套：渲染成指向
+  `/u/<userid>` 的链接并挂 `UserMentionHoverCard`，点击跳作者主页（`quote` payload 需带 `userid`）。
+- **通知**：被 @ 的用户在内容可见时收到 `forum_mention` 通知；评论的 `quote` 也按提及处理，
+  并与正文里显式 @ 去重（后端 `notifyMentions` 统一处理，见 `docs/api.md`）。
+
 ## 树洞已迁出站外
 
 树洞浏览页已从本站移除，迁到独立站点（env `VITE_TREEHOLE_URL`），站内只保留引用能力。

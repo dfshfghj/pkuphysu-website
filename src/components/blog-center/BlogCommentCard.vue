@@ -37,10 +37,18 @@
         </div>
       </div>
       <span v-if="comment.quote" class="text-sm text-(--c-secondary)!">
-        {{ `@${comment.quote.username}: ` }}
+        <a
+          :href="`/u/${comment.quote.userid}`"
+          :data-mention="String(comment.quote.userid)"
+          class="hover:underline"
+          @click="openQuoteAuthor"
+          @mouseenter="showQuoteAuthorCard"
+          >@{{ comment.quote.username }}</a
+        >:
       </span>
       <ForumContent :content="comment.text" />
     </CollapsibleDiv>
+    <UserMentionHoverCard ref="mentionCardRef" />
   </div>
   <ForumReportDialog
     v-model="reportVisible"
@@ -59,11 +67,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import { Ellipsis } from "lucide-vue-next";
 import { formatTime } from "@/utils";
 import { requestApi } from "@/api/api";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
 import ForumContent from "@/components/blog-center/ForumContent.vue";
+import UserMentionHoverCard from "@/components/blog-center/UserMentionHoverCard.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { useForumStore } from "@/stores/forum";
 import { useUserStore } from "@/stores/user";
@@ -79,6 +89,7 @@ import {
 
 const forumStore = useForumStore();
 const userStore = useUserStore();
+const router = useRouter();
 const emit = defineEmits(["click", "like-update", "deleted"]);
 
 const props = defineProps({
@@ -89,6 +100,18 @@ const props = defineProps({
 });
 const reportVisible = ref(false);
 const deleteVisible = ref(false);
+const mentionCardRef = ref<InstanceType<typeof UserMentionHoverCard> | null>(null);
+
+const openQuoteAuthor = (event: MouseEvent) => {
+  event.preventDefault();
+  event.stopPropagation();
+  router.push(`/u/${props.comment.quote.userid}`);
+};
+
+const showQuoteAuthorCard = (event: MouseEvent) => {
+  mentionCardRef.value?.show(event.currentTarget as HTMLAnchorElement);
+};
+
 const isAdmin = computed(() => userStore.role === 2);
 const isOwn = computed(() => Number(props.comment.userid) === Number(userStore.userid));
 const timeInfo = computed(() => formatTime(props.comment.timestamp));

@@ -10,6 +10,8 @@ import vditorPackage from "vditor/package.json";
 import "vditor/dist/index.css";
 import { nextTick } from "vue";
 import { isDark } from "@/composables/theme";
+import { buildMentionMarkdown } from "@/utils/mention";
+import { searchUsers } from "@/utils/user-search";
 
 const props = defineProps({
   modelValue: {
@@ -129,6 +131,22 @@ const initVditor = () => {
         current: preview_theme,
       },
       actions: [],
+    },
+    hint: {
+      delay: 200,
+      parse: true,
+      extend: [
+        {
+          key: "@",
+          hint: async (value: string) => {
+            const users = await searchUsers(value);
+            return users.map((user) => ({
+              value: `${buildMentionMarkdown(user.username, user.id)} `,
+              html: `@${user.username}`,
+            }));
+          },
+        },
+      ],
     },
     upload: {
       url: "/api/v2/files/upload",

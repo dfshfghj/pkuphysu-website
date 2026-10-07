@@ -186,5 +186,6 @@ declare module 'vue' {
     TooltipTrigger: typeof import('./components/ui/tooltip/TooltipTrigger.vue')['default']
     TreeholeQuoteHoverCard: typeof import('./components/blog-center/TreeholeQuoteHoverCard.vue')['default']
     UserAvatar: typeof import('./components/UserAvatar.vue')['default']
+    UserMentionHoverCard: typeof import('./components/blog-center/UserMentionHoverCard.vue')['default']
   }
 }
