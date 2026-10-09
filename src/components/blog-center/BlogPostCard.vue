@@ -58,6 +58,8 @@
 
       <PostPoll v-if="poll" :post-id="post.id" :poll="poll" @voted="handlePollVoted" />
 
+      <PostSurvey v-if="survey" :survey="survey" />
+
       <div class="mt-1 flex items-center text-xs text-(--c-secondary)">
         <span v-if="post.edit_count">已编辑 {{ post.edit_count }} 次</span>
         <div class="ml-auto flex items-center gap-4">
@@ -140,6 +142,8 @@ import AdminDeleteDialog from "@/components/blog-center/AdminDeleteDialog.vue";
 import ForumReportDialog from "@/components/blog-center/ForumReportDialog.vue";
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PostPoll from "@/components/blog-center/PostPoll.vue";
+import PostSurvey from "@/components/survey/PostSurvey.vue";
+import { type SurveySummary } from "@/utils/survey";
 import PostHistoryDialog from "@/components/blog-center/PostHistoryDialog.vue";
 import {
   DropdownMenu,
@@ -174,6 +178,7 @@ const isFollowed = ref(props.post.is_follow);
 const likeNum = ref(props.post.likenum);
 const followNum = ref(props.post.follownum);
 const poll = ref<Poll | null>(props.post.poll ?? null);
+const survey = ref<SurveySummary | null>(props.post.survey ?? null);
 const reportVisible = ref(false);
 const deleteVisible = ref(false);
 const editVisible = ref(false);
@@ -188,6 +193,12 @@ watch(
   () => props.post.poll,
   (next) => {
     poll.value = next ?? null;
+  }
+);
+watch(
+  () => props.post.survey,
+  (next) => {
+    survey.value = next ?? null;
   }
 );
 const previewComments = computed(() => buildPreviewComments(props.post.comments));

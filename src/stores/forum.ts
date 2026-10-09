@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { requestApi } from "@/api/api";
 import { buildForumListParams, extractPostIdToken } from "@/utils/forum-search";
+import type { SurveySummary } from "@/utils/survey";
 
 export interface PollOption {
   id: number;
@@ -33,6 +34,7 @@ export interface Post {
   type: number;
   tags: string[];
   poll?: Poll | null;
+  survey?: SurveySummary | null;
 }
 
 export interface Comment {

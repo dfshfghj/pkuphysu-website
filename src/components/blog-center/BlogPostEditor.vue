@@ -30,12 +30,25 @@
           <li v-for="(option, index) in pollConfig.options" :key="index">{{ option }}</li>
         </ul>
       </div>
+      <div v-if="surveyConfig" class="poll-summary">
+        <div class="poll-summary__head">
+          <span class="poll-summary__title">问卷 · {{ countQuestionBlocks(surveyConfig.blocks) }} 题</span>
+          <div class="poll-summary__actions">
+            <button type="button" @click="surveyVisible = true">编辑</button>
+            <button type="button" @click="surveyConfig = null">移除</button>
+          </div>
+        </div>
+        <ul class="poll-summary__options">
+          <li v-for="(block, index) in surveyConfig.blocks" :key="index">{{ surveyBlockLabel(block) }}</li>
+        </ul>
+      </div>
       <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">
         {{ isEdit ? "保存" : "发布" }}
       </Button>
     </div>
     <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
     <PollComposerDialog v-model:visible="pollVisible" :initial="pollConfig" @confirm="handlePollConfirm" />
+    <SurveyComposerDialog v-model:visible="surveyVisible" :initial="surveyConfig" @confirm="handleSurveyConfirm" />
   </div>
 </template>
 
@@ -45,8 +58,10 @@ import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
 import PollComposerDialog from "@/components/blog-center/PollComposerDialog.vue";
+import SurveyComposerDialog from "@/components/survey/SurveyComposerDialog.vue";
 import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
 import { createPollToolbarItem, type PollConfig } from "@/utils/poll";
+import { createSurveyToolbarItem, countQuestionBlocks, SURVEY_QUESTION_TYPES, type SurveyDraft, type SurveyDraftBlock } from "@/utils/survey";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
 import { useMediaQuery } from "@vueuse/core";
@@ -80,6 +95,8 @@ const isEdit = computed(() => !!props.editTarget);
 const quoteVisible = ref(false);
 const pollVisible = ref(false);
 const pollConfig = ref<PollConfig | null>(null);
+const surveyVisible = ref(false);
+const surveyConfig = ref<SurveyDraft | null>(null);
 
 const extraToolbar = [
   "|",
@@ -89,10 +106,25 @@ const extraToolbar = [
   createPollToolbarItem(() => {
     pollVisible.value = true;
   }),
+  createSurveyToolbarItem(() => {
+    surveyVisible.value = true;
+  }),
 ];
 
 const handlePollConfirm = (config: PollConfig) => {
   pollConfig.value = config;
+};
+
+const handleSurveyConfirm = (draft: SurveyDraft) => {
+  surveyConfig.value = draft;
+};
+
+const surveyBlockLabel = (block: SurveyDraftBlock) => {
+  if (block.kind === "markdown") {
+    const firstLine = block.content.trim().split("\n")[0] ?? "";
+    return firstLine ? firstLine.slice(0, 40) : "（Markdown）";
+  }
+  return SURVEY_QUESTION_TYPES.find((item) => item.value === block.type)?.label ?? block.type;
 };
 
 const insertQuote = (selection: QuoteSelection) => {
@@ -140,6 +172,7 @@ const close = () => {
   content.value = "";
   selectedTags.value = [];
   pollConfig.value = null;
+  surveyConfig.value = null;
 };
 
 const submit = async () => {
@@ -156,6 +189,9 @@ const submit = async () => {
   };
   if (!editing && pollConfig.value) {
     body.poll = pollConfig.value;
+  }
+  if (!editing && surveyConfig.value) {
+    body.survey = surveyConfig.value;
   }
 
   try {
