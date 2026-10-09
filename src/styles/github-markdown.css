@@ -311,6 +311,14 @@
   opacity: 1;
 }
 
+.markdown-body hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: var(--borderColor-default);
+  border: 0;
+}
+
 .markdown-body hr::before {
   display: table;
   content: "";
@@ -456,6 +464,14 @@
   margin-top: 0;
   margin-bottom: 0;
   padding-left: 2em;
+}
+
+.markdown-body ul {
+  list-style-type: disc;
+}
+
+.markdown-body ol {
+  list-style-type: decimal;
 }
 
 .markdown-body ol ol,
