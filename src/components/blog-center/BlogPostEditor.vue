@@ -18,11 +18,24 @@
         :toolbar="isNarrow ? narrowToolbar : undefined"
         :extra-toolbar="extraToolbar"
       />
+      <div v-if="pollConfig" class="poll-summary">
+        <div class="poll-summary__head">
+          <span class="poll-summary__title">投票 · {{ pollConfig.multiple ? "多选" : "单选" }}</span>
+          <div class="poll-summary__actions">
+            <button type="button" @click="pollVisible = true">编辑</button>
+            <button type="button" @click="pollConfig = null">移除</button>
+          </div>
+        </div>
+        <ul class="poll-summary__options">
+          <li v-for="(option, index) in pollConfig.options" :key="index">{{ option }}</li>
+        </ul>
+      </div>
       <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">
         {{ isEdit ? "保存" : "发布" }}
       </Button>
     </div>
     <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
+    <PollComposerDialog v-model:visible="pollVisible" :initial="pollConfig" @confirm="handlePollConfirm" />
   </div>
 </template>
 
@@ -31,7 +44,9 @@ import { X } from "lucide-vue-next";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
+import PollComposerDialog from "@/components/blog-center/PollComposerDialog.vue";
 import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
+import { createPollToolbarItem, type PollConfig } from "@/utils/poll";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
 import { useMediaQuery } from "@vueuse/core";
@@ -63,13 +78,22 @@ const narrowToolbar = ["upload", "|", "undo", "redo"];
 const isEdit = computed(() => !!props.editTarget);
 
 const quoteVisible = ref(false);
+const pollVisible = ref(false);
+const pollConfig = ref<PollConfig | null>(null);
 
 const extraToolbar = [
   "|",
   createQuotePostToolbarItem(() => {
     quoteVisible.value = true;
   }),
+  createPollToolbarItem(() => {
+    pollVisible.value = true;
+  }),
 ];
+
+const handlePollConfirm = (config: PollConfig) => {
+  pollConfig.value = config;
+};
 
 const insertQuote = (selection: QuoteSelection) => {
   const markdown = `\n\n${buildQuoteMarkdown(selection)}\n\n`;
@@ -115,6 +139,7 @@ const close = () => {
   emit("update:visible", false);
   content.value = "";
   selectedTags.value = [];
+  pollConfig.value = null;
 };
 
 const submit = async () => {
@@ -125,14 +150,19 @@ const submit = async () => {
   }
 
   const editing = props.editTarget;
+  const body: Record<string, unknown> = {
+    text: currentContent,
+    tags: selectedTags.value,
+  };
+  if (!editing && pollConfig.value) {
+    body.poll = pollConfig.value;
+  }
+
   try {
     const res = await requestApi(editing ? `/api/v2/forum/posts/${editing.id}` : "/api/v2/forum/posts", {
       method: editing ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: currentContent,
-        tags: selectedTags.value,
-      }),
+      body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => null);
 
@@ -154,5 +184,52 @@ const submit = async () => {
 <style scoped>
 .editor:deep(.vditor-editor) {
   max-height: calc(100vh - 200px);
+}
+
+.poll-summary {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--gray-2);
+}
+
+.poll-summary__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.poll-summary__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-title);
+}
+
+.poll-summary__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.poll-summary__actions button {
+  padding: 0.15rem 0.4rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-secondary);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.poll-summary__actions button:hover {
+  background: var(--card);
+}
+
+.poll-summary__options {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+  font-size: 0.8125rem;
+  color: var(--c-title);
 }
 </style>

@@ -401,7 +401,11 @@
 ```json
 {
   "text": "帖子内容",        // 帖子内容（必填）
-  "tags": ["tag1", "tag2"]   // 标签列表（可选）
+  "tags": ["tag1", "tag2"],  // 标签列表（可选）
+  "poll": {                  // 投票（可选，仅发帖时可创建，编辑不修改投票）
+    "multiple": false,       // 是否允许多选
+    "options": ["选项A", "选项B"]  // 2~10 个选项，每个最多 100 字
+  }
 }
 ```
 
@@ -414,6 +418,54 @@
   }
 }
 ```
+
+#### POST /forum/posts/:id/vote - 投票
+对帖子附带的投票投票，**每个用户只能投一次，投出后不可更改**。
+
+**请求参数**：
+```json
+{
+  "option_ids": [1, 2]       // 选中的选项ID；单选投票只能传一个
+}
+```
+
+**返回值**：
+```json
+{
+  "status": 200,
+  "data": {
+    "message": "投票成功",
+    "poll": { /* 结构见帖子响应中的 poll 字段，此时 voted=true */ }
+  }
+}
+```
+
+**错误**：
+- `404 PollNotFound`：该帖子没有投票
+- `400 InvalidParams`：选项为空、单选传了多个、或选项不属于该投票
+- `409 AlreadyVoted`：已经投过票
+
+#### 帖子响应中的 poll 字段
+帖子列表与单帖响应都带有 `poll`（无投票时为 `null`）：
+
+```json
+{
+  "id": 5,
+  "multiple": true,
+  "voted": false,           // 当前用户是否已投票
+  "can_see_results": false, // 能否看到占比 = 已投票 或 当前用户是作者
+  "total_votes": 12,        // 仅 can_see_results 时下发（去重人数）
+  "options": [
+    { "id": 1, "text": "选项A", "count": 7, "percent": 58, "selected": true },
+    { "id": 2, "text": "选项B", "count": 5, "percent": 42, "selected": false }
+  ]
+}
+```
+
+- **占比可见性**：`count` / `percent` / `total_votes` 仅在 `can_see_results` 时下发——**作者总是可见**，其他用户必须先投票。
+- `selected` 仅在当前用户已投票时下发，标记其选中的选项。
+- 多选下 `percent = count / total_votes`，各项之和可能超过 100。
+
 
 #### GET /forum/follow - 获取关注的帖子
 **查询参数**：
