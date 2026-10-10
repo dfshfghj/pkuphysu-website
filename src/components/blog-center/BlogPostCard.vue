@@ -1,102 +1,105 @@
 <template>
-  <div class="group rounded-sm my-2 py-3" :key="post.id">
-    <CollapsibleDiv :max-height="500">
-      <div class="text-sm pt-4 pb-2 mb-2 border-b border-(--c-border) unselectable">
-        <div class="flex">
-          <HoverCard :open="hoverCardOpen" @update:open="handleHoverOpen">
-            <HoverCardTrigger>
-              <UserAvatar class="mr-2" :userid="post.userid" @click.stop="goProfile" />
-            </HoverCardTrigger>
-            <HoverCardContent v-if="!hoverCardDismissed" class="w-60">
-              <div class="flex items-center gap-3">
-                <UserAvatar :userid="post.userid" :size="50" @click.stop="goProfile" />
-                <span class="min-w-0 flex-1 cursor-pointer truncate font-bold hover:underline" @click.stop="goProfile">
-                  {{ post.username }}
-                </span>
-              </div>
-              <div class="mt-3 flex items-center border-t border-(--c-border) pt-2 text-center">
-                <div class="flex flex-1 flex-col">
-                  <span class="font-bold">{{ hoverStats?.post_count ?? "-" }}</span>
-                  <span class="text-xs text-(--c-secondary)">帖子</span>
-                </div>
-                <div class="flex flex-1 flex-col">
-                  <span class="font-bold">{{ hoverStats?.comment_count ?? "-" }}</span>
-                  <span class="text-xs text-(--c-secondary)">评论</span>
-                </div>
-                <div class="flex flex-1 flex-col">
-                  <span class="font-bold">{{ hoverStats?.likes_received ?? "-" }}</span>
-                  <span class="text-xs text-(--c-secondary)">获赞</span>
-                </div>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-          <div class="flex-1">
-            <span class="cursor-pointer hover:underline" @click.stop="goProfile"> {{ post.username }} </span>
-            <code> #{{ post.id }} </code>
-            <div class="flex flex-row-reverse w-full items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                  <Ellipsis class="mr-4 size-4 scale-125 fill-current cursor-pointer" @click.stop />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
-                  <DropdownMenuItem v-if="post.edit_count" @click="historyVisible = true">历史版本</DropdownMenuItem>
-                  <DropdownMenuItem v-if="isOwn" @click="handleEdit">编辑</DropdownMenuItem>
-                  <DropdownMenuItem @click="reportVisible = true">举报</DropdownMenuItem>
-                  <DropdownMenuItem v-if="canDelete" class="text-(--red-6)" @click="deleteVisible = true">
-                    删除
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <div class="float-right mr-4" @click.stop="handleFollow">
-                {{ followNum }}
-                <span class="inline-flex items-center align-middle text-[10px]">
-                  <Star class="size-3 fill-current" v-if="isFollowed" />
-                  <Star v-else class="size-3" />
-                </span>
-              </div>
-              <div class="float-right mr-4" @click.stop="handleLike">
-                {{ likeNum }}
-                <span class="inline-flex items-center align-middle text-[10px]">
-                  <IconRiHeartFill v-if="isLiked" />
-                  <IconRiHeartLine v-else />
-                </span>
-              </div>
-              <div class="float-right mr-4" v-if="post.reply" @click.stop="">
-                {{ post.reply }}
-                <MessageSquare class="inline-block size-3 align-middle" />
-              </div>
-              <span class="flex min-w-0 flex-1 items-center">
-                <span class="truncate">
-                  {{ timeInfo.relativeTime }}
-                  {{ timeInfo.formattedTime }}
-                </span>
-              </span>
+  <div
+    class="group post-card flex cursor-pointer items-start gap-2 border-b border-(--c-border) px-5 py-4 md:pr-12.5 md:pl-6"
+    :key="post.id"
+    @click="handleClick"
+  >
+    <div class="hidden shrink-0 sm:flex">
+      <HoverCard :open="hoverCardOpen" @update:open="handleHoverOpen">
+        <HoverCardTrigger class="flex">
+          <UserAvatar :userid="post.userid" :size="40" @click.stop="goProfile" />
+        </HoverCardTrigger>
+        <HoverCardContent v-if="!hoverCardDismissed" class="w-60">
+          <div class="flex items-center gap-3">
+            <UserAvatar :userid="post.userid" :size="50" @click.stop="goProfile" />
+            <span class="min-w-0 flex-1 cursor-pointer truncate font-bold hover:underline" @click.stop="goProfile">
+              {{ post.username }}
+            </span>
+          </div>
+          <div class="mt-3 flex items-center border-t border-(--c-border) pt-2 text-center">
+            <div class="flex flex-1 flex-col">
+              <span class="font-bold">{{ hoverStats?.post_count ?? "-" }}</span>
+              <span class="text-xs text-(--c-secondary)">帖子</span>
+            </div>
+            <div class="flex flex-1 flex-col">
+              <span class="font-bold">{{ hoverStats?.comment_count ?? "-" }}</span>
+              <span class="text-xs text-(--c-secondary)">评论</span>
+            </div>
+            <div class="flex flex-1 flex-col">
+              <span class="font-bold">{{ hoverStats?.likes_received ?? "-" }}</span>
+              <span class="text-xs text-(--c-secondary)">获赞</span>
             </div>
           </div>
+        </HoverCardContent>
+      </HoverCard>
+    </div>
+
+    <div class="flex min-w-0 flex-1 flex-col">
+      <div class="unselectable flex items-center gap-2 text-sm">
+        <div class="shrink-0 sm:hidden">
+          <UserAvatar :userid="post.userid" :size="28" @click.stop="goProfile" />
         </div>
-        <div class="mt-2.5 mr-1">
-          <span class="text-sm bg-(--gray-2) px-3 py-1 mr-3 mb-2 rounded-full" v-for="tag in post.tags" :key="tag">
-            {{ tag }}
-          </span>
+        <span class="min-w-0 cursor-pointer truncate hover:underline" @click.stop="goProfile">{{ post.username }}</span>
+        <code class="shrink-0">#{{ post.id }}</code>
+        <span class="ml-auto shrink-0 text-xs text-(--c-secondary)">
+          {{ timeInfo.relativeTime }}
+          <span class="hidden sm:inline">{{ timeInfo.formattedTime }}</span>
+        </span>
+      </div>
+      <div v-if="post.tags?.length" class="mt-2 mr-1">
+        <span class="text-sm bg-(--gray-2) px-3 py-1 mr-3 mb-2 rounded-full" v-for="tag in post.tags" :key="tag">
+          {{ tag }}
+        </span>
+      </div>
+
+      <CollapsibleDiv :max-height="500">
+        <ForumContent :content="post.text" />
+      </CollapsibleDiv>
+
+      <div class="mt-1 flex items-center text-xs text-(--c-secondary)">
+        <span v-if="post.edit_count">已编辑 {{ post.edit_count }} 次</span>
+        <div class="ml-auto flex items-center gap-4">
+          <div v-if="post.reply" class="flex cursor-pointer items-center gap-1" @click.stop="">
+            {{ post.reply }}
+            <MessageSquare class="size-3" />
+          </div>
+          <div class="flex cursor-pointer items-center gap-1" @click.stop="handleLike">
+            {{ likeNum }}
+            <IconRiHeartFill v-if="isLiked" class="size-3" />
+            <IconRiHeartLine v-else class="size-3" />
+          </div>
+          <div class="flex cursor-pointer items-center gap-1" @click.stop="handleFollow">
+            {{ followNum }}
+            <Star class="size-3 fill-current" v-if="isFollowed" />
+            <Star v-else class="size-3" />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Ellipsis class="size-4 scale-125 fill-current cursor-pointer" @click.stop />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
+              <DropdownMenuItem v-if="post.edit_count" @click="historyVisible = true">历史版本</DropdownMenuItem>
+              <DropdownMenuItem v-if="isOwn" @click="handleEdit">编辑</DropdownMenuItem>
+              <DropdownMenuItem @click="reportVisible = true">举报</DropdownMenuItem>
+              <DropdownMenuItem v-if="canDelete" class="text-(--red-6)" @click="deleteVisible = true">
+                删除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <ForumContent :content="post.text" class="cursor-pointer" @click="handleClick" />
-    </CollapsibleDiv>
-    <div
-      v-if="showPreviewComments && previewComments.length"
-      class="flex cursor-pointer flex-col gap-0.5 px-5 pt-1 text-xs md:px-12.5"
-      @click="handleClick"
-    >
-      <div v-for="comment in previewComments" :key="comment.cid" class="line-clamp-2 break-words text-(--c-secondary)">
-        <span class="text-(--c-title)">{{ comment.username }}</span
-        >: <span v-if="comment.mention" class="mr-1 text-(--c-title)">{{ comment.mention }}</span
-        ><span v-html="comment.html"></span>
+      <div
+        v-if="showPreviewComments && previewComments.length"
+        class="my-2 flex flex-col gap-0.5 rounded-md bg-(--gray-2) p-2 text-xs"
+      >
+        <div v-for="comment in previewComments" :key="comment.cid" class="line-clamp-2 break-words text-(--c-secondary)">
+          <span class="text-(--c-title)">{{ comment.username }}</span
+          >: <span v-if="comment.mention" class="mr-1 text-(--c-title)">{{ comment.mention }}</span
+          ><span v-html="comment.html"></span>
+        </div>
       </div>
-    </div>
-    <div v-if="post.edit_count" class="px-5 text-xs text-(--c-secondary) md:px-12.5">
-      已编辑 {{ post.edit_count }} 次
     </div>
   </div>
   <ForumReportDialog v-model="reportVisible" :target-id="post.id" />
@@ -124,7 +127,7 @@ import { Ellipsis, MessageSquare, Star } from "lucide-vue-next";
 import ForumContent from "@/components/blog-center/ForumContent.vue";
 import CollapsibleDiv from "@/components/CollapsibleDiv.vue";
 import { requestApi } from "@/api/api";
-import { formatTime } from "@/utils";
+import { formatTime, shouldIgnoreCardClick } from "@/utils";
 import { buildPreviewComments } from "@/utils/preview";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { useForumStore } from "@/stores/forum";
@@ -202,7 +205,8 @@ const handleEdit = async () => {
   }
 };
 
-const handleClick = () => {
+const handleClick = (event: MouseEvent) => {
+  if (shouldIgnoreCardClick(event)) return;
   emit("card-click");
 };
 

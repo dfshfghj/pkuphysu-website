@@ -12,7 +12,6 @@
         @deleted="handlePostDeleted"
         @updated="forumStore.fetchPostById(pid)"
       />
-      <div class="border-b border-(--c-border)"></div>
 
       <div class="flex pl-6 pt-3">
         <span class="text-lg sm:font-serif font-bold"> 评论 </span>

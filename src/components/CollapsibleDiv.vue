@@ -2,18 +2,18 @@
   <div class="collapsible-container">
     <div
       ref="contentRef"
-      class="overflow-hidden w-full px-5 md:px-12.5"
+      class="overflow-hidden w-full"
       :class="{ expanded: isExpanded }"
       :style="{ maxHeight: currentMaxHeight }"
     >
       <slot></slot>
     </div>
-    <div class="px-8 py-3 text-right bottom-4 z-1" :class="isExpanded ? 'sticky' : ''" v-if="shouldShowButton">
-      <div v-if="isExpanded" @click="toggleExpanded" class="flex items-center cursor-pointer justify-end">
+    <div class="py-2 text-right bottom-4 z-1" :class="isExpanded ? 'sticky' : ''" v-if="shouldShowButton">
+      <div v-if="isExpanded" @click.stop="toggleExpanded" class="flex items-center cursor-pointer justify-end">
         <span class="text-sm">收起</span>
         <ChevronsUp :size="16" />
       </div>
-      <div v-else @click="toggleExpanded" class="flex items-center cursor-pointer justify-end">
+      <div v-else @click.stop="toggleExpanded" class="flex items-center cursor-pointer justify-end">
         <span class="text-sm">展开</span>
         <ChevronsDown :size="16" />
       </div>
