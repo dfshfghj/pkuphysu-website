@@ -7,6 +7,7 @@
   >
     <div
       class="box-border flex bg-card border-t border-(--c-border) rounded-t p-2.5 items-center absolute z-9999 bottom-0 w-full"
+      data-comment-editor
       v-if="!isEditing"
       key="simp"
     >
@@ -17,33 +18,34 @@
           </span>
         </div>
         <div
-          class="py-1 pl-4 pr-1 mr-8 bg-background border border-(--c-border) rounded-full shadow-[0_0_6px_rgba(0,0,0,0.12)] text-[13px] unselectable"
+          class="py-1 pl-4 pr-1 bg-background border border-(--c-border) rounded-full shadow-[0_0_6px_rgba(0,0,0,0.12)] text-[13px] unselectable"
           @click="toggleEdit(true)"
         >
           <span> {{ content.trim() ? content.trim() : "评论" }} </span>
         </div>
       </div>
-      <ChevronUp :stroke-width="3" class="size-5 cursor-pointer" @click="toggleEdit(true)" />
     </div>
     <div
       class="box-border flex p-1 bg-card border-t border-(--c-border) rounded-t absolute z-9999 bottom-0 w-full unselectable"
+      data-comment-editor
       v-else
       key="full"
     >
       <div class="w-full flex flex-col-reverse relative">
-        <MarkdownEditor ref="editorRef" v-model="content" :dark-mode="darkMode" :height="200" :hide-toolbar="true" />
+        <MarkdownEditor
+          ref="editorRef"
+          v-model="content"
+          :dark-mode="darkMode"
+          :height="200"
+          :extra-toolbar="extraToolbar"
+          autofocus
+        />
         <div v-if="quote">
           <span class="text-sm text-(--c-secondary)!">
             {{ `@${quoteName}: ` }}
           </span>
         </div>
-        <ChevronDown
-          :stroke-width="3"
-          class="absolute! bottom-40 right-6 size-5 cursor-pointer"
-          @click="toggleEdit(false)"
-        />
         <div class="absolute bottom-2 right-2 m-y-1 flex items-center gap-2">
-          <Button variant="outline" @click="quoteVisible = true"> 引用 </Button>
           <Button variant="outline" @click="handleSubmit"> 发送 </Button>
         </div>
         <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
@@ -53,14 +55,13 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, ChevronUp } from "lucide-vue-next";
 import MarkdownEditor from "../MarkdownEditor.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
-import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
+import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
-import { ref } from "vue";
-const emit = defineEmits(["success"]);
+import { ref, watch, onMounted, onUnmounted } from "vue";
+const emit = defineEmits(["success", "clear-quote"]);
 
 const props = defineProps({
   quote: {
@@ -86,9 +87,49 @@ const isEditing = ref(false);
 const editorRef = ref(null);
 const quoteVisible = ref(false);
 
+const extraToolbar = [
+  "|",
+  createQuotePostToolbarItem(() => {
+    quoteVisible.value = true;
+  }),
+];
+
 const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;
 };
+
+const handleDocumentClick = (event: MouseEvent) => {
+  if (!isEditing.value || quoteVisible.value) {
+    return;
+  }
+
+  const target = event.target as HTMLElement | null;
+  if (!target || typeof target.closest !== "function") {
+    return;
+  }
+
+  const inside = target.closest(
+    '[data-comment-editor], .comment-card, [role="dialog"], [role="alertdialog"], [role="menu"], [data-slot="dialog-overlay"], [data-slot="dropdown-menu-content"]'
+  );
+  if (!inside) {
+    isEditing.value = false;
+    if (props.quote) {
+      emit("clear-quote");
+    }
+  }
+};
+
+onMounted(() => document.addEventListener("click", handleDocumentClick));
+onUnmounted(() => document.removeEventListener("click", handleDocumentClick));
+
+watch(
+  () => props.quote,
+  (quote) => {
+    if (quote) {
+      isEditing.value = true;
+    }
+  }
+);
 
 const insertQuote = (selection: QuoteSelection) => {
   const markdown = `\n\n${buildQuoteMarkdown(selection)}\n\n`;

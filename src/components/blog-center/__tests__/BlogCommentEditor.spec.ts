@@ -14,7 +14,7 @@ vi.mock("@/components/MarkdownEditor.vue", async () => {
   return {
     default: defineComponent({
       name: "MarkdownEditor",
-      props: { modelValue: { type: String, default: "" } },
+      props: { modelValue: { type: String, default: "" }, extraToolbar: { type: Array, default: () => [] } },
       emits: ["update:modelValue"],
       setup(_, { expose }) {
         if (mocks.exposeVditor) {
@@ -47,6 +47,15 @@ const mountEditor = (selection = { source: "forum", id: 45 }) =>
     global: { stubs: { QuotePostDialog: makeQuoteStub(selection) } },
   });
 
+const openQuotePicker = async (wrapper: ReturnType<typeof mountEditor>) => {
+  const editor = wrapper.findComponent({ name: "MarkdownEditor" });
+  const item = (editor.props("extraToolbar") as Array<{ name?: string; click?: () => void }>).find(
+    (entry) => entry?.name === "quote-post"
+  );
+  item!.click!();
+  await flushPromises();
+};
+
 describe("BlogCommentEditor 引用帖子", () => {
   beforeEach(() => {
     mocks.exposeVditor = true;
@@ -55,17 +64,13 @@ describe("BlogCommentEditor 引用帖子", () => {
     mocks.getValue.mockReturnValue("");
   });
 
-  it("展开评论框后点「引用」能插入引用标记", async () => {
+  it("展开评论框后通过 toolbar 引用能插入引用标记", async () => {
     const wrapper = mountEditor();
 
     expect(wrapper.find(".quote-pick").exists()).toBe(false);
     await wrapper.find(".unselectable").trigger("click");
 
-    const quoteButton = wrapper.findAll("button").find((btn) => btn.text() === "引用");
-    expect(quoteButton).toBeTruthy();
-
-    await quoteButton!.trigger("click");
-    await flushPromises();
+    await openQuotePicker(wrapper);
 
     await wrapper.find(".quote-pick").trigger("click");
     await flushPromises();
@@ -78,11 +83,7 @@ describe("BlogCommentEditor 引用帖子", () => {
     const wrapper = mountEditor();
     await wrapper.find(".unselectable").trigger("click");
 
-    await wrapper
-      .findAll("button")
-      .find((btn) => btn.text() === "引用")!
-      .trigger("click");
-    await flushPromises();
+    await openQuotePicker(wrapper);
     await wrapper.find(".quote-pick").trigger("click");
     await flushPromises();
 
@@ -94,11 +95,7 @@ describe("BlogCommentEditor 引用帖子", () => {
     const wrapper = mountEditor({ source: "treehole", id: 45 });
     await wrapper.find(".unselectable").trigger("click");
 
-    await wrapper
-      .findAll("button")
-      .find((btn) => btn.text() === "引用")!
-      .trigger("click");
-    await flushPromises();
+    await openQuotePicker(wrapper);
     await wrapper.find(".quote-pick").trigger("click");
     await flushPromises();
 
