@@ -98,15 +98,20 @@
       </div>
       <Accordion type="single" collapsible class="p-5" default-value="item-3">
         <AccordionItem value="item-1">
-          <AccordionTrigger>热门话题</AccordionTrigger>
+          <AccordionTrigger>话题标签</AccordionTrigger>
           <AccordionContent>
-            <p>暂无</p>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>最近更新</AccordionTrigger>
-          <AccordionContent>
-            <p>暂无</p>
+            <div v-if="tags.length" class="flex flex-wrap gap-2 pt-1">
+              <button
+                v-for="tag in tags"
+                :key="tag"
+                type="button"
+                class="rounded-full bg-(--gray-2) px-3 py-1 text-xs transition-opacity hover:opacity-70"
+                @click="navigateToTag(tag)"
+              >
+                {{ tag }}
+              </button>
+            </div>
+            <p v-else class="text-sm text-(--c-secondary)">暂无</p>
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-3">
@@ -145,6 +150,7 @@
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
 import SearchTagInput from "@/components/SearchTagInput.vue";
+import { requestApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
 import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
@@ -201,6 +207,23 @@ const goFollow = () => {
   }
 };
 
+const tags = ref<string[]>([]);
+
+const fetchTags = async () => {
+  try {
+    const res = await requestApi("/api/v2/forum/tags");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    tags.value = data.data.map((tag: { tag_name: string }) => tag.tag_name);
+  } catch (error) {
+    console.error("Fetch tags failed:", error);
+  }
+};
+
+const navigateToTag = (tag: string) => {
+  router.push({ path: "/search", query: { tag } });
+};
+
 const navigateToSearch = () => {
   if (searchDraft.value.length > 0) {
     const query: LocationQueryRaw = buildSearchRouteQuery(searchDraft.value);
@@ -245,6 +268,8 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(fetchTags);
 
 // 引用外部图片绕过防盗链
 onBeforeMount(() => {

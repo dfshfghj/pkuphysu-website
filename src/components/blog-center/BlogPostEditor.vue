@@ -119,7 +119,8 @@ watch(
       content.value = props.editTarget.content;
       selectedTags.value = [...props.editTarget.tags];
     }
-  }
+  },
+  { immediate: true }
 );
 
 const close = () => {

@@ -107,7 +107,7 @@
           <ItemActions>
             <AlertDialog>
               <AlertDialogTrigger as-child>
-                <Button class="border" type="submit" size="sm"> 确认 </Button>
+                <Button class="border" type="submit" size="sm"> 注销 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -115,8 +115,14 @@
                   <AlertDialogDescription> 您确定要删除您的账户吗？此操作不可逆。 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
-                  <AlertDialogAction>确认</AlertDialogAction>
+                  <AlertDialogCancel :disabled="deletingAccount">取消</AlertDialogCancel>
+                  <AlertDialogAction
+                    class="bg-(--red-6) text-white hover:bg-(--red-7)"
+                    :disabled="deletingAccount"
+                    @click="handleDeleteAccount"
+                  >
+                    {{ deletingAccount ? "注销中..." : "确认注销" }}
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -158,6 +164,31 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const handleLogout = () => {
   userStore.logout();
   router.push("/login");
+};
+
+const deletingAccount = ref(false);
+
+const handleDeleteAccount = async () => {
+  if (deletingAccount.value) {
+    return;
+  }
+  deletingAccount.value = true;
+  try {
+    const res = await requestApi("/api/v2/user/me", { method: "DELETE" });
+    const result = await res.json().catch(() => null);
+    if (!res.ok) {
+      toast.error(result?.message || "注销失败");
+      return;
+    }
+    toast.success("账号已注销");
+    userStore.logout();
+    router.push("/login");
+  } catch (err) {
+    toast.error("网络错误");
+    console.error("Delete account failed:", err);
+  } finally {
+    deletingAccount.value = false;
+  }
 };
 
 const goProfile = () => {
