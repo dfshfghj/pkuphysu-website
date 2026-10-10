@@ -320,12 +320,20 @@ defineExpose({
   border-color: var(--borderColor-default);
 }
 
-.vditor-container .markdown-body pre:not(.vditor-ir__marker--pre) {
+.vditor-container .markdown-body pre:not(.vditor-ir__marker--pre):not(.vditor-reset) {
   padding: var(--base-size-16);
   background-color: var(--bgColor-muted);
   border-radius: 6px;
   font-size: 85%;
   line-height: 1.45;
+}
+
+.vditor-container .vditor-ir > .vditor-reset,
+.vditor-container .vditor-wysiwyg > .vditor-reset {
+  font-size: 16px;
+  line-height: 1.5;
+  background-color: transparent;
+  border-radius: 0;
 }
 
 .vditor-container .markdown-body pre > code {
