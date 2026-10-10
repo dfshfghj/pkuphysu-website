@@ -123,7 +123,6 @@ declare module 'vue' {
     ItemTitle: typeof import('./components/ui/item/ItemTitle.vue')['default']
     Label: typeof import('./components/ui/label/Label.vue')['default']
     ListLoading: typeof import('./components/ListLoading.vue')['default']
-    MarkdownContent: typeof import('./components/MarkdownContent.vue')['default']
     MarkdownEditor: typeof import('./components/MarkdownEditor.vue')['default']
     MarkdownRenderer: typeof import('./components/MarkdownRenderer.vue')['default']
     Pagination: typeof import('./components/ui/pagination/Pagination.vue')['default']

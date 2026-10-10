@@ -425,6 +425,8 @@
 ```
 
 > 问卷由 **Markdown 区块** 与 **题目区块** 交替组成：文字（标题、题干、说明）写在 Markdown 区块里，题目区块只承载交互（题型 / 选项 / 必答）。空白的 Markdown 区块在保存时会被丢弃。
+>
+> Markdown 区块在写入时会用后端 lute 解析为 HTML 存库（同 post/comment），读取时在 `content`（原始 Markdown）之外额外返回 `content_html`（解析后的 HTML），展示端直接渲染 `content_html`，`content` 仅用于编辑回填。
 
 **各题型 config**：
 
@@ -529,7 +531,7 @@
     "can_edit": false,          // 作者且尚无答卷
     "response_count": 12,
     "blocks": [
-      { "id": 10, "kind": "markdown", "content": "# 校园问卷", "position": 0 },
+      { "id": 10, "kind": "markdown", "content": "# 校园问卷", "content_html": "<h1>校园问卷</h1>", "position": 0 },
       {
         "id": 11,
         "kind": "question",
@@ -575,7 +577,7 @@
     "status": "open",
     "response_count": 12,
     "blocks": [
-      { "id": 10, "kind": "markdown", "content": "# 校园问卷", "position": 0 },
+      { "id": 10, "kind": "markdown", "content": "# 校园问卷", "content_html": "<h1>校园问卷</h1>", "position": 0 },
       {
         "id": 11,
         "kind": "question",

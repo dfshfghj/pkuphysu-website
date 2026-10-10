@@ -68,6 +68,7 @@ export interface SurveyDraft {
 export interface SurveyMarkdownBlock extends SurveyMarkdownDraftBlock {
   id: number;
   position: number;
+  content_html?: string;
 }
 
 export interface SurveyQuestionBlock extends SurveyQuestionDraftBlock {
@@ -106,6 +107,7 @@ export interface SurveyMarkdownResultBlock {
   id: number;
   kind: "markdown";
   content: string;
+  content_html?: string;
   position?: number;
 }
 

@@ -80,7 +80,7 @@
         @update:model-value="updateMarkdown"
       />
       <div v-else class="block-editor__preview">
-        <MarkdownContent v-if="markdownContent" :source="markdownContent" />
+        <MarkdownEditor v-if="markdownContent" preview :model-value="markdownContent" />
         <span v-else class="block-editor__empty">空 Markdown 区块，点击编辑</span>
       </div>
     </template>
@@ -106,7 +106,6 @@ import { computed, ref } from "vue";
 import { ArrowDown, ArrowUp, GripVertical, Trash2 } from "lucide-vue-next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
-import MarkdownContent from "@/components/MarkdownContent.vue";
 import SurveyQuestionEditor from "@/components/survey/SurveyQuestionEditor.vue";
 import SurveyQuestionField from "@/components/survey/SurveyQuestionField.vue";
 import { createDefaultConfig, SURVEY_QUESTION_TYPES, type SurveyDraftBlock, type SurveyQuestionType } from "@/utils/survey";

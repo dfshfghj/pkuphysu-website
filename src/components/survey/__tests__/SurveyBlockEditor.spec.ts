@@ -7,16 +7,12 @@ import type { SurveyDraftBlock, SurveyQuestionDraftBlock } from "@/utils/survey"
 
 const markdownEditorStub = defineComponent({
   name: "MarkdownEditor",
-  props: { modelValue: { type: String, default: "" } },
+  props: { modelValue: { type: String, default: "" }, preview: Boolean },
   emits: ["update:modelValue"],
-  template:
-    '<textarea class="markdown-editor-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
-});
-
-const markdownContentStub = defineComponent({
-  name: "MarkdownContent",
-  props: { source: { type: String, default: "" } },
-  template: '<div class="markdown-content-stub">{{ source }}</div>',
+  template: `
+    <textarea v-if="!preview" class="markdown-editor-stub" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" />
+    <div v-else class="markdown-preview-stub">{{ modelValue }}</div>
+  `,
 });
 
 const questionEditorStub = defineComponent({
@@ -39,7 +35,6 @@ const mountBlock = (block: SurveyDraftBlock, extra: Record<string, unknown> = {}
     global: {
       stubs: {
         MarkdownEditor: markdownEditorStub,
-        MarkdownContent: markdownContentStub,
         SurveyQuestionEditor: questionEditorStub,
         SurveyQuestionField: questionFieldStub,
       },
@@ -58,6 +53,7 @@ describe("SurveyBlockEditor", () => {
   it("非激活的 Markdown 区块显示预览，点击后请求激活", async () => {
     const wrapper = mountBlock(markdownBlock(), { active: false });
     expect(wrapper.find(".block-editor__preview").exists()).toBe(true);
+    expect(wrapper.find(".markdown-preview-stub").exists()).toBe(true);
     expect(wrapper.find(".markdown-editor-stub").exists()).toBe(false);
 
     await wrapper.find(".block-editor__preview").trigger("click");

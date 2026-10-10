@@ -21,22 +21,18 @@ const dialogStubs = {
 
 const markdownEditorStub = defineComponent({
   name: "MarkdownEditor",
-  props: { modelValue: { type: String, default: "" } },
+  props: { modelValue: { type: String, default: "" }, preview: Boolean },
   emits: ["update:modelValue"],
-  template:
-    '<textarea class="markdown-editor-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
-});
-
-const markdownContentStub = defineComponent({
-  name: "MarkdownContent",
-  props: { source: { type: String, default: "" } },
-  template: '<div class="markdown-content-stub">{{ source }}</div>',
+  template: `
+    <textarea v-if="!preview" class="markdown-editor-stub" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" />
+    <div v-else class="markdown-preview-stub">{{ modelValue }}</div>
+  `,
 });
 
 const mountDialog = (props: Record<string, unknown> = {}) =>
   mount(SurveyComposerDialog, {
     props: { visible: true, ...props },
-    global: { stubs: { ...dialogStubs, MarkdownEditor: markdownEditorStub, MarkdownContent: markdownContentStub } },
+    global: { stubs: { ...dialogStubs, MarkdownEditor: markdownEditorStub } },
   });
 
 const confirmButton = (wrapper: ReturnType<typeof mountDialog>) =>

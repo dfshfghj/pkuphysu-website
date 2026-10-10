@@ -15,7 +15,12 @@
 
         <div class="survey-page__blocks">
           <template v-for="block in survey.blocks" :key="block.id">
-            <MarkdownContent v-if="block.kind === 'markdown'" :source="block.content" class="survey-page__md" />
+            <MarkdownRenderer
+              v-if="block.kind === 'markdown'"
+              :key="block.content_html"
+              :content="block.content_html"
+              class="survey-page__md"
+            />
             <SurveyQuestionField
               v-else-if="canAnswer"
               :block="block"
@@ -53,7 +58,7 @@ import { requestApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
 import ScrollPane from "@/components/ScrollPane.vue";
 import EmptyState from "@/components/EmptyState.vue";
-import MarkdownContent from "@/components/MarkdownContent.vue";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import SurveyQuestionField from "@/components/survey/SurveyQuestionField.vue";
 import {
   isSurveyAnswerEmpty,

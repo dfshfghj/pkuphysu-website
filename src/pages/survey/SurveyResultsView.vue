@@ -23,7 +23,12 @@
 
         <div class="results-page__blocks">
           <template v-for="block in results.blocks" :key="block.id">
-            <MarkdownContent v-if="block.kind === 'markdown'" :source="block.content" class="results-page__md" />
+            <MarkdownRenderer
+              v-if="block.kind === 'markdown'"
+              :key="block.content_html"
+              :content="block.content_html"
+              class="results-page__md"
+            />
             <SurveyResultBlock v-else :block="block" />
           </template>
         </div>
@@ -43,7 +48,7 @@ import { requestApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
 import ScrollPane from "@/components/ScrollPane.vue";
 import EmptyState from "@/components/EmptyState.vue";
-import MarkdownContent from "@/components/MarkdownContent.vue";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import SurveyResultBlock from "@/components/survey/SurveyResultBlock.vue";
 import SurveyComposerDialog from "@/components/survey/SurveyComposerDialog.vue";
 import {
