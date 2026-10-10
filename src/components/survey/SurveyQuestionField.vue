@@ -12,7 +12,7 @@
             :type="block.type === 'single' ? 'radio' : 'checkbox'"
             :name="fieldName"
             :value="index"
-            :disabled="editable"
+            :disabled="editable || disabled"
             :checked="isSelected(index)"
             @change="onChoiceChange(index, $event)"
           />
@@ -62,7 +62,7 @@
           type="button"
           class="survey-field__rank-handle"
           aria-label="拖动排序"
-          draggable="true"
+          :draggable="!disabled"
           @dragstart="onRankDragStart(position, $event)"
           @dragend="resetRankDrag"
         >
@@ -75,7 +75,7 @@
           :disabled="!editable"
           @input="updateOption(optionIndex, ($event.target as HTMLInputElement).value)"
         />
-        <div v-if="!editable" class="survey-field__rank-tools">
+        <div v-if="!editable && !disabled" class="survey-field__rank-tools">
           <button type="button" :disabled="position === 0" aria-label="上移" @click="moveRank(position, -1)">
             <ArrowUp class="size-4" />
           </button>
@@ -115,6 +115,7 @@
         :model-value="textValue"
         :placeholder="editable ? '在此输入占位提示' : textConfig.placeholder || '请输入'"
         :maxlength="textConfig.maxLength"
+        :disabled="disabled"
         rows="3"
         @update:model-value="onTextInput(String($event))"
       />
@@ -161,6 +162,7 @@
           :value="sliderValue"
           :min="sliderConfig.min"
           :max="sliderConfig.max"
+          :disabled="disabled"
           @input="onSliderInput(($event.target as HTMLInputElement).value)"
         />
         <input
@@ -169,6 +171,7 @@
           :max="sliderConfig.max"
           :step="sliderConfig.step"
           :value="sliderValue"
+          :disabled="disabled"
           @input="onSliderInput(($event.target as HTMLInputElement).value)"
         />
       </div>
@@ -219,7 +222,7 @@
             :value="proportionValues[index] ?? 0"
             :min="0"
             :max="proportionConfig.total"
-            :disabled="editable"
+            :disabled="editable || disabled"
             @input="updateProportion(index, ($event.target as HTMLInputElement).value)"
           />
           <input
@@ -227,7 +230,7 @@
             min="0"
             :max="proportionConfig.total"
             :value="proportionValues[index] ?? 0"
-            :disabled="editable"
+            :disabled="editable || disabled"
             @input="updateProportion(index, ($event.target as HTMLInputElement).value)"
           />
         </div>
@@ -294,7 +297,7 @@
               type="radio"
               :name="fieldName"
               :value="value"
-              :disabled="editable"
+              :disabled="editable || disabled"
               :checked="modelValue === value"
               @change="emit('update:modelValue', value)"
             />
@@ -345,6 +348,10 @@ const props = defineProps({
     default: undefined,
   },
   editable: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
     type: Boolean,
     default: false,
   },
@@ -418,6 +425,7 @@ const resetRankDrag = () => {
 };
 
 const onRankDragStart = (position: number, event: DragEvent) => {
+  if (props.disabled) return;
   rankDragIndex.value = position;
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = "move";
