@@ -68,7 +68,7 @@ onMounted(() => {
   }
 
   root.innerHTML = props.content;
-  Vditor.mathRender(root, { cdn: `/vditor/${vditorPackage.version}` });
+  Vditor.mathRender(root, { cdn: `/vditor/${vditorPackage.version}`, math: { inlineDigit: true } });
   root.addEventListener("click", handleContentClick, true);
 });
 

@@ -25,7 +25,13 @@
       :class="{ 'nav-btn--active': isActive(['Messages']) }"
       @click="router.push('/messages')"
     >
-      <IconRiNotification3Line width="22" height="22" />
+      <span class="relative inline-flex">
+        <IconRiNotification3Line width="22" height="22" />
+        <span
+          v-if="notificationStore.unreadCount > 0"
+          class="absolute -right-1 -top-1 size-2 rounded-full bg-(--c-brand)"
+        />
+      </span>
       <span>通知</span>
     </button>
     <button
@@ -41,6 +47,8 @@
 </template>
 
 <script setup lang="ts">
+import { useNotificationStore } from "@/stores/notification";
+
 const props = defineProps({
   homeNames: {
     type: Array as () => string[],
@@ -52,6 +60,7 @@ const emit = defineEmits(["home", "post"]);
 
 const route = useRoute();
 const router = useRouter();
+const notificationStore = useNotificationStore();
 
 const isActive = (names: string[]) => names.includes(String(route.name));
 </script>

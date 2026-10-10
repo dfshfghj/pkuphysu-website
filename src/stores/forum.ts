@@ -33,6 +33,7 @@ export interface Post {
   reply: number;
   type: number;
   tags: string[];
+  comments?: Comment[];
   poll?: Poll | null;
   survey?: SurveySummary | null;
 }

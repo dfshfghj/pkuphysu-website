@@ -95,7 +95,7 @@
       </div>
 
       <div
-        v-if="showPreviewComments && previewComments.length"
+        v-if="showPreviewComments && (previewComments.length || moreReplies)"
         class="my-2 flex flex-col gap-0.5 rounded-md bg-(--gray-2) p-2 text-xs"
       >
         <div v-for="comment in previewComments" :key="comment.cid" class="line-clamp-2 break-words text-(--c-secondary)">
@@ -103,6 +103,7 @@
           >: <span v-if="comment.mention" class="mr-1 text-(--c-title)">{{ comment.mention }}</span
           ><span v-html="comment.html"></span>
         </div>
+        <div v-if="moreReplies" class="pt-0.5 text-(--c-secondary)">还有 {{ moreReplies }} 条回复</div>
       </div>
     </div>
   </div>
@@ -202,6 +203,7 @@ watch(
   }
 );
 const previewComments = computed(() => buildPreviewComments(props.post.comments));
+const moreReplies = computed(() => Math.max(0, (props.post.reply ?? 0) - previewComments.value.length));
 const isAdmin = computed(() => userStore.role === 2);
 const isOwn = computed(() => Number(props.post.userid) === Number(userStore.userid));
 const canDelete = computed(() => isOwn.value || isAdmin.value);
