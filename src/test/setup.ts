@@ -6,6 +6,12 @@ class ResizeObserverMock {
   disconnect() {}
 }
 
+class IntersectionObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
 const storage = new Map<string, string>();
 
 const localStorageMock = {
@@ -24,6 +30,12 @@ const localStorageMock = {
 Object.defineProperty(globalThis, "ResizeObserver", {
   writable: true,
   value: ResizeObserverMock,
+});
+
+Object.defineProperty(globalThis, "IntersectionObserver", {
+  writable: true,
+  configurable: true,
+  value: IntersectionObserverMock,
 });
 
 Object.defineProperty(globalThis, "localStorage", {

@@ -32,10 +32,12 @@ fakeScript("vditorKatexChemScript");
 
 import Vditor from "vditor";
 import vditorPackage from "vditor/package.json";
+import { applyLazyMedia } from "@/utils/lazy-media";
 import "@/styles/github-markdown.css";
 
 const vditorRef = ref<HTMLDivElement | null>(null);
 const router = useRouter();
+let cleanupLazyMedia: (() => void) | null = null;
 
 const props = defineProps({
   content: {
@@ -69,10 +71,13 @@ onMounted(() => {
 
   root.innerHTML = props.content;
   Vditor.mathRender(root, { cdn: `/vditor/${vditorPackage.version}`, math: { inlineDigit: true } });
+  cleanupLazyMedia = applyLazyMedia(root);
   root.addEventListener("click", handleContentClick, true);
 });
 
 onBeforeUnmount(() => {
+  cleanupLazyMedia?.();
+  cleanupLazyMedia = null;
   vditorRef.value?.removeEventListener("click", handleContentClick, true);
 });
 </script>
@@ -119,6 +124,9 @@ onBeforeUnmount(() => {
 .markdown-body :deep(iframe) {
   border: none;
   border-radius: 4px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 
 /* KaTeX 相关样式 */
