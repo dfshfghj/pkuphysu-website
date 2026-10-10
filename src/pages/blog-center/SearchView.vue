@@ -61,7 +61,7 @@ const fetchPosts = async () => {
     endOfPosts.value = false;
     const postId = extractPostIdToken(tokens);
     if (postId !== null) {
-      const res = await requestApi(`/api/v2/forum/posts/${postId}`);
+      const res = await requestApi(`/api/v2/forum/posts/${postId}?comment_limit=2`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       posts.value = [data.data];
@@ -69,7 +69,7 @@ const fetchPosts = async () => {
       return;
     }
 
-    const params = buildForumListParams({ query: tokens }, { limit: 20 });
+    const params = buildForumListParams({ query: tokens }, { limit: 20, commentLimit: 2 });
     const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
     const res = await requestApi(apiUrl);
@@ -104,7 +104,7 @@ const loadMorePosts = async () => {
         return;
       }
 
-      const params = buildForumListParams({ query: tokens }, { limit: 20, begin: posts.value.at(-1).id });
+      const params = buildForumListParams({ query: tokens }, { limit: 20, commentLimit: 2, begin: posts.value.at(-1).id });
       const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
       const res = await requestApi(apiUrl);

@@ -42,7 +42,7 @@ const fetchFollowPosts = async () => {
   postsLoading.value = true;
   try {
     endOfPosts.value = false;
-    const apiUrl = "/api/v2/forum/follow?limit=20";
+    const apiUrl = "/api/v2/forum/follow?limit=20&comment_limit=2";
 
     const res = await requestApi(apiUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -72,6 +72,7 @@ const loadMoreFollowPosts = async () => {
   try {
     const params = new URLSearchParams();
     params.append("limit", "20");
+    params.append("comment_limit", "2");
     params.append("begin", posts.value.at(-1).id);
 
     const apiUrl = `/api/v2/forum/follow?${params.toString()}`;
