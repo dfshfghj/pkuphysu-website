@@ -14,7 +14,13 @@
         <span class="control-btn-label">发布</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/messages')">
-        <Mail class="size-5" :stroke-width="1.5" />
+        <span class="relative inline-flex">
+          <Mail class="size-5" :stroke-width="1.5" />
+          <span
+            v-if="notificationStore.unreadCount > 0"
+            class="absolute -right-1 -top-1 size-2 rounded-full bg-(--c-brand)"
+          />
+        </span>
         <span class="control-btn-label">消息</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/settings')">
@@ -157,6 +163,7 @@ import { requestApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
 import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
+import { useNotificationStore } from "@/stores/notification";
 import { buildSearchRouteQuery, getSearchTokensFromRouteQuery } from "@/utils/forum-search";
 import {
   DropdownMenu,
@@ -175,6 +182,7 @@ import { ChevronLeft, Book, FileText, Mail, Plus, RotateCw, Search, Settings, St
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
+const notificationStore = useNotificationStore();
 
 const editing = ref(false);
 const searchDraft = ref<string[]>([]);
@@ -251,6 +259,8 @@ const handlePostCreated = () => {
 watch(
   () => route.name,
   async (name) => {
+    notificationStore.fetchUnreadCount();
+
     if (name === "PostsView" && pendingPostsForceRefresh.value) {
       pendingPostsForceRefresh.value = false;
       await nextTick();
@@ -274,7 +284,10 @@ watch(
   { immediate: true }
 );
 
-onMounted(fetchTags);
+onMounted(() => {
+  fetchTags();
+  notificationStore.fetchUnreadCount();
+});
 
 // 引用外部图片绕过防盗链
 onBeforeMount(() => {

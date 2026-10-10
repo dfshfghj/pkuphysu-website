@@ -19,14 +19,15 @@
   </ScrollPane>
 </template>
 <script setup lang="ts">
-import { requestApi } from "@/api/api";
 import ScrollPane from "@/components/ScrollPane.vue";
 import ListLoading from "@/components/ListLoading.vue";
 import EmptyState from "@/components/EmptyState.vue";
 import { useForumStore } from "@/stores/forum";
+import { useNotificationStore } from "@/stores/notification";
 
 const router = useRouter();
 const forumStore = useForumStore();
+const notificationStore = useNotificationStore();
 
 const mainScrollbar = ref<InstanceType<typeof ScrollPane> | null>(null);
 
@@ -36,12 +37,6 @@ const scrollToTop = () => {
 
 const loadMorePosts = async () => {
   await forumStore.loadMorePosts();
-};
-
-const loadNotifications = async () => {
-  const res = await requestApi("/api/v2/notifications");
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  await res.json();
 };
 
 const handlePostDeleted = (postId: number) => {
@@ -61,7 +56,7 @@ const refresh = async (force = false) => {
 
 onActivated(async () => {
   await refresh();
-  loadNotifications();
+  notificationStore.fetchUnreadCount();
 });
 
 defineExpose({
