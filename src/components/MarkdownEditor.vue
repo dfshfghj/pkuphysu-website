@@ -109,19 +109,20 @@ onBeforeUnmount(() => {
   }
 });
 
-const renderPreview = () => {
+const renderPreview = async () => {
   const element = vditorRef.value;
   if (!element) {
     return;
   }
   const dark = isDarkMode.value;
-  Vditor.preview(element, props.modelValue, {
+  await Vditor.preview(element, props.modelValue, {
     cdn: `/vditor/${vditorPackage.version}`,
     mode: dark ? "dark" : "light",
     theme: { current: dark ? "dark" : "light" },
     hljs: { style: dark ? "github-dark" : "github", lineNumber: true },
     math: { inlineDigit: true, macros: {} },
   });
+  element.classList.add("markdown-body");
 };
 
 const initVditor = () => {
