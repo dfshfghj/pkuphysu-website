@@ -401,9 +401,44 @@
 ```json
 {
   "text": "帖子内容",        // 帖子内容（必填）
-  "tags": ["tag1", "tag2"]   // 标签列表（可选）
+  "tags": ["tag1", "tag2"],  // 标签列表（可选）
+  "poll": {                  // 投票（可选，仅发帖时可创建，编辑不修改投票）
+    "multiple": false,       // 是否允许多选
+    "options": ["选项A", "选项B"]  // 2~10 个选项，每个最多 100 字
+  },
+  "survey": {                // 问卷（可选，仅发帖时可创建，编辑不修改问卷）
+    "allow_multiple": false, // 是否允许重复提交（默认每人限答一次）
+    "blocks": [              // 有序区块列表，最多 100 个，至少 1 个题目区块
+      {                      // Markdown 区块：问卷标题/说明等文字
+        "kind": "markdown",
+        "content": "# 校园问卷\n请如实填写"
+      },
+      {                      // 题目区块：只有交互配置，题干写在上方的 Markdown 区块里
+        "kind": "question",
+        "type": "single",    // single/multiple/text/ranking/slider/proportion/scale
+        "required": true,    // 是否必答
+        "config": { "options": ["选项A", "选项B"] }
+      }
+    ]
+  }
 }
 ```
+
+> 问卷由 **Markdown 区块** 与 **题目区块** 交替组成：文字（标题、题干、说明）写在 Markdown 区块里，题目区块只承载交互（题型 / 选项 / 必答）。空白的 Markdown 区块在保存时会被丢弃。
+>
+> Markdown 区块在写入时会用后端 lute 解析为 HTML 存库（同 post/comment），读取时在 `content`（原始 Markdown）之外额外返回 `content_html`（解析后的 HTML），展示端直接渲染 `content_html`，`content` 仅用于编辑回填。
+
+**各题型 config**：
+
+| type | config |
+|---|---|
+| `single` 单选 | `{ "options": string[] }` |
+| `multiple` 多选 | `{ "options": string[], "min"?: number, "max"?: number }` |
+| `text` 简答 | `{ "placeholder"?: string, "maxLength": number }` |
+| `ranking` 排序 | `{ "options": string[] }` |
+| `slider` 滑动条 | `{ "min": number, "max": number, "step": number, "default": number, "minLabel"?: string, "maxLabel"?: string }` |
+| `proportion` 比重条 | `{ "options": string[], "total": number }` |
+| `scale` 量表 | `{ "min": number, "max": number, "minLabel"?: string, "maxLabel"?: string }` |
 
 **返回值**：
 ```json
@@ -414,6 +449,166 @@
   }
 }
 ```
+
+#### POST /forum/posts/:id/vote - 投票
+对帖子附带的投票投票，**每个用户只能投一次，投出后不可更改**。
+
+**请求参数**：
+```json
+{
+  "option_ids": [1, 2]       // 选中的选项ID；单选投票只能传一个
+}
+```
+
+**返回值**：
+```json
+{
+  "status": 200,
+  "data": {
+    "message": "投票成功",
+    "poll": { /* 结构见帖子响应中的 poll 字段，此时 voted=true */ }
+  }
+}
+```
+
+**错误**：
+- `404 PollNotFound`：该帖子没有投票
+- `400 InvalidParams`：选项为空、单选传了多个、或选项不属于该投票
+- `409 AlreadyVoted`：已经投过票
+
+#### 帖子响应中的 poll 字段
+帖子列表与单帖响应都带有 `poll`（无投票时为 `null`）：
+
+```json
+{
+  "id": 5,
+  "multiple": true,
+  "voted": false,           // 当前用户是否已投票
+  "can_see_results": false, // 能否看到占比 = 已投票 或 当前用户是作者
+  "total_votes": 12,        // 仅 can_see_results 时下发（去重人数）
+  "options": [
+    { "id": 1, "text": "选项A", "count": 7, "percent": 58, "selected": true },
+    { "id": 2, "text": "选项B", "count": 5, "percent": 42, "selected": false }
+  ]
+}
+```
+
+- **占比可见性**：`count` / `percent` / `total_votes` 仅在 `can_see_results` 时下发——**作者总是可见**，其他用户必须先投票。
+- `selected` 仅在当前用户已投票时下发，标记其选中的选项。
+- 多选下 `percent = count / total_votes`，各项之和可能超过 100。
+
+
+#### 帖子响应中的 survey 字段
+帖子列表与单帖响应都带有 `survey`（无问卷时为 `null`），仅含摘要，完整区块通过问卷接口获取：
+
+```json
+{
+  "id": 3,
+  "question_count": 5,          // 题目区块数
+  "status": "open",             // open / closed
+  "allow_multiple": false,
+  "is_owner": false,            // 当前用户是否作者
+  "can_view_results": false,    // 能否查看数据 = 作者 或 管理员
+  "response_count": 12          // 仅 can_view_results 时下发
+}
+```
+
+#### GET /forum/surveys/:id - 获取问卷详情
+返回问卷的区块列表，供填写页使用。仅可见该帖的用户可访问。Markdown 区块渲染为文字，题目区块为交互控件（题号按题目区块顺序编号）。
+
+```json
+{
+  "status": 200,
+  "data": {
+    "id": 3,
+    "post_id": 88,
+    "question_count": 5,
+    "status": "open",
+    "allow_multiple": false,
+    "is_owner": false,
+    "can_view_results": false,
+    "answered": false,          // 当前用户是否已提交
+    "can_edit": false,          // 作者且尚无答卷
+    "response_count": 12,
+    "blocks": [
+      { "id": 10, "kind": "markdown", "content": "# 校园问卷", "content_html": "<h1>校园问卷</h1>", "position": 0 },
+      {
+        "id": 11,
+        "kind": "question",
+        "type": "single",
+        "required": true,
+        "position": 1,
+        "config": { "options": ["选项A", "选项B"] }
+      }
+    ]
+  }
+}
+```
+
+#### POST /forum/surveys/:id/responses - 提交答卷
+问卷 `closed` 时拒绝；`allow_multiple=false` 时每人仅可提交一次。`block_id` 为题目区块的 ID。
+
+```json
+{
+  "answers": [
+    { "block_id": 11, "value": 0 },          // 单选：选项下标
+    { "block_id": 12, "value": [0, 2] },      // 多选/排序：下标数组
+    { "block_id": 13, "value": "文字作答" },   // 简答：字符串
+    { "block_id": 14, "value": 42 },          // 滑动条/量表：数字
+    { "block_id": 15, "value": [40, 60] }     // 比重条：各项分值，和等于 total
+  ]
+}
+```
+
+**错误**：
+- `403 SurveyClosed`：问卷已关闭
+- `409 AlreadySurveyed`：已经提交过（不允许重复提交时）
+- `400 InvalidParams`：必答缺失、下标越界、排序非全排列、比重之和不为 total 等
+
+#### GET /forum/surveys/:id/results - 获取问卷数据
+**仅作者与管理员可访问**。返回同一套区块列表，题目区块附聚合统计（选择/量表按项计数与占比，简答列出文本，排序算平均名次，滑动条算均值与分布，比重条算各项平均分），Markdown 区块原样下发。
+
+```json
+{
+  "status": 200,
+  "data": {
+    "id": 3,
+    "post_id": 88,
+    "status": "open",
+    "response_count": 12,
+    "blocks": [
+      { "id": 10, "kind": "markdown", "content": "# 校园问卷", "content_html": "<h1>校园问卷</h1>", "position": 0 },
+      {
+        "id": 11,
+        "kind": "question",
+        "type": "single",
+        "required": true,
+        "config": { "options": ["选项A", "选项B"] },
+        "answered": 12,
+        "options": [
+          { "text": "选项A", "count": 7, "percent": 58 },
+          { "text": "选项B", "count": 5, "percent": 42 }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### GET /forum/surveys/:id/results/export - 导出问卷数据
+**仅作者与管理员可访问**。返回 `text/csv`（UTF-8 BOM），一行一份答卷，含答卷 ID、答题人、提交时间；题目区块各占一列，表头为 `第 N 题（题型）`。
+
+#### PUT /forum/surveys/:id - 修改问卷
+**仅作者可修改**。始终可改状态（`open`/`closed`）与是否允许重复提交；**已有答卷时内容结构锁定**，请求中的 `blocks` 会被忽略（响应 `locked=true`）。
+
+```json
+{
+  "allow_multiple": false,
+  "status": "closed",
+  "blocks": [ /* 结构同 POST /forum/posts 的 survey.blocks */ ]
+}
+```
+
 
 #### GET /forum/follow - 获取关注的帖子
 **查询参数**：

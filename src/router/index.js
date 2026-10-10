@@ -83,6 +83,18 @@ const routes = [
         component: () => import("../pages/blog-center/SwitchBoard.vue"),
         meta: { login: true },
       },
+      {
+        path: "survey/:id(\\d+)",
+        name: "SurveyView",
+        component: () => import("../pages/survey/SurveyView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "survey/:id(\\d+)/results",
+        name: "SurveyResults",
+        component: () => import("../pages/survey/SurveyResultsView.vue"),
+        meta: { login: true },
+      },
     ],
   },
   {

@@ -65,6 +65,10 @@
             <span class="text-(--c-secondary)!">#{{ route.params.id }}</span>
             <span class="page-title">详情</span>
           </template>
+          <template v-else-if="isSurvey">
+            <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
+            <span class="page-title">{{ isSurveyResults ? "问卷数据" : "问卷" }}</span>
+          </template>
           <template v-else>
             <div class="control-btn p-2" @click="goFollow">
               <Star v-if="isFollowPage" class="size-5 fill-current" />
@@ -176,6 +180,8 @@ const editing = ref(false);
 const searchDraft = ref<string[]>([]);
 const isFollowPage = computed(() => route.name === "FollowView");
 const isDetail = computed(() => route.name === "CommentsView");
+const isSurvey = computed(() => route.name === "SurveyView" || route.name === "SurveyResults");
+const isSurveyResults = computed(() => route.name === "SurveyResults");
 const currentPageRef = ref<InstanceType<typeof PostsView> | InstanceType<typeof FollowView> | null>(null);
 const pendingPostsForceRefresh = ref(false);
 const pendingFollowForceRefresh = ref(false);

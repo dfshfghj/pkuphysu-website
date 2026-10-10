@@ -56,6 +56,10 @@
         <ForumContent :content="post.text" />
       </CollapsibleDiv>
 
+      <PostPoll v-if="poll" :post-id="post.id" :poll="poll" @voted="handlePollVoted" />
+
+      <PostSurvey v-if="survey" :survey="survey" />
+
       <div class="mt-1 flex items-center text-xs text-(--c-secondary)">
         <span v-if="post.edit_count">已编辑 {{ post.edit_count }} 次</span>
         <div class="ml-auto flex items-center gap-4">
@@ -130,13 +134,16 @@ import { requestApi } from "@/api/api";
 import { formatTime, shouldIgnoreCardClick } from "@/utils";
 import { buildPreviewComments } from "@/utils/preview";
 import UserAvatar from "@/components/UserAvatar.vue";
-import { useForumStore } from "@/stores/forum";
+import { useForumStore, type Poll } from "@/stores/forum";
 import { useUserStore } from "@/stores/user";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { toast } from "vue-sonner";
 import AdminDeleteDialog from "@/components/blog-center/AdminDeleteDialog.vue";
 import ForumReportDialog from "@/components/blog-center/ForumReportDialog.vue";
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
+import PostPoll from "@/components/blog-center/PostPoll.vue";
+import PostSurvey from "@/components/survey/PostSurvey.vue";
+import { type SurveySummary } from "@/utils/survey";
 import PostHistoryDialog from "@/components/blog-center/PostHistoryDialog.vue";
 import {
   DropdownMenu,
@@ -170,6 +177,8 @@ const isLiked = ref(props.post.is_like);
 const isFollowed = ref(props.post.is_follow);
 const likeNum = ref(props.post.likenum);
 const followNum = ref(props.post.follownum);
+const poll = ref<Poll | null>(props.post.poll ?? null);
+const survey = ref<SurveySummary | null>(props.post.survey ?? null);
 const reportVisible = ref(false);
 const deleteVisible = ref(false);
 const editVisible = ref(false);
@@ -180,6 +189,18 @@ watch(editVisible, (visible) => {
   if (visible) editMounted.value = true;
 });
 const timeInfo = computed(() => formatTime(props.post.timestamp));
+watch(
+  () => props.post.poll,
+  (next) => {
+    poll.value = next ?? null;
+  }
+);
+watch(
+  () => props.post.survey,
+  (next) => {
+    survey.value = next ?? null;
+  }
+);
 const previewComments = computed(() => buildPreviewComments(props.post.comments));
 const isAdmin = computed(() => userStore.role === 2);
 const isOwn = computed(() => Number(props.post.userid) === Number(userStore.userid));
@@ -265,6 +286,11 @@ const handleLike = async () => {
     toast.error("操作失败");
     console.error("Like operation failed:", error);
   }
+};
+
+const handlePollVoted = (updated: Poll) => {
+  poll.value = updated;
+  forumStore.updatePostPoll(props.post.id, updated);
 };
 
 const handleFollow = async () => {

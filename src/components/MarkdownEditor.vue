@@ -46,6 +46,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  preview: {
+    type: Boolean,
+    default: false,
+  },
   toolbar: {
     type: Array as PropType<(string | Record<string, unknown>)[]>,
     default: undefined,
@@ -90,6 +94,10 @@ let isInternalUpdate = false;
 
 onMounted(async () => {
   await nextTick();
+  if (props.preview) {
+    renderPreview();
+    return;
+  }
   initVditor();
 });
 
@@ -99,6 +107,21 @@ onBeforeUnmount(() => {
     vditor.value = null;
   }
 });
+
+const renderPreview = () => {
+  const element = vditorRef.value;
+  if (!element) {
+    return;
+  }
+  const dark = isDarkMode.value;
+  Vditor.preview(element, props.modelValue, {
+    cdn: `/vditor/${vditorPackage.version}`,
+    mode: dark ? "dark" : "light",
+    theme: { current: dark ? "dark" : "light" },
+    hljs: { style: dark ? "github-dark" : "github", lineNumber: true },
+    math: { inlineDigit: true, macros: {} },
+  });
+};
 
 const initVditor = () => {
   const theme = isDarkMode.value ? "dark" : "classic";
@@ -200,6 +223,10 @@ const setValue = (content: string) => {
 watch(
   () => props.modelValue,
   (newVal) => {
+    if (props.preview) {
+      renderPreview();
+      return;
+    }
     if (vditor.value && newVal !== vditor.value.getValue()) {
       setValue(newVal);
     }
@@ -211,7 +238,9 @@ watch(
   (newVal) => {
     if (newVal !== isDarkMode.value) {
       isDarkMode.value = newVal;
-      if (vditor.value) {
+      if (props.preview) {
+        renderPreview();
+      } else if (vditor.value) {
         const theme = isDarkMode.value ? "dark" : "classic";
         const contentTheme = isDarkMode.value ? "dark" : "light";
         const codeTheme = isDarkMode.value ? "github-dark" : "github";
