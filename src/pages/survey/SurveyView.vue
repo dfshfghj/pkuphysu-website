@@ -22,10 +22,11 @@
               class="survey-page__md"
             />
             <SurveyQuestionField
-              v-else-if="canAnswer"
+              v-else
               :block="block"
               :field-name="`survey-q-${block.id}`"
               :model-value="answers[block.id]"
+              :disabled="!canAnswer"
               @update:model-value="answers[block.id] = $event"
             />
           </template>
@@ -93,6 +94,11 @@ const initAnswers = (loaded: Survey) => {
       next[block.id] = (block.config as SurveyChoiceConfig).options.map((_, index) => index);
     } else if (block.type === "slider") {
       next[block.id] = (block.config as SurveySliderConfig).default;
+    }
+  }
+  if (loaded.my_answers) {
+    for (const [blockId, value] of Object.entries(loaded.my_answers)) {
+      next[Number(blockId)] = value;
     }
   }
   answers.value = next;

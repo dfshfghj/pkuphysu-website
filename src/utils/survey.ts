@@ -92,6 +92,7 @@ export interface Survey extends SurveySummary {
   answered: boolean;
   can_edit: boolean;
   post_id: number;
+  my_answers?: Record<string, SurveyAnswerValue>;
   blocks: SurveyBlock[];
 }
 
