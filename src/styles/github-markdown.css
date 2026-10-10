@@ -1183,6 +1183,15 @@
   vertical-align: middle;
 }
 
+.markdown-body .vditor-task {
+  list-style-type: none;
+}
+
+.markdown-body .vditor-task input[type="checkbox"] {
+  margin: 0 0.2em 0.25em -1.4em;
+  vertical-align: middle;
+}
+
 .markdown-body ul:dir(rtl) .task-list-item-checkbox {
   margin: 0 -1.6em 0.25em 0.2em;
 }

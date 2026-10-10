@@ -134,6 +134,10 @@ const initVditor = () => {
     minHeight: props.minHeight,
     mode: currentMode.value,
     theme: theme,
+    math: {
+      inlineDigit: true,
+      macros: {},
+    },
     cache: {
       id: "MarkdownCache",
     },
