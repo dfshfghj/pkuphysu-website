@@ -62,12 +62,14 @@ import EmptyState from "@/components/EmptyState.vue";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import SurveyQuestionField from "@/components/survey/SurveyQuestionField.vue";
 import {
+  initialProportionValues,
   isSurveyAnswerEmpty,
   validateSurveyAnswersClient,
   SURVEY_STATUS_LABELS,
   type Survey,
   type SurveyAnswerValue,
   type SurveyChoiceConfig,
+  type SurveyProportionConfig,
   type SurveySliderConfig,
 } from "@/utils/survey";
 
@@ -94,6 +96,8 @@ const initAnswers = (loaded: Survey) => {
       next[block.id] = (block.config as SurveyChoiceConfig).options.map((_, index) => index);
     } else if (block.type === "slider") {
       next[block.id] = (block.config as SurveySliderConfig).default;
+    } else if (block.type === "proportion") {
+      next[block.id] = initialProportionValues(block.config as SurveyProportionConfig);
     }
   }
   if (loaded.my_answers) {

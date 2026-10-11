@@ -185,6 +185,16 @@ export const createDefaultConfig = (type: SurveyQuestionType): SurveyQuestionCon
   }
 };
 
+export const initialProportionValues = (config: SurveyProportionConfig): number[] => {
+  const count = config.options.length;
+  if (count <= 0) return [];
+  const total = config.total;
+  const base = Math.floor(total / count);
+  const values = config.options.map(() => base);
+  values[count - 1] = total - base * (count - 1);
+  return values;
+};
+
 export const createMarkdownBlock = (): SurveyMarkdownDraftBlock => ({ kind: "markdown", content: "" });
 
 export const createQuestionBlock = (type: SurveyQuestionType = "single"): SurveyQuestionDraftBlock => ({

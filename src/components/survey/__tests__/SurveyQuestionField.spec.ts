@@ -93,14 +93,14 @@ describe("SurveyQuestionField", () => {
     expect(lastEmitted(wrapper)).toBe(30);
   });
 
-  it("比重条发出各项分值并显示合计", async () => {
+  it("比重条最后一项自动补足并显示合计", async () => {
     const wrapper = mountField(makeBlock("proportion", { options: ["A", "B"], total: 100 }));
     await wrapper.findAll('input[type="number"]')[0].setValue("60");
     const emitted = lastEmitted(wrapper);
-    expect(emitted).toEqual([60, 0]);
+    expect(emitted).toEqual([60, 40]);
 
     await wrapper.setProps({ modelValue: emitted });
-    expect(wrapper.find(".survey-field__proportion-sum").text()).toContain("60 / 100");
+    expect(wrapper.find(".survey-field__proportion-sum").text()).toContain("100 / 100");
   });
 
   it("量表渲染区间选项", async () => {
@@ -206,16 +206,17 @@ describe("SurveyQuestionField", () => {
     expect(wrapper.findAll('input[type="radio"]')).toHaveLength(5);
   });
 
-  it("比重题每个选项自带滑动条，可拖动更新分值", async () => {
+  it("比重题最后一个选项自动补足且不可拖动", async () => {
     const wrapper = mountField(makeBlock("proportion", { options: ["A", "B"], total: 100 }), {
       modelValue: [40, 60] as SurveyAnswerValue,
     });
     const ranges = wrapper.findAll('input[type="range"]');
     expect(ranges).toHaveLength(2);
     expect(ranges[0].attributes("max")).toBe("100");
+    expect(ranges[1].attributes("disabled")).toBeDefined();
 
     await ranges[0].setValue("70");
-    expect(lastEmitted(wrapper)).toEqual([70, 60]);
+    expect(lastEmitted(wrapper)).toEqual([70, 30]);
   });
 
   it("比重题每个选项的滑动条下方显示 0 ~ total", () => {

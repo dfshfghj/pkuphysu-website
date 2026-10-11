@@ -196,7 +196,12 @@
     </div>
 
     <div v-else-if="block.type === 'proportion'" class="survey-field__proportion">
-      <div v-for="(option, index) in options" :key="index" class="survey-field__proportion-item">
+      <div
+        v-for="(option, index) in options"
+        :key="index"
+        class="survey-field__proportion-item"
+        :class="{ 'survey-field__proportion-item--auto': index === options.length - 1 }"
+      >
         <div class="survey-field__proportion-head">
           <input
             class="survey-field__option-text"
@@ -204,6 +209,7 @@
             :disabled="!editable"
             @input="updateOption(index, ($event.target as HTMLInputElement).value)"
           />
+          <span v-if="index === options.length - 1" class="survey-field__proportion-auto">自动补足</span>
           <button
             v-if="editable"
             type="button"
@@ -222,7 +228,7 @@
             :value="proportionValues[index] ?? 0"
             :min="0"
             :max="proportionConfig.total"
-            :disabled="editable || disabled"
+            :disabled="editable || disabled || index === options.length - 1"
             @input="updateProportion(index, ($event.target as HTMLInputElement).value)"
           />
           <input
@@ -230,7 +236,7 @@
             min="0"
             :max="proportionConfig.total"
             :value="proportionValues[index] ?? 0"
-            :disabled="editable || disabled"
+            :disabled="editable || disabled || index === options.length - 1"
             @input="updateProportion(index, ($event.target as HTMLInputElement).value)"
           />
         </div>
@@ -321,6 +327,7 @@ import { computed, ref } from "vue";
 import { ArrowDown, ArrowUp, GripVertical, X } from "lucide-vue-next";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  initialProportionValues,
   MAX_SURVEY_OPTIONS,
   MAX_SURVEY_SCALE_SPAN,
   MIN_SURVEY_OPTIONS,
@@ -509,21 +516,32 @@ const updateScaleBound = (field: "min" | "max", value: string) => {
   updateConfig({ [field]: parsed });
 };
 
-const proportionValues = computed(() => {
-  if (Array.isArray(props.modelValue) && props.modelValue.length === options.value.length) {
-    return props.modelValue as number[];
-  }
-  return options.value.map(() => 0);
+const proportionValues = computed<number[]>(() => {
+  const count = options.value.length;
+  if (count === 0) return [];
+  const total = proportionConfig.value.total || 0;
+  const raw =
+    Array.isArray(props.modelValue) && props.modelValue.length === count
+      ? (props.modelValue as number[]).map((value) => (Number.isFinite(value) ? value : 0))
+      : initialProportionValues(proportionConfig.value);
+  const first = raw.slice(0, count - 1);
+  const used = first.reduce((sum, value) => sum + value, 0);
+  return [...first, Math.max(0, total - used)];
 });
 
 const proportionSum = computed(() => proportionValues.value.reduce((total, item) => total + item, 0));
 
 const updateProportion = (index: number, value: string | number) => {
+  const count = options.value.length;
+  if (count === 0 || index >= count - 1) return;
   const parsed = Number(value);
   const total = proportionConfig.value.total || 0;
-  const next = [...proportionValues.value];
-  next[index] = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), total) : 0;
-  emit("update:modelValue", next);
+  const first = proportionValues.value.slice(0, count - 1);
+  const others = first.reduce((sum, item, i) => (i === index ? sum : sum + item), 0);
+  const limit = Math.max(0, total - others);
+  first[index] = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), limit) : 0;
+  const used = first.reduce((sum, item) => sum + item, 0);
+  emit("update:modelValue", [...first, Math.max(0, total - used)]);
 };
 
 const updateProportionTotal = (value: string) => {
@@ -907,6 +925,19 @@ input.survey-field__slider-value:disabled {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+.survey-field__proportion-auto {
+  flex-shrink: 0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: var(--gray-2);
+  color: var(--c-secondary);
+  font-size: 0.6875rem;
+}
+
+.survey-field__proportion-item--auto .survey-field__proportion-main {
+  opacity: 0.6;
 }
 
 .survey-field__proportion-main {
