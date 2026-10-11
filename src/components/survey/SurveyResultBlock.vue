@@ -5,60 +5,67 @@
       <span class="result-block__meta">{{ block.answered }} 人作答</span>
     </div>
 
-    <div v-if="block.type === 'single' || block.type === 'multiple'" class="result-block__bars">
-      <div v-for="(option, index) in block.options" :key="index" class="result-block__bar-row">
-        <div class="result-block__bar-head">
-          <span>{{ option.text }}</span>
-          <span>{{ option.percent ?? 0 }}% · {{ option.count ?? 0 }}</span>
+    <template v-if="isBarType">
+      <p v-if="averageLabel" class="result-block__average">{{ averageLabel }}</p>
+      <ChartContainer :config="barConfig" class="aspect-auto w-full">
+        <div class="result-block__plot" :style="{ height: `${chartHeight}px` }">
+          <VisXYContainer
+            :data="barRows"
+            :x-domain="valueDomain"
+            :y-domain="categoryDomain"
+          >
+            <VisGroupedBar
+              :x="barCategory"
+              :y="[barValue]"
+              orientation="horizontal"
+              :color="[barColor]"
+              :rounded-corners="3"
+              :bar-padding="0.2"
+            />
+            <VisAxis
+              type="y"
+              :tick-values="categoryTicks"
+              :tick-format="categoryTickFormat"
+              :tick-line="false"
+              :domain-line="false"
+              :grid-line="false"
+            />
+            <VisAxis
+              type="x"
+              :tick-line="false"
+              :domain-line="false"
+              :grid-line="true"
+              :tick-format="valueTickFormat"
+            />
+            <ChartTooltip :triggers="barTooltipTriggers" />
+          </VisXYContainer>
         </div>
-        <div class="result-block__bar">
-          <div class="result-block__bar-fill" :style="{ width: `${option.percent ?? 0}%` }"></div>
-        </div>
-      </div>
-    </div>
+      </ChartContainer>
+    </template>
 
-    <div v-else-if="block.type === 'scale'" class="result-block__bars">
-      <p class="result-block__average">平均 {{ block.average ?? 0 }}</p>
-      <div v-for="item in block.values" :key="item.value" class="result-block__bar-row">
-        <div class="result-block__bar-head">
-          <span>{{ item.value }}</span>
-          <span>{{ item.percent }}% · {{ item.count }}</span>
+    <template v-else-if="block.type === 'proportion'">
+      <ChartContainer :config="pieConfig" class="aspect-auto w-full">
+        <div class="result-block__plot result-block__plot--pie">
+          <VisSingleContainer :data="pieData">
+            <VisDonut
+              :value="pieValue"
+              :color="pieColor"
+              :arc-width="9999"
+              :corner-radius="4"
+              :pad-angle="0.015"
+              :show-background="false"
+            />
+            <ChartTooltip :triggers="pieTooltipTriggers" />
+          </VisSingleContainer>
         </div>
-        <div class="result-block__bar">
-          <div class="result-block__bar-fill" :style="{ width: `${item.percent}%` }"></div>
-        </div>
-      </div>
-    </div>
-
-    <div v-else-if="block.type === 'slider'" class="result-block__slider">
-      <p class="result-block__average">
-        平均 {{ block.average ?? 0 }}{{ block.unit || "" }}（最低 {{ block.min_value ?? 0 }} / 最高
-        {{ block.max_value ?? 0 }}）
-      </p>
-      <div class="result-block__bars">
-        <div v-for="(bucket, index) in block.buckets" :key="index" class="result-block__bar-row">
-          <div class="result-block__bar-head">
-            <span>{{ bucket.from }} ~ {{ bucket.to }}</span>
-            <span>{{ bucket.count }}</span>
-          </div>
-          <div class="result-block__bar">
-            <div class="result-block__bar-fill" :style="{ width: `${bucketPercent(bucket.count)}%` }"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <ChartLegendContent class="result-block__legend" />
+      </ChartContainer>
+    </template>
 
     <div v-else-if="block.type === 'ranking'" class="result-block__ranking">
       <div v-for="(option, index) in block.options" :key="index" class="result-block__rank-row">
         <span class="result-block__rank-text">{{ option.text }}</span>
         <span class="result-block__rank-value">平均第 {{ option.average_rank ?? 0 }} 位</span>
-      </div>
-    </div>
-
-    <div v-else-if="block.type === 'proportion'" class="result-block__ranking">
-      <div v-for="(option, index) in block.options" :key="index" class="result-block__rank-row">
-        <span class="result-block__rank-text">{{ option.text }}</span>
-        <span class="result-block__rank-value">平均 {{ option.average ?? 0 }} / {{ block.total }}</span>
       </div>
     </div>
 
@@ -102,6 +109,24 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import {
+  VisAxis,
+  VisDonut,
+  VisDonutSelectors,
+  VisGroupedBar,
+  VisGroupedBarSelectors,
+  VisSingleContainer,
+  VisXYContainer,
+} from "@unovis/vue";
+import {
+  ChartContainer,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  componentToString,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import type { SurveyQuestionResultBlock } from "@/utils/survey";
 import { uploadedFileUrl } from "@/utils/upload";
 
@@ -116,11 +141,127 @@ const props = defineProps({
   },
 });
 
-const bucketPercent = (count: number) => {
-  const answered = props.block.answered || 0;
-  if (answered <= 0) return 0;
-  return Math.round((count / answered) * 100);
+const CHART_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
+
+const chartColor = (index: number) => CHART_COLORS[index % CHART_COLORS.length];
+
+const isBarType = computed(() =>
+  ["single", "multiple", "scale", "slider"].includes(props.block.type)
+);
+
+interface BarRow {
+  label: string;
+  value: number;
+}
+
+const barRows = computed<BarRow[]>(() => {
+  const block = props.block;
+  if (block.type === "single" || block.type === "multiple") {
+    return (block.options ?? []).map((option) => ({
+      label: option.text,
+      value: option.count ?? 0,
+    }));
+  }
+  if (block.type === "scale") {
+    return (block.values ?? []).map((item) => ({
+      label: String(item.value),
+      value: item.count,
+    }));
+  }
+  if (block.type === "slider") {
+    return (block.buckets ?? []).map((bucket) => ({
+      label: `${bucket.from} ~ ${bucket.to}`,
+      value: bucket.count,
+    }));
+  }
+  return [];
+});
+
+const barConfig: ChartConfig = {
+  value: { label: "人数", color: chartColor(0) },
 };
+const barColor = barConfig.value.color;
+
+const barCategory = (_row: BarRow, index: number) => index;
+const barValue = (row: BarRow) => row.value;
+
+const categoryTicks = computed(() => barRows.value.map((_row, index) => index));
+const categoryTickFormat = (value: number) => barRows.value[value]?.label ?? "";
+const valueTickFormat = (value: number) => String(Math.round(value));
+
+const valueDomain = computed<[number, number]>(() => [
+  0,
+  Math.max(1, ...barRows.value.map((row) => row.value)),
+]);
+const categoryDomain = computed<[number, number]>(() => [
+  -0.5,
+  Math.max(0.5, barRows.value.length - 0.5),
+]);
+
+const chartHeight = computed(() =>
+  Math.min(Math.max(barRows.value.length * 32 + 16, 120), 560)
+);
+
+const barTooltipTemplate = componentToString(barConfig, ChartTooltipContent, {
+  labelKey: "label",
+});
+const barTooltipTriggers = { [VisGroupedBarSelectors.bar]: barTooltipTemplate };
+
+const averageLabel = computed(() => {
+  const block = props.block;
+  if (block.type === "scale") return `平均 ${block.average ?? 0}`;
+  if (block.type === "slider") {
+    return `平均 ${block.average ?? 0}${block.unit || ""}（最低 ${block.min_value ?? 0} / 最高 ${
+      block.max_value ?? 0
+    }）`;
+  }
+  return "";
+});
+
+interface PieDatum {
+  key: string;
+  name: string;
+  [key: string]: string | number;
+}
+
+const pieData = computed<PieDatum[]>(() =>
+  (props.block.options ?? []).map((option, index) => {
+    const key = `slice-${index}`;
+    return { key, name: option.text, [key]: option.average ?? 0 };
+  })
+);
+
+const piePercent = (average: number) => {
+  const total = props.block.total ?? 0;
+  if (total <= 0) return 0;
+  return Math.round((average / total) * 100);
+};
+
+const pieConfig = computed<ChartConfig>(() => {
+  const config: ChartConfig = {};
+  pieData.value.forEach((slice, index) => {
+    const average = Number(slice[slice.key]) || 0;
+    config[slice.key] = {
+      label: `${slice.name}（${piePercent(average)}%）`,
+      color: chartColor(index),
+    };
+  });
+  return config;
+});
+
+const pieValue = (slice: PieDatum) => Number(slice[slice.key]) || 0;
+const pieColor = (_slice: PieDatum, index: number) => chartColor(index);
+
+const pieTooltipTemplate = componentToString(pieConfig.value, ChartTooltipContent, {
+  hideLabel: true,
+});
+const pieTooltipTriggers = { [VisDonutSelectors.segment]: pieTooltipTemplate };
 </script>
 
 <style scoped>
@@ -151,39 +292,32 @@ const bucketPercent = (count: number) => {
 }
 
 .result-block__average {
-  margin: 0 0 0.4rem;
+  margin: 0.4rem 0 0;
   font-size: 0.8125rem;
   color: var(--c-secondary);
 }
 
-.result-block__bars,
+.result-block__plot {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+.result-block__plot--pie {
+  height: 220px;
+}
+
+.result-block__legend {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-top: 0.25rem;
+}
+
 .result-block__ranking,
 .result-block__texts {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 0.6rem;
-}
-
-.result-block__bar-head {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8125rem;
-  color: var(--c-title);
-}
-
-.result-block__bar {
-  height: 8px;
-  margin-top: 0.2rem;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--c-border) 70%, transparent);
-  overflow: hidden;
-}
-
-.result-block__bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--primary) 78%, transparent);
 }
 
 .result-block__rank-row {
