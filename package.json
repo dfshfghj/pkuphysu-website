@@ -42,6 +42,8 @@
     "@mdit/plugin-mark": "^0.22.2",
     "@mdit/plugin-tasklist": "^0.22.3",
     "@tailwindcss/vite": "^4.2.2",
+    "@unovis/ts": "^1.7.1",
+    "@unovis/vue": "^1.7.1",
     "@vueuse/core": "^14.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
