@@ -415,7 +415,7 @@
       },
       {                      // 题目区块：只有交互配置，题干写在上方的 Markdown 区块里
         "kind": "question",
-        "type": "single",    // single/multiple/text/ranking/slider/proportion/scale
+        "type": "single",    // single/multiple/text/ranking/slider/proportion/scale/upload
         "required": true,    // 是否必答
         "config": { "options": ["选项A", "选项B"] }
       }
@@ -439,6 +439,7 @@
 | `slider` 滑动条 | `{ "min": number, "max": number, "step": number, "default": number, "minLabel"?: string, "maxLabel"?: string }` |
 | `proportion` 比重条 | `{ "options": string[], "total": number }` |
 | `scale` 量表 | `{ "min": number, "max": number, "minLabel"?: string, "maxLabel"?: string }` |
+| `upload` 上传 | `{ "accept": "image" \| "file", "multiple": boolean, "maxCount": number }`（最多 9 个） |
 
 **返回值**：
 ```json
@@ -555,18 +556,23 @@
     { "block_id": 12, "value": [0, 2] },      // 多选/排序：下标数组
     { "block_id": 13, "value": "文字作答" },   // 简答：字符串
     { "block_id": 14, "value": 42 },          // 滑动条/量表：数字
-    { "block_id": 15, "value": [40, 60] }     // 比重条：各项分值，和等于 total
+    { "block_id": 15, "value": [40, 60] },    // 比重条：各项分值，和等于 total（填写端最后一项自动补足）
+    { "block_id": 16, "value": [              // 上传：已上传文件的相对地址与原始文件名
+      { "url": "/files/9f8e....png", "name": "photo.png" }
+    ] }
   ]
 }
 ```
 
+> 上传题需先调用 `POST /files/upload` 拿到 `url`，再把 `{ url, name }` 列表作为作答值；`url` 必须以 `/files/` 开头，数量不超过 `maxCount`。
+
 **错误**：
 - `403 SurveyClosed`：问卷已关闭
 - `409 AlreadySurveyed`：已经提交过（不允许重复提交时）
-- `400 InvalidParams`：必答缺失、下标越界、排序非全排列、比重之和不为 total 等
+- `400 InvalidParams`：必答缺失、下标越界、排序非全排列、比重之和不为 total、上传文件地址非法或数量超限等
 
 #### GET /forum/surveys/:id/results - 获取问卷数据
-**仅作者与管理员可访问**。返回同一套区块列表，题目区块附聚合统计（选择/量表按项计数与占比，简答列出文本，排序算平均名次，滑动条算均值与分布，比重条算各项平均分），Markdown 区块原样下发。
+**仅作者与管理员可访问**。返回同一套区块列表，题目区块附聚合统计（选择/量表按项计数与占比，简答列出文本，排序算平均名次，滑动条算均值与分布，比重条算各项平均分，上传题列出各答题人的文件），Markdown 区块原样下发。
 
 ```json
 {

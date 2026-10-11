@@ -319,13 +319,49 @@
         </div>
       </div>
     </div>
+
+    <div v-else-if="block.type === 'upload'" class="survey-field__upload">
+      <input
+        ref="uploadInput"
+        type="file"
+        class="survey-field__upload-input"
+        :accept="uploadAccept"
+        :multiple="uploadConfig.multiple"
+        :disabled="editable || disabled || uploading"
+        @change="onUploadPick"
+      />
+      <template v-if="!editable">
+        <button
+          type="button"
+          class="survey-field__upload-btn"
+          :disabled="disabled || uploading || reachedUploadLimit"
+          @click="openUpload"
+        >
+          <Loader2 v-if="uploading" class="size-4 animate-spin" />
+          <Upload v-else class="size-4" />
+          <span>{{ uploadButtonText }}</span>
+        </button>
+        <ul v-if="uploadedFiles.length" class="survey-field__upload-list">
+          <li v-for="(file, index) in uploadedFiles" :key="`${file.url}-${index}`" class="survey-field__upload-item">
+            <a :href="uploadedFileUrl(file.url)" target="_blank" rel="noopener noreferrer">
+              {{ file.name || file.url }}
+            </a>
+            <button v-if="!disabled" type="button" aria-label="移除文件" @click="removeUpload(index)">
+              <X class="size-4" />
+            </button>
+          </li>
+        </ul>
+      </template>
+      <p v-else class="survey-field__upload-hint">{{ uploadEditableHint }}</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowDown, ArrowUp, GripVertical, X } from "lucide-vue-next";
+import { ArrowDown, ArrowUp, GripVertical, Loader2, Upload, X } from "lucide-vue-next";
 import { Textarea } from "@/components/ui/textarea";
+import { uploadedFileUrl, uploadFiles } from "@/utils/upload";
 import {
   initialProportionValues,
   MAX_SURVEY_OPTIONS,
@@ -339,6 +375,8 @@ import {
   type SurveyScaleConfig,
   type SurveySliderConfig,
   type SurveyTextConfig,
+  type SurveyUploadConfig,
+  type SurveyUploadFile,
 } from "@/utils/survey";
 
 const props = defineProps({
@@ -378,6 +416,7 @@ const textConfig = computed(() => props.block.config as SurveyTextConfig);
 const sliderConfig = computed(() => props.block.config as SurveySliderConfig);
 const proportionConfig = computed(() => props.block.config as SurveyProportionConfig);
 const scaleConfig = computed(() => props.block.config as SurveyScaleConfig);
+const uploadConfig = computed(() => props.block.config as SurveyUploadConfig);
 
 const updateConfig = (patch: Record<string, unknown>) => {
   emit("update:block", { ...props.block, config: { ...props.block.config, ...patch } as SurveyQuestionConfig });
@@ -574,6 +613,57 @@ const addOption = () => {
 const removeOption = (index: number) => {
   if (options.value.length <= MIN_SURVEY_OPTIONS) return;
   updateConfig({ options: options.value.filter((_, i) => i !== index) });
+};
+
+const uploadInput = ref<HTMLInputElement | null>(null);
+const uploading = ref(false);
+
+const uploadedFiles = computed<SurveyUploadFile[]>(() =>
+  Array.isArray(props.modelValue) ? (props.modelValue as SurveyUploadFile[]) : []
+);
+const uploadLimit = computed(() => (uploadConfig.value.multiple ? uploadConfig.value.maxCount : 1));
+const reachedUploadLimit = computed(() => uploadedFiles.value.length >= uploadLimit.value);
+const uploadAccept = computed(() => (uploadConfig.value.accept === "image" ? "image/*" : undefined));
+const uploadKindLabel = computed(() => (uploadConfig.value.accept === "image" ? "图片" : "文件"));
+const uploadButtonText = computed(() =>
+  uploadConfig.value.multiple
+    ? `选择${uploadKindLabel.value}（最多 ${uploadLimit.value} 个）`
+    : `选择${uploadKindLabel.value}`
+);
+const uploadEditableHint = computed(() =>
+  uploadConfig.value.multiple
+    ? `填写时可上传${uploadKindLabel.value}（最多 ${uploadLimit.value} 个）`
+    : `填写时可上传 1 个${uploadKindLabel.value}`
+);
+
+const openUpload = () => uploadInput.value?.click();
+
+const onUploadPick = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const picked = Array.from(input.files ?? []);
+  input.value = "";
+  if (!picked.length) return;
+  const batch = picked.slice(0, Math.max(0, uploadLimit.value - uploadedFiles.value.length));
+  if (!batch.length) return;
+  uploading.value = true;
+  try {
+    const uploaded = await uploadFiles(batch);
+    emit("update:modelValue", [
+      ...uploadedFiles.value,
+      ...uploaded.map((file) => ({ url: file.url, name: file.name })),
+    ]);
+  } catch (error) {
+    console.error("Upload survey file failed:", error);
+  } finally {
+    uploading.value = false;
+  }
+};
+
+const removeUpload = (index: number) => {
+  emit(
+    "update:modelValue",
+    uploadedFiles.value.filter((_, i) => i !== index)
+  );
 };
 </script>
 
@@ -1025,5 +1115,85 @@ input.survey-field__slider-value:disabled {
   font-size: 0.875rem;
   color: var(--c-title);
   cursor: pointer;
+}
+
+.survey-field__upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.survey-field__upload-input {
+  display: none;
+}
+
+.survey-field__upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.45rem 0.9rem;
+  border: 1px dashed var(--c-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--c-title);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.survey-field__upload-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.survey-field__upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.survey-field__upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.survey-field__upload-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.survey-field__upload-item a {
+  color: var(--c-link);
+  word-break: break-all;
+}
+
+.survey-field__upload-item button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0.2rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-secondary);
+  cursor: pointer;
+}
+
+.survey-field__upload-item button:hover {
+  background: var(--gray-2);
+}
+
+.survey-field__upload-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-secondary);
 }
 </style>

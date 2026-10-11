@@ -5,7 +5,8 @@ export type SurveyQuestionType =
   | "ranking"
   | "slider"
   | "proportion"
-  | "scale";
+  | "scale"
+  | "upload";
 
 export interface SurveyChoiceConfig {
   options: string[];
@@ -39,12 +40,24 @@ export interface SurveyScaleConfig {
   maxLabel?: string;
 }
 
+export interface SurveyUploadConfig {
+  accept: "image" | "file";
+  multiple: boolean;
+  maxCount: number;
+}
+
+export interface SurveyUploadFile {
+  url: string;
+  name: string;
+}
+
 export type SurveyQuestionConfig =
   | SurveyChoiceConfig
   | SurveyTextConfig
   | SurveySliderConfig
   | SurveyProportionConfig
-  | SurveyScaleConfig;
+  | SurveyScaleConfig
+  | SurveyUploadConfig;
 
 export interface SurveyMarkdownDraftBlock {
   kind: "markdown";
@@ -123,6 +136,7 @@ export interface SurveyQuestionResultBlock {
   options?: SurveyResultsOption[];
   values?: { value: number; count: number; percent: number }[];
   texts?: { username: string; text: string }[];
+  uploads?: { username: string; files: SurveyUploadFile[] }[];
   buckets?: { from: number; to: number; count: number }[];
   average?: number;
   min?: number;
@@ -133,6 +147,8 @@ export interface SurveyQuestionResultBlock {
   max_value?: number;
   min_label?: string;
   max_label?: string;
+  accept?: string;
+  multiple?: boolean;
 }
 
 export type SurveyResultBlock = SurveyMarkdownResultBlock | SurveyQuestionResultBlock;
@@ -146,7 +162,7 @@ export interface SurveyResults {
   blocks: SurveyResultBlock[];
 }
 
-export type SurveyAnswerValue = number | number[] | string;
+export type SurveyAnswerValue = number | number[] | string | SurveyUploadFile[];
 
 export const SURVEY_QUESTION_TYPES: { value: SurveyQuestionType; label: string }[] = [
   { value: "single", label: "单选" },
@@ -156,6 +172,7 @@ export const SURVEY_QUESTION_TYPES: { value: SurveyQuestionType; label: string }
   { value: "slider", label: "滑动条" },
   { value: "proportion", label: "比重条" },
   { value: "scale", label: "量表" },
+  { value: "upload", label: "上传" },
 ];
 
 export const SURVEY_STATUS_LABELS: Record<string, string> = {
@@ -182,6 +199,8 @@ export const createDefaultConfig = (type: SurveyQuestionType): SurveyQuestionCon
       return { options: ["选项1", "选项2"], total: 100 };
     case "scale":
       return { min: 1, max: 5, minLabel: "", maxLabel: "" };
+    case "upload":
+      return { accept: "image", multiple: false, maxCount: 1 };
   }
 };
 
@@ -337,6 +356,12 @@ export const validateSurveyAnswersClient = (
       const config = block.config as SurveyProportionConfig;
       const sum = (value as number[]).reduce((total, item) => total + item, 0);
       if (Math.abs(sum - config.total) > 0.01) return `${label}的比重之和必须等于 ${config.total}`;
+    }
+
+    if (block.type === "upload") {
+      const config = block.config as SurveyUploadConfig;
+      const max = config.multiple ? config.maxCount : 1;
+      if ((value as SurveyUploadFile[]).length > max) return `${label}最多上传 ${max} 个文件`;
     }
   }
 

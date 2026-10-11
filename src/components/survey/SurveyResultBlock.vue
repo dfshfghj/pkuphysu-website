@@ -69,11 +69,41 @@
         <span class="result-block__text-body">{{ item.text }}</span>
       </div>
     </div>
+
+    <div v-else-if="block.type === 'upload'" class="result-block__uploads">
+      <p v-if="!block.uploads?.length" class="result-block__empty">暂无上传</p>
+      <div v-for="(entry, index) in block.uploads" :key="index" class="result-block__upload">
+        <span class="result-block__upload-user">{{ entry.username || "匿名" }}</span>
+        <div class="result-block__upload-files">
+          <template v-for="(file, fileIndex) in entry.files" :key="`${file.url}-${fileIndex}`">
+            <a
+              v-if="block.accept === 'image'"
+              :href="uploadedFileUrl(file.url)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="result-block__upload-thumb"
+            >
+              <img :src="uploadedFileUrl(file.url)" :alt="file.name" loading="lazy" />
+            </a>
+            <a
+              v-else
+              :href="uploadedFileUrl(file.url)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="result-block__upload-link"
+            >
+              {{ file.name || file.url }}
+            </a>
+          </template>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { SurveyQuestionResultBlock } from "@/utils/survey";
+import { uploadedFileUrl } from "@/utils/upload";
 
 const props = defineProps({
   block: {
@@ -187,5 +217,49 @@ const bucketPercent = (count: number) => {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--c-secondary);
+}
+
+.result-block__uploads {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.result-block__upload {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.result-block__upload-user {
+  flex-shrink: 0;
+  color: var(--c-secondary);
+}
+
+.result-block__upload-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.result-block__upload-link {
+  color: var(--c-link);
+  word-break: break-all;
+}
+
+.result-block__upload-thumb {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.result-block__upload-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

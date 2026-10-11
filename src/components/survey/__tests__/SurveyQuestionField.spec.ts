@@ -1,5 +1,5 @@
-import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import SurveyQuestionField from "@/components/survey/SurveyQuestionField.vue";
 import type {
   SurveyAnswerValue,
@@ -8,6 +8,13 @@ import type {
   SurveySliderConfig,
   SurveyTextConfig,
 } from "@/utils/survey";
+
+vi.mock("@/utils/upload", () => ({
+  uploadFiles: vi.fn(async (files: File[]) =>
+    files.map((file, index) => ({ url: `/files/${index}.png`, name: file.name, size: 1 }))
+  ),
+  uploadedFileUrl: (url: string) => url,
+}));
 
 const makeBlock = (type: SurveyQuestionType, config: Record<string, unknown>): SurveyQuestionDraftBlock => ({
   kind: "question",
@@ -263,5 +270,42 @@ describe("SurveyQuestionField", () => {
     expect((maxEvents[maxEvents.length - 1][0] as SurveyQuestionDraftBlock).config).toMatchObject({
       maxLength: 80,
     });
+  });
+
+  it("上传题选择文件后发出文件列表", async () => {
+    const wrapper = mountField(makeBlock("upload", { accept: "image", multiple: false, maxCount: 1 }));
+    const input = wrapper.find('input[type="file"]');
+    const file = new File(["x"], "photo.png", { type: "image/png" });
+    Object.defineProperty(input.element, "files", { value: [file], configurable: true });
+
+    await input.trigger("change");
+    await flushPromises();
+    expect(lastEmitted(wrapper)).toEqual([{ url: "/files/0.png", name: "photo.png" }]);
+  });
+
+  it("上传题达到数量上限后禁用选择按钮", () => {
+    const wrapper = mountField(makeBlock("upload", { accept: "file", multiple: true, maxCount: 1 }), {
+      modelValue: [{ url: "/files/a.pdf", name: "a.pdf" }] as SurveyAnswerValue,
+    });
+    expect(wrapper.find(".survey-field__upload-btn").attributes("disabled")).toBeDefined();
+  });
+
+  it("上传题可移除已上传文件", async () => {
+    const wrapper = mountField(makeBlock("upload", { accept: "file", multiple: true, maxCount: 3 }), {
+      modelValue: [
+        { url: "/files/a.pdf", name: "a.pdf" },
+        { url: "/files/b.pdf", name: "b.pdf" },
+      ] as SurveyAnswerValue,
+    });
+
+    await wrapper.findAll(".survey-field__upload-item button")[0].trigger("click");
+    expect(lastEmitted(wrapper)).toEqual([{ url: "/files/b.pdf", name: "b.pdf" }]);
+  });
+
+  it("编辑模式下上传题显示填写提示", () => {
+    const wrapper = mountField(makeBlock("upload", { accept: "image", multiple: false, maxCount: 1 }), {
+      editable: true,
+    });
+    expect(wrapper.find(".survey-field__upload-hint").text()).toContain("填写时可上传");
   });
 });

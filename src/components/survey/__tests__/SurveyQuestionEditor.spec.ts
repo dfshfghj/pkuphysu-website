@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import SurveyQuestionEditor from "@/components/survey/SurveyQuestionEditor.vue";
-import type { SurveyQuestionDraftBlock, SurveySliderConfig } from "@/utils/survey";
+import type { SurveyQuestionDraftBlock, SurveySliderConfig, SurveyUploadConfig } from "@/utils/survey";
 
 const mountEditor = (modelValue: SurveyQuestionDraftBlock, disabled = false) =>
   mount(SurveyQuestionEditor, { props: { modelValue, disabled } });
@@ -61,5 +61,30 @@ describe("SurveyQuestionEditor", () => {
     });
     await wrapper.find('input[type="number"]').setValue("10");
     expect((lastEmitted(wrapper).config as SurveySliderConfig).step).toBe(10);
+  });
+
+  it("上传题单选时只渲染允许类型与允许多个", () => {
+    const wrapper = mountEditor({
+      kind: "question",
+      type: "upload",
+      required: false,
+      config: { accept: "image", multiple: false, maxCount: 1 },
+    });
+    const labels = wrapper.findAll(".question-config__field > span").map((node) => node.text());
+    expect(labels).toEqual(["允许类型", "允许多个"]);
+  });
+
+  it("上传题多选时显示最多数量并可更新", async () => {
+    const wrapper = mountEditor({
+      kind: "question",
+      type: "upload",
+      required: false,
+      config: { accept: "file", multiple: true, maxCount: 3 },
+    });
+    const labels = wrapper.findAll(".question-config__field > span").map((node) => node.text());
+    expect(labels).toEqual(["允许类型", "允许多个", "最多数量"]);
+
+    await wrapper.find('input[type="number"]').setValue("5");
+    expect((lastEmitted(wrapper).config as SurveyUploadConfig).maxCount).toBe(5);
   });
 });
