@@ -1,1 +1,127 @@
-@import "./github-markdown.css";
+@import "./markdown-theme.css";
+@import "./markdown-highlight.css";
+
+/* Vditor owns the editable pre elements, code blocks and line-number layout.
+   Share only typography rules; the published .markdown-body reset must not
+   apply to editor surfaces or their nested previews. */
+.vditor-container .vditor-reset h1,
+.vditor-container .vditor-reset h2,
+.vditor-container .vditor-reset h3,
+.vditor-container .vditor-reset h4,
+.vditor-container .vditor-reset h5,
+.vditor-container .vditor-reset h6 {
+  font-family: var(--md-font-heading);
+}
+
+.vditor-container .vditor-reset hr {
+  height: 0.25em;
+  margin: 24px 0;
+  background-color: var(--borderColor-default);
+  border: 0;
+}
+
+.vditor-container .vditor-reset ul {
+  list-style-type: disc;
+}
+
+.vditor-container .vditor-reset ol {
+  list-style-type: decimal;
+}
+
+.vditor-container .vditor-reset ol ol,
+.vditor-container .vditor-reset ul ol {
+  list-style-type: lower-roman;
+}
+
+.vditor-container .vditor-reset ol ol ol,
+.vditor-container .vditor-reset ol ul ol,
+.vditor-container .vditor-reset ul ol ol,
+.vditor-container .vditor-reset ul ul ol {
+  list-style-type: lower-alpha;
+}
+
+/* The reset is an editable pre in IR/WYSIWYG. Only its text properties are shared. */
+.vditor-container .vditor-reset {
+  font-family: var(--md-font-body);
+  font-size: var(--md-font-size);
+  line-height: var(--md-line-height);
+  color: var(--fgColor-default);
+}
+
+.vditor-container .vditor-reset a {
+  color: var(--c-link, var(--fgColor-accent));
+}
+
+.vditor-container .vditor-reset h1 {
+  font-size: 2em;
+}
+.vditor-container .vditor-reset h2 {
+  font-size: 1.5em;
+}
+.vditor-container .vditor-reset h3 {
+  font-size: 1.25em;
+}
+.vditor-container .vditor-reset h4 {
+  font-size: 1em;
+}
+.vditor-container .vditor-reset h5 {
+  font-size: 0.875em;
+}
+.vditor-container .vditor-reset h6 {
+  font-size: 0.85em;
+  color: var(--fgColor-muted);
+}
+.vditor-container .vditor-reset h1,
+.vditor-container .vditor-reset h2 {
+  border-bottom-color: var(--borderColor-muted);
+}
+.vditor-container .vditor-reset > :is(h1, h2, h3, h4, h5, h6):first-child {
+  margin-top: 0;
+}
+
+.vditor-container .vditor-reset blockquote:not(.callout) {
+  color: var(--fgColor-muted);
+  border-left-color: var(--borderColor-default);
+}
+.vditor-container .vditor-reset :is(ul, ol) {
+  padding-left: 2em;
+}
+.vditor-container .vditor-reset :is(ul, ol) :is(ul, ol) {
+  margin-bottom: 0;
+}
+.vditor-container .vditor-reset li > p {
+  margin-top: var(--base-size-16);
+}
+.vditor-container .vditor-reset :is(th, td) {
+  padding: 6px 13px;
+  border-color: var(--borderColor-default);
+}
+.vditor-container .vditor-reset table tr {
+  background-color: transparent;
+  border-top-color: var(--borderColor-muted);
+}
+.vditor-container .vditor-reset table tbody tr:nth-child(2n) {
+  background-color: var(--bgColor-muted);
+}
+
+/* Inline code only; never the source of an editable fenced block. */
+.vditor-container .vditor-reset :not(pre) > code:not(.hljs):not(.highlight-chroma) {
+  font-family: var(--fontStack-monospace);
+  border-radius: var(--md-code-radius);
+  background-color: var(--bgColor-neutral-muted);
+}
+
+/* Highlighted preview code only. Keep pre, source markers, copy controls and
+   Vditor's horizontal line-number gutter under Vditor's control. */
+.vditor-container .vditor-reset pre > code.hljs {
+  font-family: var(--fontStack-monospace);
+  font-size: 85%;
+  line-height: var(--md-code-line-height);
+  padding: var(--base-size-16);
+  border-radius: var(--md-code-radius);
+  background-color: var(--bgColor-muted);
+  background-image: none;
+}
+.vditor-container .vditor-reset pre > code.hljs > .vditor-linenumber__rows {
+  top: var(--base-size-16);
+}

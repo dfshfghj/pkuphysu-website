@@ -93,18 +93,7 @@ onBeforeUnmount(() => {
 :deep(h4),
 :deep(h5),
 :deep(h6) {
-  font-family: "KaTeX_Main", serif;
-}
-
-@media (max-width: 640px) {
-  :deep(h1),
-  :deep(h2),
-  :deep(h3),
-  :deep(h4),
-  :deep(h5),
-  :deep(h6) {
-    font-family: "KaTeX_Main";
-  }
+  font-family: var(--md-font-heading);
 }
 
 :deep(h1:first-child),
