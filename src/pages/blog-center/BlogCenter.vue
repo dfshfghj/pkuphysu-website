@@ -55,7 +55,10 @@
         </DropdownMenu>
       </div>
     </div>
-    <div class="flex flex-col flex-1 min-w-0 h-screen pb-14 sm:pb-0">
+    <div
+      class="flex flex-col flex-1 min-w-0 h-screen sm:pb-0"
+      :class="isDetail ? 'pb-[env(safe-area-inset-bottom)]' : 'pb-14'"
+    >
       <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
         <div class="control-search p-1 m-2 bg-card">
           <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
@@ -152,7 +155,7 @@
   <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="handlePostCreated" />
   <PasswordDialog />
 
-  <BottomNav :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
+  <BottomNav v-if="!isDetail" :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
 </template>
 
 <script setup lang="ts">
