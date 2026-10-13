@@ -215,7 +215,7 @@ const confirm = () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--c-title);
+  color: var(--foreground);
   cursor: pointer;
 }
 
@@ -236,11 +236,11 @@ const confirm = () => {
 
 .composer__locked {
   padding: 0.75rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--gray-2);
+  background: var(--muted);
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .composer__locked ol {
@@ -251,6 +251,6 @@ const confirm = () => {
 .composer__error {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--red-6);
+  color: var(--destructive);
 }
 </style>

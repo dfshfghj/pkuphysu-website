@@ -6,18 +6,18 @@
         <UserAvatar :userid="String(userId ?? '')" :size="50" />
         <span class="min-w-0 flex-1 truncate font-bold">{{ username }}</span>
       </div>
-      <div class="mt-3 flex items-center border-t border-(--c-border) pt-2 text-center">
+      <div class="mt-3 flex items-center border-t border-(--border) pt-2 text-center">
         <div class="flex flex-1 flex-col">
           <span class="font-bold">{{ stats?.post_count ?? "-" }}</span>
-          <span class="text-xs text-(--c-secondary)">帖子</span>
+          <span class="text-xs text-muted-foreground">帖子</span>
         </div>
         <div class="flex flex-1 flex-col">
           <span class="font-bold">{{ stats?.comment_count ?? "-" }}</span>
-          <span class="text-xs text-(--c-secondary)">评论</span>
+          <span class="text-xs text-muted-foreground">评论</span>
         </div>
         <div class="flex flex-1 flex-col">
           <span class="font-bold">{{ stats?.likes_received ?? "-" }}</span>
-          <span class="text-xs text-(--c-secondary)">获赞</span>
+          <span class="text-xs text-muted-foreground">获赞</span>
         </div>
       </div>
     </HoverCardContent>

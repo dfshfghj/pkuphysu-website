@@ -232,7 +232,7 @@
 
 .markdown-body img {
   border-style: none;
-  border-radius: 8px;
+  border-radius: 4px;
   max-width: min(80%, 450px);
   margin: auto;
   box-sizing: content-box;

@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-vue-next";
 
 <template>
   <div class="flex items-center justify-center px-4 py-10" role="status" aria-label="加载中">
-    <Loader2 class="size-6 animate-spin text-(--c-secondary)" />
+    <Loader2 class="size-6 animate-spin text-muted-foreground" />
     <span class="sr-only">加载中…</span>
   </div>
 </template>

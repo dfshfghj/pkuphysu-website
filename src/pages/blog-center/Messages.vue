@@ -1,13 +1,13 @@
 <template>
   <ScrollPane class="h-screen! flex-1" :distance="400" back-top>
-    <div class="min-h-lvh">
+    <div class="min-h-lvh bg-card">
       <div class="hidden items-center justify-between pt-6 pr-6 pl-6 sm:flex">
         <h2 class="mt-0 text-xl font-bold sm:font-serif">消息</h2>
         <Button
           v-if="notificationStore.unreadCount > 0"
           variant="ghost"
           size="sm"
-          class="text-(--c-secondary)"
+          class="text-muted-foreground"
           @click="markAllRead"
         >
           全部已读
@@ -23,17 +23,17 @@
           class="m-4"
           :class="[
             canOpen(notification) ? 'cursor-pointer transition-colors hover:bg-accent/50' : '',
-            notification.read ? '' : 'bg-(--gray-2)',
+            notification.read ? '' : 'bg-muted',
           ]"
           @click="openNotification(notification)"
         >
           <ItemContent>
             <div class="flex items-center justify-between gap-2">
               <ItemTitle class="flex items-center gap-2">
-                <span v-if="!notification.read" class="size-2 shrink-0 rounded-full bg-(--c-brand)" />
+                <span v-if="!notification.read" class="size-2 shrink-0 rounded-full bg-primary" />
                 <span>{{ notificationTitle(notification) }}</span>
               </ItemTitle>
-              <span class="shrink-0 text-xs text-(--c-secondary)">
+              <span class="shrink-0 text-xs text-muted-foreground">
                 {{ formatNotificationTime(notification.created_at) }}
               </span>
             </div>

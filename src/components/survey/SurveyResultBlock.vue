@@ -96,7 +96,7 @@ const bucketPercent = (count: number) => {
 <style scoped>
 .result-block {
   padding: 0.75rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--card);
 }
@@ -111,19 +111,19 @@ const bucketPercent = (count: number) => {
 .result-block__title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 
 .result-block__meta {
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   white-space: nowrap;
 }
 
 .result-block__average {
   margin: 0 0 0.4rem;
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .result-block__bars,
@@ -139,14 +139,14 @@ const bucketPercent = (count: number) => {
   display: flex;
   justify-content: space-between;
   font-size: 0.8125rem;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 
 .result-block__bar {
   height: 8px;
   margin-top: 0.2rem;
   border-radius: 999px;
-  background: color-mix(in oklab, var(--c-border) 70%, transparent);
+  background: color-mix(in oklab, var(--border) 70%, transparent);
   overflow: hidden;
 }
 
@@ -160,11 +160,11 @@ const bucketPercent = (count: number) => {
   display: flex;
   justify-content: space-between;
   font-size: 0.8125rem;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 
 .result-block__rank-value {
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .result-block__text {
@@ -175,17 +175,17 @@ const bucketPercent = (count: number) => {
 
 .result-block__text-user {
   flex-shrink: 0;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .result-block__text-body {
-  color: var(--c-title);
+  color: var(--foreground);
   word-break: break-word;
 }
 
 .result-block__empty {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 </style>

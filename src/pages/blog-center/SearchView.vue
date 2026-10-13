@@ -1,9 +1,9 @@
 <template>
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
-    <div class="min-h-lvh">
+    <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">搜索结果</h2>
       <div v-if="posts.length" class="flex items-center justify-between gap-2 px-6 pt-2">
-        <span class="text-sm text-(--c-secondary)"> 共 {{ posts.length }}{{ endOfPosts ? "" : "+" }} 条结果 </span>
+        <span class="text-sm text-muted-foreground"> 共 {{ posts.length }}{{ endOfPosts ? "" : "+" }} 条结果 </span>
         <Button variant="ghost" size="sm" @click="clearSearch">
           <X class="size-4" />
           清除筛选

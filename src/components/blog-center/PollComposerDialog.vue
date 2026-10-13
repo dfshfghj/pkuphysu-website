@@ -124,7 +124,7 @@ const confirm = () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--c-title);
+  color: var(--foreground);
   cursor: pointer;
 }
 
@@ -153,12 +153,12 @@ const confirm = () => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
 .poll-remove:hover:not(:disabled) {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .poll-remove:disabled {
@@ -173,13 +173,13 @@ const confirm = () => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   cursor: pointer;
 }
 
 .poll-add:hover:not(:disabled) {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .poll-add:disabled {

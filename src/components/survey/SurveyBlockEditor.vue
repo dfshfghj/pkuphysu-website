@@ -193,13 +193,13 @@ const onClick = (event: MouseEvent) => {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.75rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--card);
 }
 
 .block-editor--active {
-  border-color: color-mix(in oklab, var(--primary) 45%, var(--c-border));
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
 }
 
 .block-editor--dragging {
@@ -238,12 +238,12 @@ const onClick = (event: MouseEvent) => {
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   cursor: grab;
 }
 
 .block-editor__handle:hover {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .block-editor__handle:active {
@@ -259,7 +259,7 @@ const onClick = (event: MouseEvent) => {
 .block-editor__badge {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .block-editor__required {
@@ -267,7 +267,7 @@ const onClick = (event: MouseEvent) => {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
@@ -288,12 +288,12 @@ const onClick = (event: MouseEvent) => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
 .block-editor__tools button:hover:not(:disabled) {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .block-editor__tools button:disabled {
@@ -309,6 +309,6 @@ const onClick = (event: MouseEvent) => {
 
 .block-editor__empty {
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 </style>

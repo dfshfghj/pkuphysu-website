@@ -2,7 +2,7 @@
   <ScrollPane>
     <div class="survey-page">
       <div v-if="loading" class="survey-page__center">
-        <Loader2 class="size-6 animate-spin text-(--c-secondary)" />
+        <Loader2 class="size-6 animate-spin text-muted-foreground" />
       </div>
 
       <EmptyState v-else-if="notFound" description="问卷不存在或不可见" />
@@ -38,7 +38,7 @@
         </div>
 
         <div v-else-if="survey.status === 'closed'" class="survey-page__done">
-          <Lock class="size-6 text-(--c-secondary)" />
+          <Lock class="size-6 text-muted-foreground" />
           <p>该问卷已结束，无法提交。</p>
         </div>
 
@@ -190,7 +190,7 @@ load();
 
 .survey-page__meta {
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .survey-page__blocks {
@@ -201,7 +201,7 @@ load();
 
 .survey-page__md {
   font-size: 0.9375rem;
-  color: var(--c-text);
+  color: var(--foreground);
 }
 
 .survey-page__done {
@@ -210,7 +210,7 @@ load();
   align-items: center;
   gap: 0.5rem;
   margin-top: 2rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .survey-page__submit {

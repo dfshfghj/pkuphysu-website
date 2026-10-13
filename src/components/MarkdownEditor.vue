@@ -274,8 +274,8 @@ defineExpose({
   --panel-background-color: var(--card);
   --textarea-background-color: var(--card);
   --toolbar-background-color: var(--card);
-  --border-color: var(--c-border);
-  --toolbar-icon-hover-color: var(--c-ui-hover-text);
+  --border-color: var(--border);
+  --toolbar-icon-hover-color: var(--muted-foreground);
 }
 
 .vditor-container .markdown-body {
@@ -347,7 +347,7 @@ defineExpose({
 
 .vditor-container .vditor .vditor-toolbar__item .vditor-tooltipped:hover,
 .vditor-container .vditor .vditor-toolbar__item .vditor-tooltipped:focus {
-  background-color: var(--c-ui-hover-bg);
+  background-color: var(--accent);
 }
 
 .vditor-container .vditor .vditor-menu--current {

@@ -65,7 +65,7 @@ defineExpose({
     <button
       v-if="backTop && showBackTop"
       type="button"
-      class="fixed right-5 bottom-[30px] z-10 flex size-10 cursor-pointer items-center justify-center rounded-full bg-card shadow-[0_0_12px_rgba(0,0,0,0.12)]"
+      class="fixed right-5 bottom-28 sm:bottom-8 z-10 flex size-10 cursor-pointer items-center justify-center rounded-full bg-card shadow-[0_0_12px_rgba(0,0,0,0.12)]"
       @click="scrollToTop"
     >
       <ChevronUp class="size-5" :stroke-width="3" />

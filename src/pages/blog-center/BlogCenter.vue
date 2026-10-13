@@ -1,6 +1,6 @@
 <template>
   <div class="flex min-h-screen bg-background">
-    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2">
+    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2" data-sidebar>
       <div class="control-btn sm:font-serif font-bold p-2" @click="goPosts">
         <RotateCw class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">最新</span>
@@ -18,7 +18,7 @@
           <Mail class="size-5" :stroke-width="1.5" />
           <span
             v-if="notificationStore.unreadCount > 0"
-            class="absolute -right-1 -top-1 size-2 rounded-full bg-(--c-brand)"
+            class="absolute -right-1 -top-1 size-2 rounded-full bg-primary"
           />
         </span>
         <span class="control-btn-label">消息</span>
@@ -63,12 +63,12 @@
         </div>
       </div>
       <div
-        class="text-(--c-title) pb-[0.7em] sticky top-0 left-0 w-full shadow-[0_0_25px_rgba(0,0,0,0.4)] bg-card z-10 unselectable sm:hidden"
+        class="text-foreground pb-[0.7em] sticky top-0 left-0 w-full bg-sidebar z-10 unselectable sm:hidden"
       >
         <div class="control-bar">
           <template v-if="isDetail">
             <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
-            <span class="text-(--c-secondary)!">#{{ route.params.id }}</span>
+            <span class="text-muted-foreground!">#{{ route.params.id }}</span>
             <span class="page-title">详情</span>
           </template>
           <template v-else-if="isSurvey">
@@ -101,7 +101,7 @@
         </keep-alive>
       </router-view>
     </div>
-    <div class="flex-col w-3/10 hidden md:flex">
+    <div class="flex-col w-3/10 hidden md:flex bg-card">
       <div class="control-search p-1 m-3">
         <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
         <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
@@ -115,13 +115,13 @@
                 v-for="tag in tags"
                 :key="tag"
                 type="button"
-                class="rounded-full bg-(--gray-2) px-3 py-1 text-xs transition-opacity hover:opacity-70"
+                class="rounded-full bg-muted px-3 py-1 text-xs transition-opacity hover:opacity-70"
                 @click="navigateToTag(tag)"
               >
                 {{ tag }}
               </button>
             </div>
-            <p v-else class="text-sm text-(--c-secondary)">暂无</p>
+            <p v-else class="text-sm text-muted-foreground">暂无</p>
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-3">
@@ -129,10 +129,10 @@
           <AccordionContent>
             <p>项目地址:</p>
             <p>
-              <a class="no-underline text-(--c-text)!" href="https://github.com/dfshfghj/pkuphysu-website"
+              <a class="no-underline text-foreground!" href="https://github.com/dfshfghj/pkuphysu-website"
                 >pkuphysu-website</a
               >,
-              <a class="no-underline text-(--c-text)!" href="https://github.com/dfshfghj/pkuphysu-backend"
+              <a class="no-underline text-foreground!" href="https://github.com/dfshfghj/pkuphysu-backend"
                 >pkuphysu-backend</a
               >
             </p>
@@ -335,7 +335,7 @@ onUnmounted(() => {
 .control-search {
   display: flex;
   align-items: center;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   border-radius: 9999px;
 }
@@ -347,10 +347,10 @@ onUnmounted(() => {
 
 .tag {
   font-size: 14px;
-  background: var(--gray-2);
+  background: var(--muted);
   padding: 2px 12px;
   margin: 0 12px 8px 0;
-  border: 1px solid var(--gray-2);
+  border: 1px solid var(--muted);
   border-radius: 9999px;
 }
 
@@ -362,7 +362,7 @@ onUnmounted(() => {
   font-size: 14px;
   padding: 15px 0 10px 0;
   margin-bottom: 10px;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--border);
 }
 
 @media (max-width: 1024px) {

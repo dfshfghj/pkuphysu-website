@@ -73,7 +73,7 @@ defineExpose({ show });
   align-items: center;
   gap: 0.5em;
   padding: 0.6em 0.8em;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--border);
   font-size: 0.8em;
 }
 
@@ -81,14 +81,14 @@ defineExpose({ show });
   flex: none;
   padding: 0 0.5em;
   border-radius: 9999px;
-  background: var(--gray-2);
-  color: var(--c-secondary);
+  background: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .post-quote-author {
   min-width: 0;
   overflow: hidden;
-  color: var(--c-title);
+  color: var(--foreground);
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -97,7 +97,7 @@ defineExpose({ show });
 .post-quote-id,
 .post-quote-time {
   flex: none;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .post-quote-body {
@@ -109,7 +109,7 @@ defineExpose({ show });
 
 .post-quote-hint {
   padding: 1em;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   text-align: center;
 }

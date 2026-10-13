@@ -65,7 +65,7 @@ const toggleSidebar = () => {
   border: none;
   border-radius: 5px;
   background: transparent;
-  color: var(--c-text);
+  color: var(--foreground);
   font-size: 14px;
   text-decoration: none;
   cursor: pointer;
@@ -73,11 +73,11 @@ const toggleSidebar = () => {
 }
 
 .nav-item:hover {
-  background: var(--c-hover);
+  background: var(--accent);
 }
 
 .nav-item--active {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .collapse-toggle {

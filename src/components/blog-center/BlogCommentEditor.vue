@@ -6,19 +6,19 @@
     leave-to-class="opacity-0 translate-y-5"
   >
     <div
-      class="box-border flex bg-card border-t border-(--c-border) rounded-t p-2.5 items-center absolute z-9999 bottom-0 w-full"
+      class="box-border flex bg-card border-t border-(--border) rounded-t p-2.5 items-center absolute z-9999 bottom-0 w-full"
       data-comment-editor
       v-if="!isEditing"
       key="simp"
     >
       <div class="flex-1">
         <div v-if="quote">
-          <span class="text-sm text-(--c-secondary)!">
+          <span class="text-sm text-muted-foreground!">
             {{ `@${quoteName}: ` }}
           </span>
         </div>
         <div
-          class="py-1 pl-4 pr-1 bg-background border border-(--c-border) rounded-full shadow-[0_0_6px_rgba(0,0,0,0.12)] text-[13px] unselectable"
+          class="py-1 pl-4 pr-1 bg-background border border-(--border) rounded-full shadow-[0_0_6px_rgba(0,0,0,0.12)] text-[13px] unselectable"
           @click="toggleEdit(true)"
         >
           <span> {{ content.trim() ? content.trim() : "评论" }} </span>
@@ -26,7 +26,7 @@
       </div>
     </div>
     <div
-      class="box-border flex p-1 bg-card border-t border-(--c-border) rounded-t absolute z-9999 bottom-0 w-full unselectable"
+      class="box-border flex p-1 bg-card border-t border-(--border) rounded-t absolute z-9999 bottom-0 w-full unselectable"
       data-comment-editor
       v-else
       key="full"
@@ -41,7 +41,7 @@
           autofocus
         />
         <div v-if="quote">
-          <span class="text-sm text-(--c-secondary)!">
+          <span class="text-sm text-muted-foreground!">
             {{ `@${quoteName}: ` }}
           </span>
         </div>

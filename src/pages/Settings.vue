@@ -41,7 +41,7 @@
               <div class="grid gap-2 mt-4.5">
                 <Label for="profile-bio">个性签名</Label>
                 <Textarea id="profile-bio" v-model="currentUser.bio" :maxlength="100" />
-                <span class="text-xs text-(--c-secondary)">{{ (currentUser.bio || "").length }} / 100</span>
+                <span class="text-xs text-muted-foreground">{{ (currentUser.bio || "").length }} / 100</span>
               </div>
               <div class="mt-4.5">
                 <Button variant="outline" size="sm" @click="updateProfile"> 更新 </Button>
@@ -129,7 +129,7 @@
           </div>
           <Button variant="outline" size="sm" @click="PasswordDialogVisible = true"> 修改 </Button>
         </div>
-        <div class="item-card text-(--red-6)" v-if="currentPage === 'security'">
+        <div class="item-card text-destructive" v-if="currentPage === 'security'">
           <Trash2 class="size-5" />
           <div class="ml-5 flex-1">
             <label> 注销账户 </label>
@@ -472,18 +472,18 @@ const deleteAccount = async () => {
   border: none;
   border-radius: 5px;
   background: transparent;
-  color: var(--c-text);
+  color: var(--foreground);
   font-size: 14px;
   text-align: left;
   cursor: pointer;
 }
 
 .side-item:hover {
-  background: var(--c-hover);
+  background: var(--accent);
 }
 
 .side-item--active {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .user-header {
@@ -500,7 +500,7 @@ const deleteAccount = async () => {
 .subHead {
   margin-top: 20px;
   margin-bottom: 10px;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
 }
 
@@ -518,6 +518,6 @@ const deleteAccount = async () => {
   justify-content: space-between;
   align-items: center;
   border-radius: 6px;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
 }
 </style>

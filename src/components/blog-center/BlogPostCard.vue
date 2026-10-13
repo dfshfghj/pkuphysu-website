@@ -1,6 +1,6 @@
 <template>
   <div
-    class="group post-card flex cursor-pointer items-start gap-2 border-b border-(--c-border) px-5 py-4 md:pr-12.5 md:pl-6"
+    class="group post-card bg-card flex cursor-pointer items-start gap-2 px-5 py-4 border-b-2 border-background md:pr-12.5 md:pl-6"
     :key="post.id"
     @click="handleClick"
   >
@@ -16,18 +16,18 @@
               {{ post.username }}
             </span>
           </div>
-          <div class="mt-3 flex items-center border-t border-(--c-border) pt-2 text-center">
+          <div class="mt-3 flex items-center border-t border-(--border) pt-2 text-center">
             <div class="flex flex-1 flex-col">
               <span class="font-bold">{{ hoverStats?.post_count ?? "-" }}</span>
-              <span class="text-xs text-(--c-secondary)">帖子</span>
+              <span class="text-xs text-muted-foreground">帖子</span>
             </div>
             <div class="flex flex-1 flex-col">
               <span class="font-bold">{{ hoverStats?.comment_count ?? "-" }}</span>
-              <span class="text-xs text-(--c-secondary)">评论</span>
+              <span class="text-xs text-muted-foreground">评论</span>
             </div>
             <div class="flex flex-1 flex-col">
               <span class="font-bold">{{ hoverStats?.likes_received ?? "-" }}</span>
-              <span class="text-xs text-(--c-secondary)">获赞</span>
+              <span class="text-xs text-muted-foreground">获赞</span>
             </div>
           </div>
         </HoverCardContent>
@@ -39,15 +39,15 @@
         <div class="shrink-0 sm:hidden">
           <UserAvatar :userid="post.userid" :size="28" @click.stop="goProfile" />
         </div>
-        <span class="min-w-0 cursor-pointer truncate hover:underline" @click.stop="goProfile">{{ post.username }}</span>
+        <span class="min-w-0 cursor-pointer truncate font-bold hover:underline" @click.stop="goProfile">{{ post.username }}</span>
         <code class="shrink-0">#{{ post.id }}</code>
-        <span class="ml-auto shrink-0 text-xs text-(--c-secondary)">
+        <span class="ml-auto shrink-0 text-xs text-muted-foreground">
           {{ timeInfo.relativeTime }}
           <span class="hidden sm:inline">{{ timeInfo.formattedTime }}</span>
         </span>
       </div>
       <div v-if="post.tags?.length" class="mt-2 mr-1">
-        <span class="text-sm bg-(--gray-2) px-3 py-1 mr-3 mb-2 rounded-full" v-for="tag in post.tags" :key="tag">
+        <span class="text-sm bg-muted px-3 py-1 mr-3 mb-2 rounded-full" v-for="tag in post.tags" :key="tag">
           {{ tag }}
         </span>
       </div>
@@ -60,7 +60,7 @@
 
       <PostSurvey v-if="survey" :survey="survey" />
 
-      <div class="mt-1 flex items-center text-xs text-(--c-secondary)">
+      <div class="mt-1 flex items-center text-xs text-muted-foreground">
         <span v-if="post.edit_count">已编辑 {{ post.edit_count }} 次</span>
         <div class="ml-auto flex items-center gap-4">
           <div v-if="post.reply" class="flex cursor-pointer items-center gap-1" @click.stop="">
@@ -86,7 +86,7 @@
               <DropdownMenuItem v-if="post.edit_count" @click="historyVisible = true">历史版本</DropdownMenuItem>
               <DropdownMenuItem v-if="isOwn" @click="handleEdit">编辑</DropdownMenuItem>
               <DropdownMenuItem @click="reportVisible = true">举报</DropdownMenuItem>
-              <DropdownMenuItem v-if="canDelete" class="text-(--red-6)" @click="deleteVisible = true">
+              <DropdownMenuItem v-if="canDelete" class="text-destructive" @click="deleteVisible = true">
                 删除
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -96,14 +96,14 @@
 
       <div
         v-if="showPreviewComments && (previewComments.length || moreReplies)"
-        class="my-2 flex flex-col gap-0.5 rounded-md bg-(--gray-2) p-2 text-xs"
+        class="my-2 flex flex-col gap-0.5 rounded-md bg-muted p-2 text-xs"
       >
-        <div v-for="comment in previewComments" :key="comment.cid" class="line-clamp-2 break-words text-(--c-secondary)">
-          <span class="text-(--c-title)">{{ comment.username }}</span
-          >: <span v-if="comment.mention" class="mr-1 text-(--c-title)">{{ comment.mention }}</span
+        <div v-for="comment in previewComments" :key="comment.cid" class="line-clamp-2 break-words text-muted-foreground">
+          <span class="text-foreground">{{ comment.username }}</span
+          >: <span v-if="comment.mention" class="mr-1 text-foreground">{{ comment.mention }}</span
           ><span v-html="comment.html"></span>
         </div>
-        <div v-if="moreReplies" class="pt-0.5 text-(--c-secondary)">还有 {{ moreReplies }} 条回复</div>
+        <div v-if="moreReplies" class="pt-0.5 text-muted-foreground">还有 {{ moreReplies }} 条回复</div>
       </div>
     </div>
   </div>
