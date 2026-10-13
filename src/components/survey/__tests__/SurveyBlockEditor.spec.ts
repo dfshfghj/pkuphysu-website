@@ -50,6 +50,22 @@ const questionBlock = (): SurveyDraftBlock => ({
 });
 
 describe("SurveyBlockEditor", () => {
+  it("兼容选择题型切换保留自定义选项", async () => {
+    const wrapper = mountBlock({
+      kind: "question",
+      type: "multiple",
+      required: true,
+      config: { options: ["自定义 A", "自定义 B"], min: 1, max: 2 },
+    });
+    wrapper.findComponent(Select).vm.$emit("update:modelValue", "ranking");
+    await nextTick();
+    expect(wrapper.emitted("update:modelValue")![0][0]).toEqual({
+      kind: "question",
+      type: "ranking",
+      required: true,
+      config: { options: ["自定义 A", "自定义 B"] },
+    });
+  });
   it("非激活的 Markdown 区块显示预览，点击后请求激活", async () => {
     const wrapper = mountBlock(markdownBlock(), { active: false });
     expect(wrapper.find(".block-editor__preview").exists()).toBe(true);

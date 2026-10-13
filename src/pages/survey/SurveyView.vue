@@ -10,11 +10,11 @@
       <template v-else-if="survey">
         <div class="survey-page__header">
           <span class="survey-page__meta">{{ statusLabel }} · {{ survey.question_count }} 题</span>
-          <Button v-if="survey.can_view_results" type="outline" size="sm" @click="openResults">查看数据</Button>
+          <Button v-if="survey.can_view_results" variant="outline" size="sm" @click="openResults">查看数据</Button>
         </div>
 
         <div class="survey-page__blocks">
-          <template v-for="block in survey.blocks" :key="block.id">
+          <template v-for="block in survey.blocks" :key="`${id}-${block.id}`">
             <MarkdownRenderer
               v-if="block.kind === 'markdown'"
               :key="block.content_html"
@@ -24,10 +24,12 @@
             <SurveyQuestionField
               v-else
               :block="block"
+              :label="questionLabel(block.id)"
               :field-name="`survey-q-${block.id}`"
               :model-value="answers[block.id]"
               :disabled="!canAnswer"
               @update:model-value="answers[block.id] = $event"
+              @uploading-change="setUploading(block.id, $event)"
             />
           </template>
         </div>
@@ -35,6 +37,9 @@
         <div v-if="answered" class="survey-page__done">
           <CheckCircle2 class="size-6 text-(--primary)" />
           <p>您已提交过该问卷，感谢参与。</p>
+          <Button v-if="survey.allow_multiple && survey.status === 'open'" variant="outline" @click="startAgain"
+            >再填写一份</Button
+          >
         </div>
 
         <div v-else-if="survey.status === 'closed'" class="survey-page__done">
@@ -42,8 +47,8 @@
           <p>该问卷已结束，无法提交。</p>
         </div>
 
-        <Button v-else class="survey-page__submit" :disabled="submitting" @click="submit">
-          {{ submitting ? "提交中..." : "提交" }}
+        <Button v-else class="survey-page__submit" :disabled="submitting || uploadingBlocks.size > 0" @click="submit">
+          {{ uploadingBlocks.size > 0 ? "文件上传中..." : submitting ? "提交中..." : "提交" }}
         </Button>
       </template>
     </div>
@@ -51,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 import { CheckCircle2, Loader2, Lock } from "lucide-vue-next";
@@ -83,12 +88,30 @@ const loading = ref(true);
 const notFound = ref(false);
 const submitting = ref(false);
 const submitted = ref(false);
+const repeatStarted = ref(false);
+const uploadingBlocks = ref(new Set<number>());
+let requestVersion = 0;
+onBeforeUnmount(() => {
+  requestVersion += 1;
+});
+const setUploading = (blockId: number, pending: boolean) => {
+  const next = new Set(uploadingBlocks.value);
+  if (pending) next.add(blockId);
+  else next.delete(blockId);
+  uploadingBlocks.value = next;
+};
+const questionLabel = (blockId: number) =>
+  `第 ${(survey.value?.blocks.filter((block) => block.kind === "question").findIndex((block) => block.id === blockId) ?? -1) + 1} 题`;
 
-const statusLabel = computed(() => (survey.value ? SURVEY_STATUS_LABELS[survey.value.status] ?? survey.value.status : ""));
-const answered = computed(() => submitted.value || !!survey.value?.answered);
-const canAnswer = computed(() => !!survey.value && survey.value.status === "open" && !answered.value);
+const statusLabel = computed(() =>
+  survey.value ? (SURVEY_STATUS_LABELS[survey.value.status] ?? survey.value.status) : ""
+);
+const answered = computed(() => submitted.value || (!!survey.value?.answered && !repeatStarted.value));
+const canAnswer = computed(
+  () => !!survey.value && survey.value.status === "open" && !answered.value && !submitting.value
+);
 
-const initAnswers = (loaded: Survey) => {
+const initAnswers = (loaded: Survey, restorePrevious = true) => {
   const next: Record<number, SurveyAnswerValue> = {};
   for (const block of loaded.blocks) {
     if (block.kind !== "question") continue;
@@ -100,7 +123,7 @@ const initAnswers = (loaded: Survey) => {
       next[block.id] = initialProportionValues(block.config as SurveyProportionConfig);
     }
   }
-  if (loaded.my_answers) {
+  if (restorePrevious && loaded.my_answers) {
     for (const [blockId, value] of Object.entries(loaded.my_answers)) {
       next[Number(blockId)] = value;
     }
@@ -108,29 +131,49 @@ const initAnswers = (loaded: Survey) => {
   answers.value = next;
 };
 
+const startAgain = () => {
+  if (!survey.value?.allow_multiple || survey.value.status !== "open" || submitting.value) return;
+  initAnswers(survey.value, false);
+  submitted.value = false;
+  repeatStarted.value = true;
+};
+
 const load = async () => {
+  const version = ++requestVersion;
+  const surveyId = id.value;
+  survey.value = null;
+  answers.value = {};
+  uploadingBlocks.value = new Set();
+  submitted.value = false;
+  repeatStarted.value = false;
+  submitting.value = false;
   loading.value = true;
   notFound.value = false;
   try {
-    const res = await requestApi(`/api/v2/forum/surveys/${id.value}`);
+    const res = await requestApi(`/api/v2/forum/surveys/${surveyId}`);
+    if (version !== requestVersion) return;
     if (res.status === 404 || res.status === 403) {
       notFound.value = true;
       return;
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    if (version !== requestVersion) return;
     survey.value = data.data;
     initAnswers(data.data);
   } catch (error) {
+    if (version !== requestVersion) return;
     notFound.value = true;
     console.error("Load survey failed:", error);
   } finally {
-    loading.value = false;
+    if (version === requestVersion) loading.value = false;
   }
 };
 
 const submit = async () => {
-  if (!survey.value || submitting.value) return;
+  if (!survey.value || !canAnswer.value || uploadingBlocks.value.size > 0) return;
+  const version = requestVersion;
+  const surveyId = id.value;
 
   const error = validateSurveyAnswersClient(survey.value.blocks, answers.value);
   if (error) {
@@ -145,13 +188,14 @@ const submit = async () => {
         .filter((block) => block.kind === "question" && !isSurveyAnswerEmpty(answers.value[block.id]))
         .map((block) => ({ block_id: block.id, value: answers.value[block.id] })),
     };
-    const res = await requestApi(`/api/v2/forum/surveys/${id.value}/responses`, {
+    const res = await requestApi(`/api/v2/forum/surveys/${surveyId}/responses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
     const data = await res.json().catch(() => null);
 
+    if (version !== requestVersion) return;
     if (!res.ok) {
       toast.error(data?.message || "提交失败");
       return;
@@ -160,16 +204,17 @@ const submit = async () => {
     toast.success("提交成功");
     submitted.value = true;
   } catch (error) {
+    if (version !== requestVersion) return;
     toast.error("网络错误");
     console.error("Submit survey failed:", error);
   } finally {
-    submitting.value = false;
+    if (version === requestVersion) submitting.value = false;
   }
 };
 
 const openResults = () => router.push(`/survey/${id.value}/results`);
 
-load();
+watch(id, load, { immediate: true });
 </script>
 
 <style scoped>

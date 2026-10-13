@@ -18,7 +18,8 @@
           type="button"
           class="block-editor__handle"
           aria-label="拖动排序"
-          draggable="true"
+          :draggable="!disabled"
+          :disabled="disabled"
           @dragstart="onHandleDragStart"
           @dragend="emit('dragend')"
         >
@@ -94,6 +95,7 @@
       <SurveyQuestionField
         :block="questionBlock"
         :editable="true"
+        :disabled="disabled"
         :field-name="`survey-draft-${index}`"
         @update:block="emit('update:modelValue', $event)"
       />
@@ -108,7 +110,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import SurveyQuestionEditor from "@/components/survey/SurveyQuestionEditor.vue";
 import SurveyQuestionField from "@/components/survey/SurveyQuestionField.vue";
-import { createDefaultConfig, SURVEY_QUESTION_TYPES, type SurveyDraftBlock, type SurveyQuestionType } from "@/utils/survey";
+import {
+  createDefaultConfig,
+  SURVEY_QUESTION_TYPES,
+  type SurveyDraftBlock,
+  type SurveyQuestionType,
+} from "@/utils/survey";
 
 const props = defineProps({
   block: {
@@ -162,7 +169,18 @@ const updateMarkdown = (value: string) => emit("update:modelValue", { kind: "mar
 
 const handleTypeChange = (type: SurveyQuestionType) => {
   if (props.block.kind !== "question") return;
-  emit("update:modelValue", { ...props.block, type, config: createDefaultConfig(type) });
+  if (props.disabled || type === props.block.type) return;
+  const config = createDefaultConfig(type);
+  const choices = ["single", "multiple", "ranking", "proportion"];
+  if (
+    choices.includes(type) &&
+    choices.includes(props.block.type) &&
+    "options" in config &&
+    "options" in props.block.config
+  ) {
+    config.options = [...props.block.config.options];
+  }
+  emit("update:modelValue", { ...props.block, type, config });
 };
 
 const handleRequiredChange = (event: Event) => {
@@ -171,6 +189,10 @@ const handleRequiredChange = (event: Event) => {
 };
 
 const onHandleDragStart = (event: DragEvent) => {
+  if (props.disabled) {
+    event.preventDefault();
+    return;
+  }
   if (rootRef.value && event.dataTransfer) {
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setDragImage(rootRef.value, 24, 24);

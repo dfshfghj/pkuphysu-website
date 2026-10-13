@@ -42,6 +42,35 @@ const addButton = (wrapper: ReturnType<typeof mountDialog>, label: string) =>
   wrapper.findAll("button").find((button) => button.text().includes(label))!;
 
 describe("SurveyComposerDialog", () => {
+  it("保存模式确认后保留编辑器，pending 时禁止关闭或重复确认", async () => {
+    const wrapper = mountDialog({ closeOnConfirm: false });
+    await wrapper.find(".markdown-editor-stub").setValue("保留草稿");
+    await confirmButton(wrapper).trigger("click");
+    expect(wrapper.emitted("confirm")).toHaveLength(1);
+    expect(wrapper.emitted("update:visible")).toBeUndefined();
+    await wrapper.setProps({ pending: true });
+    const save = wrapper.findAll("button").find((button) => button.text() === "保存中...")!;
+    expect(save.attributes("disabled")).toBeDefined();
+    await save.trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "取消")!
+      .trigger("click");
+    expect(wrapper.emitted("confirm")).toHaveLength(1);
+    expect(wrapper.emitted("update:visible")).toBeUndefined();
+    await wrapper.setProps({ pending: false });
+    expect((wrapper.find(".markdown-editor-stub").element as HTMLTextAreaElement).value).toBe("保留草稿");
+  });
+
+  it("移动区块时保留组件身份与当前编辑状态", async () => {
+    const wrapper = mountDialog();
+    const editor = wrapper.findAllComponents(SurveyBlockEditor)[0];
+    await editor.find('button[aria-label="下移"]').trigger("click");
+    const moved = wrapper.findAllComponents(SurveyBlockEditor)[1];
+    expect(moved.element === editor.element).toBe(true);
+    expect(moved.props("active")).toBe(true);
+    expect(moved.find(".markdown-editor-stub").exists()).toBe(true);
+  });
   it("默认包含一个 Markdown 区块与一道题", () => {
     const wrapper = mountDialog();
     expect(wrapper.findAll(".block-editor")).toHaveLength(2);

@@ -5,6 +5,8 @@
       <span v-if="block.required" class="survey-field__required">*</span>
     </div>
 
+    <p v-if="block.type === 'multiple' && !editable" class="survey-field__hint">{{ multipleHint }}</p>
+
     <div v-if="block.type === 'single' || block.type === 'multiple'" class="survey-field__choices">
       <div v-for="(option, index) in options" :key="index" class="survey-field__choice">
         <label class="survey-field__choice-main">
@@ -12,14 +14,14 @@
             :type="block.type === 'single' ? 'radio' : 'checkbox'"
             :name="fieldName"
             :value="index"
-            :disabled="editable || disabled"
+            :disabled="editable || disabled || (multipleLimitReached && !isSelected(index))"
             :checked="isSelected(index)"
             @change="onChoiceChange(index, $event)"
           />
           <input
             class="survey-field__option-text"
             :value="option"
-            :disabled="!editable"
+            :disabled="!editable || disabled"
             @input="updateOption(index, ($event.target as HTMLInputElement).value)"
           />
         </label>
@@ -27,7 +29,7 @@
           v-if="editable"
           type="button"
           class="survey-field__option-tool"
-          :disabled="options.length <= MIN_SURVEY_OPTIONS"
+          :disabled="disabled || options.length <= MIN_SURVEY_OPTIONS"
           aria-label="删除选项"
           @click="removeOption(index)"
         >
@@ -38,7 +40,7 @@
         v-if="editable"
         type="button"
         class="survey-field__option-add"
-        :disabled="options.length >= MAX_SURVEY_OPTIONS"
+        :disabled="disabled || options.length >= MAX_SURVEY_OPTIONS"
         @click="addOption"
       >
         + 添加选项
@@ -55,16 +57,17 @@
           'survey-field__rank-row--drop-target':
             position === rankDragOverIndex && rankDragIndex !== -1 && rankDragIndex !== position,
         }"
-        @dragover="onRankDragOver(position, $event)"
-        @drop="onRankDrop(position, $event)"
+        @dragover.stop="onRankDragOver(position, $event)"
+        @drop.stop="onRankDrop(position, $event)"
       >
         <button
           type="button"
           class="survey-field__rank-handle"
           aria-label="拖动排序"
           :draggable="!disabled"
-          @dragstart="onRankDragStart(position, $event)"
-          @dragend="resetRankDrag"
+          :disabled="disabled"
+          @dragstart.stop="onRankDragStart(position, $event)"
+          @dragend.stop="resetRankDrag"
         >
           <GripVertical class="size-4" />
         </button>
@@ -72,7 +75,7 @@
         <input
           class="survey-field__option-text"
           :value="options[optionIndex]"
-          :disabled="!editable"
+          :disabled="!editable || disabled"
           @input="updateOption(optionIndex, ($event.target as HTMLInputElement).value)"
         />
         <div v-if="!editable && !disabled" class="survey-field__rank-tools">
@@ -92,7 +95,7 @@
           v-if="editable"
           type="button"
           class="survey-field__option-tool"
-          :disabled="options.length <= MIN_SURVEY_OPTIONS"
+          :disabled="disabled || options.length <= MIN_SURVEY_OPTIONS"
           aria-label="删除选项"
           @click="removeOption(optionIndex)"
         >
@@ -103,7 +106,7 @@
         v-if="editable"
         type="button"
         class="survey-field__option-add"
-        :disabled="options.length >= MAX_SURVEY_OPTIONS"
+        :disabled="disabled || options.length >= MAX_SURVEY_OPTIONS"
         @click="addOption"
       >
         + 添加选项
@@ -123,6 +126,7 @@
         <span>{{ textCount }}/</span>
         <input
           v-if="editable"
+          :disabled="disabled"
           type="number"
           class="survey-field__text-max"
           :value="textConfig.maxLength"
@@ -137,6 +141,7 @@
         <div class="survey-field__slider-side">
           <input
             v-if="editable"
+            :disabled="disabled"
             class="survey-field__slider-label"
             :value="sliderConfig.minLabel ?? ''"
             placeholder="左标签"
@@ -147,6 +152,7 @@
         <div class="survey-field__slider-side survey-field__slider-side--end">
           <input
             v-if="editable"
+            :disabled="disabled"
             class="survey-field__slider-label"
             :value="sliderConfig.maxLabel ?? ''"
             placeholder="右标签"
@@ -160,6 +166,7 @@
           type="number"
           class="survey-field__slider-value h-8"
           :value="sliderValue"
+          :step="sliderConfig.step"
           :min="sliderConfig.min"
           :max="sliderConfig.max"
           :disabled="disabled"
@@ -178,6 +185,7 @@
       <div class="survey-field__slider-bounds">
         <input
           v-if="editable"
+          :disabled="disabled"
           type="number"
           class="survey-field__bound"
           :value="sliderConfig.min"
@@ -186,6 +194,7 @@
         <span v-else>{{ sliderConfig.min }}</span>
         <input
           v-if="editable"
+          :disabled="disabled"
           type="number"
           class="survey-field__bound"
           :value="sliderConfig.max"
@@ -206,7 +215,7 @@
           <input
             class="survey-field__option-text"
             :value="option"
-            :disabled="!editable"
+            :disabled="!editable || disabled"
             @input="updateOption(index, ($event.target as HTMLInputElement).value)"
           />
           <span v-if="index === options.length - 1" class="survey-field__proportion-auto">自动补足</span>
@@ -214,7 +223,7 @@
             v-if="editable"
             type="button"
             class="survey-field__option-tool"
-            :disabled="options.length <= MIN_SURVEY_OPTIONS"
+            :disabled="disabled || options.length <= MIN_SURVEY_OPTIONS"
             aria-label="删除选项"
             @click="removeOption(index)"
           >
@@ -249,7 +258,7 @@
         v-if="editable"
         type="button"
         class="survey-field__option-add"
-        :disabled="options.length >= MAX_SURVEY_OPTIONS"
+        :disabled="disabled || options.length >= MAX_SURVEY_OPTIONS"
         @click="addOption"
       >
         + 添加选项
@@ -261,6 +270,7 @@
         合计 {{ proportionSum }} /
         <input
           v-if="editable"
+          :disabled="disabled"
           type="number"
           class="survey-field__proportion-total"
           :value="proportionConfig.total"
@@ -275,6 +285,7 @@
         <div class="survey-field__scale-head">
           <input
             v-if="editable"
+            :disabled="disabled"
             class="survey-field__slider-label"
             :value="scaleConfig.minLabel ?? ''"
             placeholder="左标签"
@@ -283,6 +294,7 @@
           <span v-else-if="scaleConfig.minLabel" class="survey-field__slider-label">{{ scaleConfig.minLabel }}</span>
           <input
             v-if="editable"
+            :disabled="disabled"
             class="survey-field__slider-label"
             :value="scaleConfig.maxLabel ?? ''"
             placeholder="右标签"
@@ -293,6 +305,7 @@
         <div class="survey-field__scale-options">
           <input
             v-if="editable"
+            :disabled="disabled"
             type="number"
             class="survey-field__bound"
             :value="scaleConfig.min"
@@ -311,6 +324,7 @@
           </label>
           <input
             v-if="editable"
+            :disabled="disabled"
             type="number"
             class="survey-field__bound"
             :value="scaleConfig.max"
@@ -346,19 +360,26 @@
             <a :href="uploadedFileUrl(file.url)" target="_blank" rel="noopener noreferrer">
               {{ file.name || file.url }}
             </a>
-            <button v-if="!disabled" type="button" aria-label="移除文件" @click="removeUpload(index)">
+            <button
+              v-if="!disabled"
+              :disabled="uploading"
+              type="button"
+              aria-label="移除文件"
+              @click="removeUpload(index)"
+            >
               <X class="size-4" />
             </button>
           </li>
         </ul>
       </template>
-      <p v-else class="survey-field__upload-hint">{{ uploadEditableHint }}</p>
+      <p v-if="uploadError" role="alert" class="survey-field__upload-error">{{ uploadError }}</p>
+      <p v-if="editable" class="survey-field__upload-hint">{{ uploadEditableHint }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onBeforeUnmount } from "vue";
 import { ArrowDown, ArrowUp, GripVertical, Loader2, Upload, X } from "lucide-vue-next";
 import { Textarea } from "@/components/ui/textarea";
 import { uploadedFileUrl, uploadFiles } from "@/utils/upload";
@@ -409,6 +430,7 @@ const props = defineProps({
 const emit = defineEmits<{
   "update:modelValue": [value: SurveyAnswerValue];
   "update:block": [value: SurveyQuestionDraftBlock];
+  "uploading-change": [value: boolean];
 }>();
 
 const options = computed(() => (props.block.config as SurveyChoiceConfig | SurveyProportionConfig).options ?? []);
@@ -419,6 +441,7 @@ const scaleConfig = computed(() => props.block.config as SurveyScaleConfig);
 const uploadConfig = computed(() => props.block.config as SurveyUploadConfig);
 
 const updateConfig = (patch: Record<string, unknown>) => {
+  if (props.disabled) return;
   emit("update:block", { ...props.block, config: { ...props.block.config, ...patch } as SurveyQuestionConfig });
 };
 
@@ -434,9 +457,26 @@ const onChoiceChange = (index: number, event: Event) => {
   toggleMultiple(index, (event.target as HTMLInputElement).checked);
 };
 
+const multipleLimitReached = computed(
+  () =>
+    props.block.type === "multiple" &&
+    !!(props.block.config as SurveyChoiceConfig).max &&
+    selected.value.length >= ((props.block.config as SurveyChoiceConfig).max ?? 0)
+);
+const multipleHint = computed(() => {
+  const { min = 0, max = 0 } = props.block.config as SurveyChoiceConfig;
+  return [min > 0 ? `至少选择 ${min} 项` : "", max > 0 ? `最多选择 ${max} 项` : "", `已选 ${selected.value.length} 项`]
+    .filter(Boolean)
+    .join(" · ");
+});
+
 const toggleMultiple = (index: number, checked: boolean) => {
+  if (props.disabled || (checked && multipleLimitReached.value)) return;
   const next = checked ? [...selected.value, index] : selected.value.filter((item) => item !== index);
-  emit("update:modelValue", next.sort((a, b) => a - b));
+  emit(
+    "update:modelValue",
+    next.sort((a, b) => a - b)
+  );
 };
 
 const rankingOrder = computed(() => {
@@ -448,7 +488,7 @@ const rankingOrder = computed(() => {
 
 const moveRank = (position: number, offset: number) => {
   const target = position + offset;
-  if (target < 0 || target >= rankingOrder.value.length) return;
+  if (props.disabled || target < 0 || target >= rankingOrder.value.length) return;
   const next = [...rankingOrder.value];
   [next[position], next[target]] = [next[target], next[position]];
   applyRankOrder(next);
@@ -471,7 +511,10 @@ const resetRankDrag = () => {
 };
 
 const onRankDragStart = (position: number, event: DragEvent) => {
-  if (props.disabled) return;
+  if (props.disabled) {
+    event.preventDefault();
+    return;
+  }
   rankDragIndex.value = position;
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = "move";
@@ -617,6 +660,12 @@ const removeOption = (index: number) => {
 
 const uploadInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
+const uploadError = ref("");
+let disposed = false;
+onBeforeUnmount(() => {
+  disposed = true;
+  if (uploading.value) emit("uploading-change", false);
+});
 
 const uploadedFiles = computed<SurveyUploadFile[]>(() =>
   Array.isArray(props.modelValue) ? (props.modelValue as SurveyUploadFile[]) : []
@@ -639,6 +688,7 @@ const uploadEditableHint = computed(() =>
 const openUpload = () => uploadInput.value?.click();
 
 const onUploadPick = async (event: Event) => {
+  if (props.disabled || props.editable || uploading.value) return;
   const input = event.target as HTMLInputElement;
   const picked = Array.from(input.files ?? []);
   input.value = "";
@@ -646,20 +696,26 @@ const onUploadPick = async (event: Event) => {
   const batch = picked.slice(0, Math.max(0, uploadLimit.value - uploadedFiles.value.length));
   if (!batch.length) return;
   uploading.value = true;
+  uploadError.value = "";
+  emit("uploading-change", true);
   try {
     const uploaded = await uploadFiles(batch);
+    if (disposed) return;
     emit("update:modelValue", [
       ...uploadedFiles.value,
       ...uploaded.map((file) => ({ url: file.url, name: file.name })),
     ]);
   } catch (error) {
+    if (!disposed) uploadError.value = "上传失败，请重试";
     console.error("Upload survey file failed:", error);
   } finally {
     uploading.value = false;
+    if (!disposed) emit("uploading-change", false);
   }
 };
 
 const removeUpload = (index: number) => {
+  if (props.disabled || uploading.value) return;
   emit(
     "update:modelValue",
     uploadedFiles.value.filter((_, i) => i !== index)
@@ -682,9 +738,9 @@ const removeUpload = (index: number) => {
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
-  position: absolute;
-  top: -32px;
-  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .survey-field__required {
@@ -1195,5 +1251,16 @@ input.survey-field__slider-value:disabled {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--c-secondary);
+}
+
+.survey-field__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-secondary);
+}
+.survey-field__upload-error {
+  margin: 0;
+  color: var(--destructive);
+  font-size: 0.8125rem;
 }
 </style>

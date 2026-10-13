@@ -1,12 +1,17 @@
 <template>
   <Dialog :open="visible" @update:open="handleOpenChange">
-    <DialogContent class="max-h-[88vh] overflow-y-auto sm:max-w-3xl">
+    <DialogContent
+      :show-close-button="!pending"
+      @escape-key-down="guardDismiss"
+      @pointer-down-outside="guardDismiss"
+      class="max-h-[88vh] overflow-y-auto sm:max-w-3xl"
+    >
       <DialogHeader>
         <DialogTitle>问卷</DialogTitle>
       </DialogHeader>
 
       <label class="composer__checkbox">
-        <input type="checkbox" v-model="allowMultiple" />
+        <input type="checkbox" v-model="allowMultiple" :disabled="pending" />
         <span>允许重复提交（默认每人限答一次）</span>
       </label>
 
@@ -23,10 +28,11 @@
       </div>
 
       <template v-else>
-        <div class="composer__blocks">
+        <div class="composer__blocks" :inert="pending">
           <SurveyBlockEditor
             v-for="(block, index) in blocks"
-            :key="index"
+            :key="blockKeys[index]"
+            :disabled="pending"
             :block="block"
             :index="index"
             :total="blocks.length"
@@ -45,16 +51,28 @@
           />
         </div>
         <div class="composer__add">
-          <Button variant="outline" size="sm" @click="addMarkdown">+ Markdown</Button>
-          <Button variant="outline" size="sm" @click="addQuestion">+ 题目</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="pending || blocks.length >= MAX_SURVEY_BLOCKS"
+            @click="addMarkdown"
+            >+ Markdown</Button
+          >
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="pending || blocks.length >= MAX_SURVEY_BLOCKS"
+            @click="addQuestion"
+            >+ 题目</Button
+          >
         </div>
       </template>
 
       <p v-if="error" class="composer__error">{{ error }}</p>
 
       <DialogFooter>
-        <Button variant="outline" @click="close">取消</Button>
-        <Button :disabled="!!error" @click="confirm">确定</Button>
+        <Button variant="outline" :disabled="pending" @click="close">取消</Button>
+        <Button :disabled="pending || !!error" @click="confirm">{{ pending ? "保存中..." : "确定" }}</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
@@ -67,6 +85,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SurveyBlockEditor from "@/components/survey/SurveyBlockEditor.vue";
 import {
+  MAX_SURVEY_BLOCKS,
   createMarkdownBlock,
   createQuestionBlock,
   normalizeSurveyDraft,
@@ -86,6 +105,8 @@ const props = defineProps({
     type: Object as PropType<SurveyDraft | null>,
     default: null,
   },
+  pending: { type: Boolean, default: false },
+  closeOnConfirm: { type: Boolean, default: true },
   locked: {
     type: Boolean,
     default: false,
@@ -100,6 +121,11 @@ const emit = defineEmits<{
 const allowMultiple = ref(false);
 const blocks = ref<SurveyDraftBlock[]>([]);
 const activeIndex = ref(-1);
+const blockKeys = ref<number[]>([]);
+let nextBlockKey = 0;
+const syncKeys = () => {
+  blockKeys.value = blocks.value.map(() => nextBlockKey++);
+};
 
 const draft = computed<SurveyDraft>(() => ({
   allow_multiple: allowMultiple.value,
@@ -116,11 +142,13 @@ const reset = () => {
     blocks.value = props.initial.blocks.map((block) =>
       block.kind === "markdown" ? { ...block } : { ...block, config: { ...block.config } }
     );
+    syncKeys();
     activeIndex.value = -1;
     return;
   }
   allowMultiple.value = false;
   blocks.value = [createMarkdownBlock(), createQuestionBlock("single")];
+  syncKeys();
   activeIndex.value = 0;
 };
 
@@ -132,41 +160,60 @@ watch(
   { immediate: true }
 );
 
-const handleOpenChange = (open: boolean) => emit("update:visible", open);
-const close = () => emit("update:visible", false);
+const guardDismiss = (event: Event) => {
+  if (props.pending) event.preventDefault();
+};
+const handleOpenChange = (open: boolean) => {
+  if (!props.pending) emit("update:visible", open);
+};
+const close = () => {
+  if (!props.pending) emit("update:visible", false);
+};
 
 const addMarkdown = () => {
+  if (props.pending || blocks.value.length >= MAX_SURVEY_BLOCKS) return;
+  blockKeys.value.push(nextBlockKey++);
   blocks.value = [...blocks.value, createMarkdownBlock()];
   activeIndex.value = blocks.value.length - 1;
 };
 
 const addQuestion = () => {
+  if (props.pending || blocks.value.length >= MAX_SURVEY_BLOCKS) return;
+  blockKeys.value.push(nextBlockKey++);
   blocks.value = [...blocks.value, createQuestionBlock("single")];
   activeIndex.value = blocks.value.length - 1;
 };
 
 const updateBlock = (index: number, value: SurveyDraftBlock) => {
+  if (props.pending) return;
   blocks.value = blocks.value.map((block, i) => (i === index ? value : block));
 };
 
 const removeBlock = (index: number) => {
+  if (props.pending) return;
   blocks.value = blocks.value.filter((_, i) => i !== index);
-  activeIndex.value = -1;
+  blockKeys.value.splice(index, 1);
+  if (activeIndex.value === index) activeIndex.value = -1;
+  else if (activeIndex.value > index) activeIndex.value -= 1;
 };
 
 const moveBlock = (index: number, offset: number) => {
+  if (props.pending) return;
   const target = index + offset;
   if (target < 0 || target >= blocks.value.length) return;
   const next = [...blocks.value];
   [next[index], next[target]] = [next[target], next[index]];
   blocks.value = next;
-  activeIndex.value = -1;
+  [blockKeys.value[index], blockKeys.value[target]] = [blockKeys.value[target], blockKeys.value[index]];
+  if (activeIndex.value === index) activeIndex.value = target;
+  else if (activeIndex.value === target) activeIndex.value = index;
 };
 
 const dragIndex = ref(-1);
 const dragOverIndex = ref(-1);
 
 const onDragStart = (index: number, event: DragEvent) => {
+  if (props.pending) return;
   dragIndex.value = index;
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = "move";
@@ -175,21 +222,24 @@ const onDragStart = (index: number, event: DragEvent) => {
 };
 
 const onDragOver = (index: number, event: DragEvent) => {
-  if (dragIndex.value === -1) return;
+  if (props.pending || dragIndex.value === -1) return;
   event.preventDefault();
   dragOverIndex.value = index;
 };
 
 const onDrop = (index: number, event: DragEvent) => {
-  if (dragIndex.value === -1) return;
+  if (props.pending || dragIndex.value === -1) return;
   event.preventDefault();
   const from = dragIndex.value;
   if (from !== index) {
     const next = [...blocks.value];
     const [moved] = next.splice(from, 1);
     next.splice(index, 0, moved);
+    const activeKey = blockKeys.value[activeIndex.value];
+    const [key] = blockKeys.value.splice(from, 1);
+    blockKeys.value.splice(index, 0, key);
     blocks.value = next;
-    activeIndex.value = -1;
+    activeIndex.value = blockKeys.value.indexOf(activeKey);
   }
   resetDrag();
 };
@@ -200,12 +250,13 @@ const resetDrag = () => {
 };
 
 const confirm = () => {
+  if (props.pending) return;
   if (error.value) {
     toast.error(error.value);
     return;
   }
   emit("confirm", normalizeSurveyDraft(draft.value));
-  close();
+  if (props.closeOnConfirm) close();
 };
 </script>
 

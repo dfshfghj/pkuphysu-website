@@ -1,6 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import SurveyQuestionField from "@/components/survey/SurveyQuestionField.vue";
+import { uploadFiles } from "@/utils/upload";
 import type {
   SurveyAnswerValue,
   SurveyQuestionDraftBlock,
@@ -32,6 +33,57 @@ const lastEmitted = (wrapper: ReturnType<typeof mountField>) => {
 };
 
 describe("SurveyQuestionField", () => {
+  it("组件卸载后忽略未完成上传的返回值", async () => {
+    let finish!: (value: Awaited<ReturnType<typeof uploadFiles>>) => void;
+    vi.mocked(uploadFiles).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        })
+    );
+    const wrapper = mountField(makeBlock("upload", { accept: "file", multiple: false, maxCount: 1 }));
+    const input = wrapper.find('input[type="file"]');
+    Object.defineProperty(input.element, "files", { configurable: true, value: [new File(["x"], "x.txt")] });
+    await input.trigger("change");
+    expect(wrapper.emitted("uploading-change")).toEqual([[true]]);
+    wrapper.unmount();
+    finish([{ url: "/files/x.txt", name: "x.txt", size: 1 }]);
+    await flushPromises();
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+    expect(wrapper.emitted("uploading-change")?.at(-1)).toEqual([false]);
+  });
+  it("达到多选上限时只禁用未选择选项，并显示限制", async () => {
+    const wrapper = mountField(makeBlock("multiple", { options: ["A", "B", "C"], min: 1, max: 2 }), {
+      modelValue: [0, 1],
+    });
+    const choices = wrapper.findAll('input[type="checkbox"]');
+    expect(choices[0].attributes("disabled")).toBeUndefined();
+    expect(choices[2].attributes("disabled")).toBeDefined();
+    expect(wrapper.text()).toContain("至少选择 1 项 · 最多选择 2 项 · 已选 2 项");
+    await choices[0].setValue(false);
+    expect(lastEmitted(wrapper)).toEqual([1]);
+  });
+
+  it("上传失败显示反馈并在完成后解除上传状态", async () => {
+    vi.mocked(uploadFiles).mockRejectedValueOnce(new Error("failed"));
+    const wrapper = mountField(makeBlock("upload", { accept: "file", multiple: false, maxCount: 1 }));
+    const input = wrapper.find('input[type="file"]');
+    Object.defineProperty(input.element, "files", { configurable: true, value: [new File(["x"], "x.txt")] });
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    await input.trigger("change");
+    await flushPromises();
+    expect(wrapper.find('[role="alert"]').text()).toBe("上传失败，请重试");
+    expect(wrapper.emitted("uploading-change")).toEqual([[true], [false]]);
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+    consoleError.mockRestore();
+  });
+
+  it("禁用编辑字段时不能修改选项或配置", () => {
+    const wrapper = mountField(makeBlock("single", { options: ["A", "B", "C"] }), { editable: true, disabled: true });
+    expect(wrapper.find(".survey-field__option-text").attributes("disabled")).toBeDefined();
+    expect(wrapper.find(".survey-field__option-add").attributes("disabled")).toBeDefined();
+    expect(wrapper.find(".survey-field__option-tool").attributes("disabled")).toBeDefined();
+  });
   it("单选渲染选项并在选择时发出下标", async () => {
     const wrapper = mountField(makeBlock("single", { options: ["A", "B"] }));
     const radios = wrapper.findAll('input[type="radio"]');
