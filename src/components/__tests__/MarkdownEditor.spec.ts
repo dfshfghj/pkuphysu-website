@@ -1,6 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
+import { isDark } from "@/composables/theme";
 
 vi.mock("vditor", () => ({
   default: class {
@@ -32,10 +33,32 @@ describe("MarkdownEditor style isolation", () => {
     const wrapper = mount(MarkdownEditor, { props: { darkMode: true } });
     await flushPromises();
     expect(wrapper.classes()).toContain("markdown-theme-dark");
+    expect(wrapper.attributes("data-theme")).toBe("dark");
     await wrapper.setProps({ darkMode: false });
     expect(wrapper.classes()).not.toContain("markdown-theme-dark");
+    expect(wrapper.attributes("data-theme")).toBe("light");
     wrapper.unmount();
   });
+  it("follows the application theme while preserving an explicit light override", async () => {
+    const previous = isDark.value;
+    const inherited = mount(MarkdownEditor);
+    const explicit = mount(MarkdownEditor, { props: { darkMode: false } });
+    try {
+      await flushPromises();
+      isDark.value = false;
+      await flushPromises();
+      expect(inherited.attributes("data-theme")).toBe("light");
+      isDark.value = true;
+      await flushPromises();
+      expect(inherited.attributes("data-theme")).toBe("dark");
+      expect(explicit.attributes("data-theme")).toBe("light");
+    } finally {
+      inherited.unmount();
+      explicit.unmount();
+      isDark.value = previous;
+    }
+  });
+
   it.each(["ir", "wysiwyg", "sv"] as const)(
     "keeps published Markdown resets off Vditor's %s surfaces",
     async (mode) => {

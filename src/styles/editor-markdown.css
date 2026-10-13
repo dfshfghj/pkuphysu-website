@@ -42,14 +42,25 @@
 
 /* The reset is an editable pre in IR/WYSIWYG. Only its text properties are shared. */
 .vditor-container .vditor-reset {
+  --callout-note-color: var(--primary);
+  --callout-note-background-color: color-mix(in oklab, var(--primary) 10%, transparent);
+  --callout-tip-color: var(--success);
+  --callout-tip-background-color: color-mix(in oklab, var(--success) 10%, transparent);
+  --callout-important-color: var(--important);
+  --callout-important-background-color: color-mix(in oklab, var(--important) 10%, transparent);
+  --callout-warning-color: var(--warning);
+  --callout-warning-background-color: color-mix(in oklab, var(--warning) 10%, transparent);
+  --callout-caution-color: var(--destructive);
+  --callout-caution-background-color: color-mix(in oklab, var(--destructive) 10%, transparent);
   font-family: var(--md-font-body);
   font-size: var(--md-font-size);
   line-height: var(--md-line-height);
   color: var(--fgColor-default);
 }
 
-.vditor-container .vditor-reset a {
-  color: var(--c-link, var(--fgColor-accent));
+.vditor-container .vditor-reset a,
+.vditor-container .vditor-reset .vditor-ir__link {
+  color: var(--fgColor-accent);
 }
 
 .vditor-container .vditor-reset h1 {

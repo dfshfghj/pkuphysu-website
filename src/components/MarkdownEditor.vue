@@ -1,15 +1,13 @@
 <template>
-  <div class="vditor-container" :class="{ 'markdown-theme-dark': isDarkMode }">
+  <div
+    class="vditor-container"
+    :class="{ 'markdown-theme-dark': isDarkMode }"
+    :data-theme="isDarkMode ? 'dark' : 'light'"
+  >
     <div ref="vditorRef" class="vditor-editor"></div>
     <div v-if="!preview" ref="toolbarNavRef" class="vditor-toolbar-nav">
-      <span
-        class="vditor-toolbar-nav__fade vditor-toolbar-nav__fade--left"
-        :class="{ 'is-hidden': !canPageLeft }"
-      />
-      <span
-        class="vditor-toolbar-nav__fade vditor-toolbar-nav__fade--right"
-        :class="{ 'is-hidden': !canPageRight }"
-      />
+      <span class="vditor-toolbar-nav__fade vditor-toolbar-nav__fade--left" :class="{ 'is-hidden': !canPageLeft }" />
+      <span class="vditor-toolbar-nav__fade vditor-toolbar-nav__fade--right" :class="{ 'is-hidden': !canPageRight }" />
       <button
         type="button"
         class="vditor-toolbar-nav__btn"
@@ -403,7 +401,9 @@ defineExpose({
   pointer-events: auto;
   color: var(--muted-foreground);
   background-color: var(--card);
-  transition: opacity 0.15s ease-in-out, color 0.15s ease-in-out;
+  transition:
+    opacity 0.15s ease-in-out,
+    color 0.15s ease-in-out;
 }
 
 .vditor-toolbar-nav__btn:first-of-type {
