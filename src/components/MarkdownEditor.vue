@@ -1,5 +1,5 @@
 <template>
-  <div class="vditor-container">
+  <div class="vditor-container" :class="{ 'markdown-theme-dark': isDarkMode }">
     <div ref="vditorRef" class="vditor-editor"></div>
     <div v-if="!preview" ref="toolbarNavRef" class="vditor-toolbar-nav">
       <span
@@ -42,6 +42,7 @@ import { nextTick } from "vue";
 import { isDark } from "@/composables/theme";
 import { buildMentionMarkdown } from "@/utils/mention";
 import { searchUsers } from "@/utils/user-search";
+import { prepareVditorPreview } from "@/utils/vditor-preview";
 
 const props = defineProps({
   modelValue: {
@@ -160,7 +161,6 @@ const renderPreview = async () => {
     hljs: { style: dark ? "github-dark" : "github", lineNumber: true },
     math: { inlineDigit: true, macros: {} },
   });
-  element.classList.add("markdown-body");
 };
 
 const initVditor = () => {
@@ -189,6 +189,7 @@ const initVditor = () => {
     },
     preview: {
       url: "/api/v2/markdown/preview",
+      transform: prepareVditorPreview,
       delay: 200,
       hljs: {
         style: hljs_style,
@@ -248,7 +249,6 @@ const initVditor = () => {
     },
     after: () => {
       setValue(props.modelValue);
-      tagContent();
       setupToolbarNav();
       if (props.autofocus) {
         vditor.value?.focus();
@@ -264,12 +264,6 @@ const setValue = (content: string) => {
   nextTick(() => {
     isInternalUpdate = false;
   });
-};
-
-const tagContent = () => {
-  vditorRef.value
-    ?.querySelectorAll(".vditor-ir, .vditor-wysiwyg, .vditor-preview, .vditor-reset")
-    .forEach((el) => el.classList.add("markdown-body"));
 };
 
 const syncToolbarNav = () => {
@@ -468,10 +462,6 @@ defineExpose({
   --toolbar-icon-hover-color: var(--muted-foreground);
 }
 
-.vditor-container .markdown-body {
-  background-color: transparent;
-}
-
 @media (max-width: 639px) {
   .vditor-container .vditor-ir > .vditor-reset,
   .vditor-container .vditor-ir > .vditor-reset:focus,
@@ -481,69 +471,6 @@ defineExpose({
   .vditor-container .vditor-sv:focus {
     background-color: transparent;
   }
-}
-
-.vditor-container .markdown-body h1,
-.vditor-container .markdown-body h2,
-.vditor-container .markdown-body h3,
-.vditor-container .markdown-body h4,
-.vditor-container .markdown-body h5,
-.vditor-container .markdown-body h6 {
-  font-family: "KaTeX_Main", serif;
-}
-
-.vditor-container .markdown-body h1,
-.vditor-container .markdown-body h2 {
-  border-bottom-color: var(--borderColor-muted);
-}
-
-.vditor-container .markdown-body blockquote {
-  color: var(--fgColor-muted);
-  border-left-color: var(--borderColor-default);
-}
-
-.vditor-container .markdown-body hr {
-  height: 0.25em;
-  margin: 24px 0;
-  background-color: var(--borderColor-default);
-  border: 0;
-}
-
-.vditor-container .markdown-body :not(pre) > code:not(.hljs):not(.highlight-chroma) {
-  font-family: var(--fontStack-monospace);
-  font-size: 85%;
-  padding: 0.2em 0.4em;
-  border-radius: 6px;
-  background-color: var(--bgColor-neutral-muted);
-}
-
-.vditor-container .markdown-body table th,
-.vditor-container .markdown-body table td {
-  border-color: var(--borderColor-default);
-}
-
-.vditor-container .markdown-body pre:not(.vditor-ir__marker--pre):not(.vditor-reset) {
-  padding: var(--base-size-16);
-  background-color: var(--bgColor-muted);
-  border-radius: 6px;
-  font-size: 85%;
-  line-height: 1.45;
-}
-
-.vditor-container .vditor-ir > .vditor-reset,
-.vditor-container .vditor-wysiwyg > .vditor-reset {
-  font-size: 16px;
-  line-height: 1.5;
-  background-color: transparent;
-  border-radius: 0;
-}
-
-.vditor-container .markdown-body pre > code {
-  font-family: var(--fontStack-monospace);
-  font-size: 100%;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
 }
 
 .vditor-container .vditor .vditor-toolbar__item .vditor-tooltipped:hover,
