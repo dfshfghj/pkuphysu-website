@@ -1,12 +1,5 @@
 export type SurveyQuestionType =
-  | "single"
-  | "multiple"
-  | "text"
-  | "ranking"
-  | "slider"
-  | "proportion"
-  | "scale"
-  | "upload";
+  "single" | "multiple" | "text" | "ranking" | "slider" | "proportion" | "scale" | "upload";
 
 export interface SurveyChoiceConfig {
   options: string[];
@@ -180,6 +173,9 @@ export const SURVEY_STATUS_LABELS: Record<string, string> = {
   closed: "已结束",
 };
 
+// Backend limits: a survey contains at most 100 blocks; uploads accept at most 9 files per question.
+export const MAX_SURVEY_BLOCKS = 100;
+export const MAX_SURVEY_UPLOAD_FILES = 9;
 export const MIN_SURVEY_OPTIONS = 2;
 export const MAX_SURVEY_OPTIONS = 50;
 export const MAX_SURVEY_SCALE_SPAN = 10;
@@ -271,6 +267,7 @@ export const normalizeSurveyDraft = (draft: SurveyDraft): SurveyDraft => ({
 });
 
 export const validateSurveyDraft = (draft: SurveyDraft): string | null => {
+  if (draft.blocks.length > MAX_SURVEY_BLOCKS) return `问卷最多包含 ${MAX_SURVEY_BLOCKS} 个内容块`;
   const questions = draft.blocks.filter(isQuestionBlock);
   if (questions.length === 0) return "至少需要一道题目";
 
@@ -291,21 +288,45 @@ export const validateSurveyDraft = (draft: SurveyDraft): string | null => {
       const options = normalizeOptions(config.options);
       const min = config.min ?? 0;
       const max = config.max ?? 0;
+      if (!Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < 0)
+        return `${label}的选择数量必须是非负整数`;
+      if (max > options.length) return `${label}的最多选择数超过选项数`;
       if (min > options.length) return `${label}的最少选择数超过选项数`;
       if (max > 0 && min > max) return `${label}的最少选择数不能大于最多选择数`;
     }
 
+    if (block.type === "text") {
+      const config = block.config as SurveyTextConfig;
+      if (!Number.isInteger(config.maxLength) || config.maxLength <= 0) return `${label}的字数上限必须是正整数`;
+    }
+
     if (block.type === "slider") {
       const config = block.config as SurveySliderConfig;
+      if (![config.min, config.max, config.step, config.default].every(Number.isFinite))
+        return `${label}的滑动条配置必须是有效数字`;
       if (config.max <= config.min) return `${label}的最大值必须大于最小值`;
       if (config.step <= 0) return `${label}的步长必须大于 0`;
+      if (config.default < config.min || config.default > config.max) return `${label}的默认值必须在取值范围内`;
     }
 
     if (block.type === "scale") {
       const config = block.config as SurveyScaleConfig;
+      if (!Number.isInteger(config.min) || !Number.isInteger(config.max)) return `${label}的量表边界必须是整数`;
       if (config.max <= config.min) return `${label}的最大值必须大于最小值`;
       if (config.max - config.min > MAX_SURVEY_SCALE_SPAN)
         return `${label}的档位不能超过 ${MAX_SURVEY_SCALE_SPAN + 1} 档`;
+    }
+    if (block.type === "proportion") {
+      const config = block.config as SurveyProportionConfig;
+      if (!Number.isFinite(config.total) || config.total <= 0) return `${label}的比重总量必须大于 0`;
+    }
+
+    if (block.type === "upload") {
+      const config = block.config as SurveyUploadConfig;
+      if (config.accept !== "image" && config.accept !== "file") return `${label}的上传类型无效`;
+      if (typeof config.multiple !== "boolean") return `${label}的上传数量设置无效`;
+      if (!Number.isInteger(config.maxCount) || config.maxCount < 1 || config.maxCount > MAX_SURVEY_UPLOAD_FILES)
+        return `${label}的上传数量必须为 1 至 ${MAX_SURVEY_UPLOAD_FILES} 的整数`;
     }
   }
 
@@ -335,6 +356,26 @@ export const validateSurveyAnswersClient = (
       continue;
     }
 
+    if (block.type === "single" || block.type === "multiple" || block.type === "ranking") {
+      const config = block.config as SurveyChoiceConfig;
+      const selected = block.type === "single" ? [value] : value;
+      if (
+        !Array.isArray(selected) ||
+        selected.some(
+          (item) => typeof item !== "number" || !Number.isInteger(item) || item < 0 || item >= config.options.length
+        ) ||
+        new Set(selected).size !== selected.length
+      )
+        return `${label}包含无效或重复的选项`;
+    }
+
+    if (block.type === "slider" || block.type === "scale") {
+      const config = block.config as SurveySliderConfig | SurveyScaleConfig;
+      if (typeof value !== "number" || !Number.isFinite(value) || value < config.min || value > config.max)
+        return `${label}的数值必须在 ${config.min} 至 ${config.max} 之间`;
+      if (block.type === "scale" && !Number.isInteger(value)) return `${label}请选择有效的量表档位`;
+    }
+
     if (block.type === "multiple") {
       const config = block.config as SurveyChoiceConfig;
       const selected = value as number[];
@@ -349,17 +390,37 @@ export const validateSurveyAnswersClient = (
 
     if (block.type === "text") {
       const config = block.config as SurveyTextConfig;
-      if ((value as string).trim().length > config.maxLength) return `${label}不能超过 ${config.maxLength} 个字符`;
+      if (typeof value !== "string") return `${label}请输入文本`;
+      if (value.trim().length > config.maxLength) return `${label}不能超过 ${config.maxLength} 个字符`;
     }
 
     if (block.type === "proportion") {
       const config = block.config as SurveyProportionConfig;
+      if (
+        !Array.isArray(value) ||
+        value.length !== config.options.length ||
+        value.some((item) => typeof item !== "number" || !Number.isFinite(item) || item < 0)
+      )
+        return `${label}的每项比重必须是非负数字`;
       const sum = (value as number[]).reduce((total, item) => total + item, 0);
       if (Math.abs(sum - config.total) > 0.01) return `${label}的比重之和必须等于 ${config.total}`;
     }
 
     if (block.type === "upload") {
       const config = block.config as SurveyUploadConfig;
+      if (
+        !Array.isArray(value) ||
+        value.some(
+          (file) =>
+            !file ||
+            typeof file !== "object" ||
+            typeof file.url !== "string" ||
+            !file.url.trim() ||
+            typeof file.name !== "string" ||
+            !file.name.trim()
+        )
+      )
+        return `${label}包含无效的文件`;
       const max = config.multiple ? config.maxCount : 1;
       if ((value as SurveyUploadFile[]).length > max) return `${label}最多上传 ${max} 个文件`;
     }

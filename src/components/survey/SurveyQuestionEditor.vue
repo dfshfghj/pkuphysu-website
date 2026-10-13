@@ -6,6 +6,9 @@
         <Input
           type="number"
           class="h-6 max-w-20"
+          min="0"
+          :max="choiceConfig.options.length"
+          step="1"
           :model-value="choiceConfig.min ?? 0"
           :disabled="disabled"
           @update:model-value="updateConfig({ min: toNumber($event) })"
@@ -16,6 +19,9 @@
         <Input
           type="number"
           class="h-6 max-w-20"
+          min="0"
+          :max="choiceConfig.options.length"
+          step="1"
           :model-value="choiceConfig.max ?? 0"
           :disabled="disabled"
           @update:model-value="updateConfig({ max: toNumber($event) })"
@@ -29,6 +35,8 @@
         <Input
           type="number"
           class="h-6 max-w-16"
+          min="0"
+          step="any"
           :model-value="sliderConfig.step"
           :disabled="disabled"
           @update:model-value="updateConfig({ step: toNumber($event) })"
@@ -57,7 +65,9 @@
         <Checkbox
           :model-value="uploadConfig.multiple"
           :disabled="disabled"
-          @update:model-value="updateConfig({ multiple: $event === true })"
+          @update:model-value="
+            updateConfig({ multiple: $event === true, maxCount: $event === true ? uploadConfig.maxCount : 1 })
+          "
         />
         <span>允许多个</span>
       </label>
@@ -66,12 +76,16 @@
         <Input
           type="number"
           class="h-6 max-w-16"
+          min="1"
+          :max="MAX_SURVEY_UPLOAD_FILES"
+          step="1"
           :model-value="uploadConfig.maxCount"
           :disabled="disabled"
           @update:model-value="updateConfig({ maxCount: toNumber($event) })"
         />
       </label>
     </div>
+    <p class="question-config__help">{{ configHelp }}</p>
   </div>
 </template>
 
@@ -81,6 +95,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+  MAX_SURVEY_UPLOAD_FILES,
   type SurveyChoiceConfig,
   type SurveyQuestionDraftBlock,
   type SurveySliderConfig,
@@ -105,6 +120,12 @@ const emit = defineEmits<{
 const hasConfig = computed(
   () => props.modelValue.type === "multiple" || props.modelValue.type === "slider" || props.modelValue.type === "upload"
 );
+
+const configHelp = computed(() => {
+  if (props.modelValue.type === "multiple") return "选择数量不能超过选项数；必答设置决定是否允许跳过此题。";
+  if (props.modelValue.type === "slider") return "步长需大于 0；范围、端点说明和默认值可在题目预览中调整。";
+  return `单次最多上传 ${MAX_SURVEY_UPLOAD_FILES} 个文件，关闭“允许多个”后仅保留 1 个文件名额。`;
+});
 
 const updateConfig = (patch: Record<string, unknown>) =>
   emit("update:modelValue", {
@@ -131,7 +152,16 @@ const toNumber = (value: string | number) => {
 
 .question-config__grid {
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 1.5rem;
+}
+
+.question-config__help {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
 }
 
 .question-config__field {

@@ -23,6 +23,45 @@ describe("SurveyQuestionEditor", () => {
     expect(labels).toEqual(["最少选择（0 为不限）", "最多选择（0 为不限）"]);
   });
 
+  it("多选数量提供与选项数一致的边界", () => {
+    const wrapper = mountEditor({
+      kind: "question",
+      type: "multiple",
+      required: false,
+      config: { options: ["A", "B", "C"] },
+    });
+    for (const input of wrapper.findAll('input[type="number"]')) {
+      expect(input.attributes("min")).toBe("0");
+      expect(input.attributes("max")).toBe("3");
+      expect(input.attributes("step")).toBe("1");
+    }
+    expect(wrapper.find(".question-config__help").text()).toContain("必答设置");
+  });
+
+  it("上传数量明确限制在 1 至 9 个文件", () => {
+    const wrapper = mountEditor({
+      kind: "question",
+      type: "upload",
+      required: false,
+      config: { accept: "file", multiple: true, maxCount: 3 },
+    });
+    const input = wrapper.find('input[type="number"]');
+    expect(input.attributes("min")).toBe("1");
+    expect(input.attributes("max")).toBe("9");
+    expect(wrapper.find(".question-config__help").text()).toContain("9 个文件");
+  });
+
+  it("关闭多文件后同步重置数量上限", async () => {
+    const wrapper = mountEditor({
+      kind: "question",
+      type: "upload",
+      required: false,
+      config: { accept: "file", multiple: true, maxCount: 3 },
+    });
+    await wrapper.find('[role="checkbox"]').trigger("click");
+    expect(lastEmitted(wrapper).config).toEqual({ accept: "file", multiple: false, maxCount: 1 });
+  });
+
   it("滑动条只渲染步长字段", () => {
     const wrapper = mountEditor({
       kind: "question",
