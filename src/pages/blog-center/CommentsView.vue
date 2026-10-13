@@ -1,6 +1,6 @@
 <template>
   <ScrollPane :distance="400" back-top @end-reached="loadMoreComments">
-    <div class="min-h-lvh">
+    <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:flex items-center text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">
         <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer" @click="router.back()" />
         <span>详情</span>
@@ -13,7 +13,7 @@
         @updated="forumStore.fetchPostById(pid)"
       />
 
-      <div class="flex pl-6 pt-3">
+      <div class="flex pl-6 py-2">
         <span class="text-lg sm:font-serif font-bold"> 评论 </span>
         <div class="sort-toggle flex items-center content-center cursor-pointer text-sm pl-4" @click="toggleSort()">
           <ChartColumn class="size-4" />

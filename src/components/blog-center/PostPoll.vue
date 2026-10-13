@@ -126,9 +126,8 @@ const submit = async () => {
 .post-poll {
   margin: 0.5rem 0;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--c-border);
   border-radius: 8px;
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .post-poll__vote {
@@ -142,7 +141,7 @@ const submit = async () => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: var(--c-title);
+  color: var(--foreground);
   cursor: pointer;
 }
 
@@ -159,7 +158,7 @@ const submit = async () => {
 
 .post-poll__hint {
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .post-poll__results {
@@ -173,7 +172,7 @@ const submit = async () => {
   align-items: center;
   justify-content: space-between;
   font-size: 0.875rem;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 
 .post-poll__result--selected .post-poll__result-text {
@@ -185,7 +184,7 @@ const submit = async () => {
   height: 6px;
   margin: 0.2rem 0;
   border-radius: 999px;
-  background: color-mix(in oklab, var(--c-border) 70%, transparent);
+  background: color-mix(in oklab, var(--border) 70%, transparent);
   overflow: hidden;
 }
 
@@ -197,12 +196,12 @@ const submit = async () => {
 
 .post-poll__result-count {
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .post-poll__total {
   margin-top: 0.25rem;
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 </style>

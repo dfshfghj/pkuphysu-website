@@ -101,4 +101,18 @@ describe("BlogCommentEditor 引用帖子", () => {
 
     expect(mocks.insertValue).toHaveBeenCalledWith("\n\n[#45](/treehole/45)\n\n");
   });
+
+  it("全屏按钮在编辑器和全屏之间切换", async () => {
+    const wrapper = mountEditor();
+    await wrapper.find(".unselectable").trigger("click");
+
+    const editor = () => wrapper.find("[data-comment-editor]");
+    expect(editor().classes()).not.toContain("is-fullscreen");
+
+    await editor().find(".fullscreen-toggle button").trigger("click");
+    expect(editor().classes()).toContain("is-fullscreen");
+
+    await editor().find(".fullscreen-toggle button").trigger("click");
+    expect(editor().classes()).not.toContain("is-fullscreen");
+  });
 });

@@ -2,7 +2,7 @@
   <ScrollPane>
     <div class="results-page">
       <div v-if="loading" class="results-page__center">
-        <Loader2 class="size-6 animate-spin text-(--c-secondary)" />
+        <Loader2 class="size-6 animate-spin text-muted-foreground" />
       </div>
 
       <EmptyState v-else-if="notFound" description="无权查看该问卷数据" />
@@ -191,7 +191,7 @@ load();
 
 .results-page__meta {
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .results-page__actions {
@@ -209,6 +209,6 @@ load();
 
 .results-page__md {
   font-size: 0.9375rem;
-  color: var(--c-text);
+  color: var(--foreground);
 }
 </style>

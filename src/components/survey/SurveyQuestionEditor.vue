@@ -139,7 +139,7 @@ const toNumber = (value: string | number) => {
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .question-config__field--inline {

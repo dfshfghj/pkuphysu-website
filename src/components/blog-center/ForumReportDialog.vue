@@ -109,7 +109,7 @@ const handleSubmit = async () => {
       <DialogFooter>
         <Button variant="outline" @click="handleOpenChange(false)">取消</Button>
         <Button
-          class="bg-(--red-6) text-white hover:bg-(--red-7)"
+          class="bg-destructive text-white hover:bg-destructive/90"
           :disabled="submitting"
           @click="handleSubmit"
         >

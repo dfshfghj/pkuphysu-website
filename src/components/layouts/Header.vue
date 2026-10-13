@@ -74,7 +74,7 @@ const gotoDocs = () => {
               <span>个人设置</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem class="text-(--red-6)" @click="handleCommand('logout')">
+            <DropdownMenuItem class="text-destructive" @click="handleCommand('logout')">
               <Trash2 class="size-4" />
               <span>退出登录</span>
             </DropdownMenuItem>
@@ -90,7 +90,7 @@ const gotoDocs = () => {
 .menu-wrapper {
   --header-height: 56px;
   position: sticky;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--border);
   width: 100%;
   top: 0;
   z-index: 999;
@@ -122,14 +122,14 @@ const gotoDocs = () => {
   padding: 0 10px;
   border: none;
   background: transparent;
-  color: var(--c-text);
+  color: var(--foreground);
   font-size: 14px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .header-link:hover {
-  background-color: var(--c-ui-hover-bg);
+  background-color: var(--accent);
 }
 
 .header-user {

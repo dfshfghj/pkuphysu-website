@@ -6,7 +6,7 @@
           <h2 class="text-2xl font-bold">欢迎回来</h2>
           <p class="text-sm">登录账户以继续访问</p>
         </div>
-        <div class="flex mb-6 border-b border-(--c-border)">
+        <div class="flex mb-6 border-b border-(--border)">
           <button
             class="flex-1 py-3 px-4 text-center relative transition-colors duration-300"
             :class="[activeTab === 'login' ? 'font-semibold border-b-2 border-foreground' : '']"
@@ -87,7 +87,7 @@
 
         <div class="my-4 text-center relative">
           <span class="text-sm relative z-10">其他方式登录</span>
-          <div class="absolute top-1/2 left-0 w-full h-px border-b border-(--c-border) z-0"></div>
+          <div class="absolute top-1/2 left-0 w-full h-px border-b border-(--border) z-0"></div>
         </div>
 
         <div class="flex justify-center gap-4">

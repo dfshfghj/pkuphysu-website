@@ -267,7 +267,7 @@ const pieTooltipTriggers = { [VisDonutSelectors.segment]: pieTooltipTemplate };
 <style scoped>
 .result-block {
   padding: 0.75rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--card);
 }
@@ -282,19 +282,19 @@ const pieTooltipTriggers = { [VisDonutSelectors.segment]: pieTooltipTemplate };
 .result-block__title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 
 .result-block__meta {
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   white-space: nowrap;
 }
 
 .result-block__average {
   margin: 0.4rem 0 0;
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .result-block__plot {
@@ -324,11 +324,11 @@ const pieTooltipTriggers = { [VisDonutSelectors.segment]: pieTooltipTemplate };
   display: flex;
   justify-content: space-between;
   font-size: 0.8125rem;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 
 .result-block__rank-value {
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .result-block__text {
@@ -339,18 +339,18 @@ const pieTooltipTriggers = { [VisDonutSelectors.segment]: pieTooltipTemplate };
 
 .result-block__text-user {
   flex-shrink: 0;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .result-block__text-body {
-  color: var(--c-title);
+  color: var(--foreground);
   word-break: break-word;
 }
 
 .result-block__empty {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .result-block__uploads {

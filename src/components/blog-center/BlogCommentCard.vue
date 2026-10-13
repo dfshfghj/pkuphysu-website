@@ -1,6 +1,6 @@
 <template>
   <div
-    class="group comment-card flex cursor-pointer items-start gap-2 rounded-sm border-b border-(--c-border) px-5 py-4 md:pr-12.5 md:pl-6"
+    class="group comment-card bg-card flex cursor-pointer items-start gap-2 rounded-sm px-5 py-4 border-b-2 border-background md:pr-12.5 md:pl-6"
     :key="comment.cid"
     @click="handleCardClick"
   >
@@ -13,19 +13,19 @@
         <div class="shrink-0 sm:hidden">
           <UserAvatar :userid="comment.userid" :size="28" />
         </div>
-        <span class="min-w-0 truncate">{{ comment.username }}</span>
-        <span class="ml-auto shrink-0 text-xs text-(--c-secondary)">
+        <span class="min-w-0 truncate font-bold">{{ comment.username }}</span>
+        <span class="ml-auto shrink-0 text-xs text-muted-foreground">
           {{ timeInfo.relativeTime }}
           <span class="hidden sm:inline">{{ timeInfo.formattedTime }}</span>
         </span>
       </div>
 
       <CollapsibleDiv :max-height="300">
-        <span v-if="comment.quote" class="text-sm text-(--c-secondary)!">
+        <span v-if="comment.quote" class="text-sm text-muted-foreground!">
           <a
             :href="`/u/${comment.quote.userid}`"
             :data-mention="String(comment.quote.userid)"
-            class="text-(--c-link) hover:underline"
+            class="text-primary hover:underline"
             @click="openQuoteAuthor"
             @mouseenter="showQuoteAuthorCard"
             >@{{ comment.quote.username }}</a
@@ -34,7 +34,7 @@
         <ForumContent :content="comment.text" />
       </CollapsibleDiv>
 
-      <div class="mt-1 flex items-center text-xs text-(--c-secondary)">
+      <div class="mt-1 flex items-center text-xs text-muted-foreground">
         <div class="ml-auto flex items-center gap-4">
           <div class="flex cursor-pointer items-center gap-1" @click.stop="handleLike">
             {{ props.comment.likenum }}
@@ -48,7 +48,7 @@
             <DropdownMenuContent align="end">
               <DropdownMenuItem @click="handleCopy">复制</DropdownMenuItem>
               <DropdownMenuItem @click="reportVisible = true">举报</DropdownMenuItem>
-              <DropdownMenuItem v-if="canDelete" class="text-(--red-6)" @click="deleteVisible = true">
+              <DropdownMenuItem v-if="canDelete" class="text-destructive" @click="deleteVisible = true">
                 删除
               </DropdownMenuItem>
             </DropdownMenuContent>

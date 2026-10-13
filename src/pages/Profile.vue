@@ -1,8 +1,8 @@
 <template>
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
-    <div class="min-h-lvh pb-10">
+    <div class="min-h-lvh pb-10 bg-card">
       <template v-if="notFound">
-        <div class="px-6 py-20 text-center text-(--c-secondary)">该用户不存在或已被删除</div>
+        <div class="px-6 py-20 text-center text-muted-foreground">该用户不存在或已被删除</div>
       </template>
 
       <template v-else>
@@ -13,18 +13,18 @@
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
               <span class="truncate text-lg font-bold sm:font-serif">{{ user.username || "加载中…" }}</span>
-              <Badge v-if="user.verified" variant="outline" class="text-(--green-6)">已认证</Badge>
+              <Badge v-if="user.verified" variant="outline" class="text-green-600">已认证</Badge>
               <Badge v-if="user.role === 2" variant="outline">管理员</Badge>
             </div>
-            <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-(--c-secondary) unselectable">
+            <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground unselectable">
               <span
-                ><b class="text-(--c-title)">{{ stats.post_count }}</b> 帖子</span
+                ><b class="text-foreground">{{ stats.post_count }}</b> 帖子</span
               >
               <span
-                ><b class="text-(--c-title)">{{ stats.comment_count }}</b> 评论</span
+                ><b class="text-foreground">{{ stats.comment_count }}</b> 评论</span
               >
               <span
-                ><b class="text-(--c-title)">{{ stats.likes_received }}</b> 获赞</span
+                ><b class="text-foreground">{{ stats.likes_received }}</b> 获赞</span
               >
             </div>
           </div>
@@ -32,15 +32,15 @@
         </div>
 
         <section class="mt-6 px-6">
-          <div class="rounded-md border border-(--c-border) p-4">
+          <div class="rounded-md border border-(--border) p-4">
             <div class="mb-2 flex items-center justify-between gap-3">
               <span class="text-base font-bold sm:font-serif">自定义内容</span>
-              <span v-if="profile.updated_at" class="text-xs text-(--c-secondary)">
+              <span v-if="profile.updated_at" class="text-xs text-muted-foreground">
                 更新于 {{ formatTime(profile.updated_at).formattedTime }}
               </span>
             </div>
             <MarkdownRenderer v-if="profile.content" :key="profile.content" :content="profile.content" />
-            <p v-else class="text-sm text-(--c-secondary)">
+            <p v-else class="text-sm text-muted-foreground">
               {{ isSelf ? "还没有自定义内容，点「编辑主页」写点什么吧。" : "TA 还没有填写自定义内容。" }}
             </p>
           </div>
@@ -59,7 +59,7 @@
               @updated="refreshPost"
             />
           </template>
-          <p v-else class="px-6 py-10 text-center text-sm text-(--c-secondary)">TA 还没有公开的帖子</p>
+          <p v-else class="px-6 py-10 text-center text-sm text-muted-foreground">TA 还没有公开的帖子</p>
           <p v-if="endOfPosts && posts.length" class="end-flag">没有更多了</p>
         </section>
       </template>
@@ -70,9 +70,9 @@
             <DialogDescription>支持 Markdown，会展示在你的用户主页上，所有人可见。</DialogDescription>
           </DialogHeader>
           <MarkdownEditor v-model="draft" :dark-mode="isDark" :min-height="260" />
-          <div class="flex items-center justify-between text-xs text-(--c-secondary)">
+          <div class="flex items-center justify-between text-xs text-muted-foreground">
             <span>{{ draft.length }} / {{ maxLength }}</span>
-            <span v-if="draft.length > maxLength" class="text-(--red-6)">内容过长</span>
+            <span v-if="draft.length > maxLength" class="text-destructive">内容过长</span>
           </div>
           <DialogFooter>
             <Button variant="outline" :disabled="saving" @click="editorVisible = false">取消</Button>

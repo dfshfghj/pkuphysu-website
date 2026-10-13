@@ -213,7 +213,7 @@ onBeforeUnmount(() => window.clearTimeout(debounceTimer));
   gap: 0.25rem;
   padding: 0.2rem;
   border-radius: 8px;
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .quote-source-tab {
@@ -222,14 +222,14 @@ onBeforeUnmount(() => window.clearTimeout(debounceTimer));
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   cursor: pointer;
 }
 
 .quote-source-tab--active {
   background: var(--card);
-  color: var(--c-title);
+  color: var(--foreground);
   font-weight: 600;
 }
 
@@ -240,7 +240,7 @@ onBeforeUnmount(() => window.clearTimeout(debounceTimer));
 
 .quote-hint {
   padding: 0.75rem 0;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   font-size: 0.875rem;
   text-align: center;
 }
@@ -259,19 +259,19 @@ onBeforeUnmount(() => window.clearTimeout(debounceTimer));
 }
 
 .quote-option:hover {
-  border-color: var(--c-border);
+  border-color: var(--border);
   background: color-mix(in srgb, var(--card) 65%, transparent);
 }
 
 .quote-option-meta {
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   font-size: 0.75rem;
 }
 
 .quote-option-excerpt {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--c-title);
+  color: var(--foreground);
   font-size: 0.875rem;
   line-height: 1.5;
   -webkit-box-orient: vertical;

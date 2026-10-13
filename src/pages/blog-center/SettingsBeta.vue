@@ -1,6 +1,6 @@
 <template>
   <ScrollPane class="h-screen! flex-1">
-    <div class="min-h-lvh">
+    <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">设置</h2>
       <div class="p-4 mt-10">
         <Label class="p-2" for="picture"> 头像 </Label>
@@ -32,7 +32,7 @@
             <Button type="submit" class="border" size="sm"> 更新 </Button>
           </Field>
         </form>
-        <div class="border-b border-(--c-border) my-2"></div>
+        <div class="border-b border-(--border) my-2"></div>
         <Item variant="outline">
           <ItemMedia>
             <ShieldCheckIcon />
@@ -97,7 +97,7 @@
             <Button variant="outline" size="sm" @click="handleLogout"> 退出 </Button>
           </ItemActions>
         </Item>
-        <Item variant="outline" class="text-(--red-7)">
+        <Item variant="outline" class="text-destructive">
           <ItemMedia>
             <AlertCircleIcon />
           </ItemMedia>
@@ -117,7 +117,7 @@
                 <AlertDialogFooter>
                   <AlertDialogCancel :disabled="deletingAccount">取消</AlertDialogCancel>
                   <AlertDialogAction
-                    class="bg-(--red-6) text-white hover:bg-(--red-7)"
+                    class="bg-destructive text-white hover:bg-destructive/90"
                     :disabled="deletingAccount"
                     @click="handleDeleteAccount"
                   >

@@ -5,7 +5,7 @@ withDefaults(defineProps<{ description?: string }>(), { description: "暂无数�
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-3 py-10 text-(--c-secondary)">
+  <div class="flex flex-col items-center justify-center gap-3 py-10 text-primary">
     <PackageOpen class="size-10 opacity-60" />
     <p class="text-sm">{{ description }}</p>
     <slot />

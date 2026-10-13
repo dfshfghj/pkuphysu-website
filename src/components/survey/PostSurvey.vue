@@ -46,15 +46,10 @@ const openResults = () => router.push(`/survey/${props.survey.id}/results`);
   gap: 0.6rem;
   margin: 0.5rem 0;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--c-border);
   border-radius: 8px;
-  background: var(--gray-2);
+  background: var(--muted);
   cursor: pointer;
   transition: border-color 0.15s ease;
-}
-
-.post-survey:hover {
-  border-color: color-mix(in oklab, var(--primary) 45%, var(--c-border));
 }
 
 .post-survey__icon {
@@ -78,7 +73,7 @@ const openResults = () => router.push(`/survey/${props.survey.id}/results`);
 .post-survey__title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--c-title);
+  color: var(--foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -86,7 +81,7 @@ const openResults = () => router.push(`/survey/${props.survey.id}/results`);
 
 .post-survey__meta {
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .post-survey__actions {
@@ -110,6 +105,6 @@ const openResults = () => router.push(`/survey/${props.survey.id}/results`);
 }
 
 .post-survey__arrow {
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 </style>

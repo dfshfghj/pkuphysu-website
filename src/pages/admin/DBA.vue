@@ -23,7 +23,7 @@
             状态：
             <Badge
               variant="outline"
-              :class="tableInfo.exists ? 'border-(--green-3) text-(--green-6)' : 'border-(--red-3) text-(--red-6)'"
+              :class="tableInfo.exists ? 'border-green-300 text-green-600' : 'border-destructive text-destructive'"
             >
               {{ tableInfo.exists ? "存在" : "不存在" }}
             </Badge>
@@ -64,7 +64,7 @@
           <TableCell class="py-1.5">
             <Badge
               variant="outline"
-              :class="tableInfo.exists ? 'border-(--green-3) text-(--green-6)' : 'border-(--red-3) text-(--red-6)'"
+              :class="tableInfo.exists ? 'border-green-300 text-green-600' : 'border-destructive text-destructive'"
             >
               {{ tableInfo.exists ? "存在" : "不存在" }}
             </Badge>
@@ -113,7 +113,7 @@
         </div>
       </div>
 
-      <div class="max-h-100 overflow-auto rounded-md border border-(--c-border)">
+      <div class="max-h-100 overflow-auto rounded-md border border-(--border)">
         <Table>
           <TableHeader>
             <TableRow>
@@ -496,7 +496,7 @@ onMounted(() => {
 
 .dialog-pre {
   text-align: left;
-  background: var(--gray-2);
+  background: var(--muted);
   padding: 16px;
   border-radius: 6px;
   max-height: 50vh;

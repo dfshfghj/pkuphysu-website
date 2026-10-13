@@ -681,14 +681,14 @@ const removeUpload = (index: number) => {
 .survey-field__label {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: var(--c-title);
+  color: var(--foreground);
   position: absolute;
   top: -32px;
   right: 10px;
 }
 
 .survey-field__required {
-  color: var(--red-6);
+  color: var(--destructive);
   margin-left: 0.15rem;
 }
 
@@ -724,10 +724,10 @@ const removeUpload = (index: number) => {
   min-width: 0;
   height: 2.25rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
   background: transparent;
-  color: var(--c-title);
+  color: var(--foreground);
   font-size: 0.875rem;
   outline: none;
 }
@@ -742,7 +742,7 @@ const removeUpload = (index: number) => {
   padding: 0;
   border-color: transparent;
   background: transparent;
-  color: var(--c-title);
+  color: var(--foreground);
   font-size: 0.9375rem;
   pointer-events: none;
 }
@@ -756,12 +756,12 @@ const removeUpload = (index: number) => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
 .survey-field__option-tool:hover:not(:disabled) {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .survey-field__option-tool:disabled {
@@ -775,13 +775,13 @@ const removeUpload = (index: number) => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   font-size: 0.8125rem;
   cursor: pointer;
 }
 
 .survey-field__option-add:hover:not(:disabled) {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .survey-field__option-add:disabled {
@@ -800,7 +800,7 @@ const removeUpload = (index: number) => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.6rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--card);
 }
@@ -814,12 +814,12 @@ const removeUpload = (index: number) => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   cursor: grab;
 }
 
 .survey-field__rank-handle:hover {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .survey-field__rank-handle:active {
@@ -861,12 +861,12 @@ const removeUpload = (index: number) => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 
 .survey-field__rank-tools button:hover:not(:disabled) {
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .survey-field__rank-tools button:disabled {
@@ -890,17 +890,17 @@ const removeUpload = (index: number) => {
 
 .survey-field__slider-label {
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 input.survey-field__slider-label {
   min-width: 0;
   height: 1.75rem;
   padding: 0 0.4rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
   background: transparent;
-  color: var(--c-title);
+  color: var(--foreground);
   font-size: 0.75rem;
   outline: none;
 }
@@ -932,7 +932,7 @@ input.survey-field__slider-value {
   width: var(--survey-slider-value-width);
   flex-shrink: 0;
   padding: 0 0.5rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
   background: transparent;
   text-align: center;
@@ -956,17 +956,17 @@ input.survey-field__slider-value:disabled {
   gap: 0.5rem;
   margin-left: calc(var(--survey-slider-value-width) + var(--survey-slider-gap));
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .survey-field__bound {
   width: 5rem;
   height: 1.75rem;
   padding: 0 0.4rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
   background: transparent;
-  color: var(--c-title);
+  color: var(--foreground);
   font-size: 0.75rem;
   outline: none;
 }
@@ -983,17 +983,17 @@ input.survey-field__slider-value:disabled {
   gap: 0.15rem;
   margin-top: 0.25rem;
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .survey-field__text-max {
   width: 3.5rem;
   height: 1.5rem;
   padding: 0 0.3rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
   background: transparent;
-  color: var(--c-title);
+  color: var(--foreground);
   font-size: 0.75rem;
   text-align: center;
   outline: none;
@@ -1049,7 +1049,7 @@ input.survey-field__slider-value:disabled {
   gap: 0.5rem;
   margin-left: calc(var(--survey-slider-value-width) + var(--survey-slider-gap));
   font-size: 0.75rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .survey-field__proportion-sum {
@@ -1058,24 +1058,24 @@ input.survey-field__slider-value:disabled {
   gap: 0.25rem;
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
 }
 
 .survey-field__proportion-total {
   width: 4rem;
   height: 1.75rem;
   padding: 0 0.4rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
   background: transparent;
-  color: var(--c-title);
+  color: var(--foreground);
   font-size: 0.75rem;
   text-align: center;
   outline: none;
 }
 
 .survey-field__proportion-sum--bad {
-  color: var(--red-6);
+  color: var(--destructive);
 }
 
 .survey-field__scale {
@@ -1110,10 +1110,10 @@ input.survey-field__slider-value:disabled {
   align-items: center;
   gap: 0.3rem;
   padding: 0.3rem 0.7rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 999px;
   font-size: 0.875rem;
-  color: var(--c-title);
+  color: var(--foreground);
   cursor: pointer;
 }
 

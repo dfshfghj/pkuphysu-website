@@ -225,9 +225,9 @@ const submit = async () => {
 .poll-summary {
   margin: 0.5rem 0;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--gray-2);
+  background: var(--muted);
 }
 
 .poll-summary__head {
@@ -239,7 +239,7 @@ const submit = async () => {
 .poll-summary__title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 
 .poll-summary__actions {
@@ -252,7 +252,7 @@ const submit = async () => {
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   font-size: 0.8125rem;
   cursor: pointer;
 }
@@ -266,6 +266,6 @@ const submit = async () => {
   padding-left: 1.1rem;
   list-style: disc;
   font-size: 0.8125rem;
-  color: var(--c-title);
+  color: var(--foreground);
 }
 </style>
