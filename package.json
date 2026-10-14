@@ -25,7 +25,7 @@
     "tauri": "tauri",
     "app:dev": "tauri dev",
     "app:build": "tauri build",
-    "dev:app": "vite --host",
+    "dev:app": "vite --host --mode appdev",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "docs:dev": "vitepress dev docs",

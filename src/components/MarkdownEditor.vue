@@ -38,6 +38,7 @@ import "@/styles/editor-markdown.css";
 import { ChevronLeft, ChevronRight } from "lucide-vue-next";
 import { nextTick } from "vue";
 import { isDark } from "@/composables/theme";
+import { apiBase } from "@/utils/api-url";
 import { buildMentionMarkdown } from "@/utils/mention";
 import { searchUsers } from "@/utils/user-search";
 import { prepareVditorPreview } from "@/utils/vditor-preview";
@@ -52,7 +53,7 @@ const props = defineProps({
     default: "ir",
   },
   height: {
-    type: Number,
+    type: [Number, String],
     default: null,
   },
   minHeight: {
@@ -186,7 +187,7 @@ const initVditor = () => {
       hide: props.hideToolbar,
     },
     preview: {
-      url: "/api/v2/markdown/preview",
+      url: `${apiBase()}/api/v2/markdown/preview`,
       transform: prepareVditorPreview,
       delay: 200,
       hljs: {
@@ -219,7 +220,7 @@ const initVditor = () => {
       ],
     },
     upload: {
-      url: "/api/v2/files/upload",
+      url: `${apiBase()}/api/v2/files/upload`,
       max: 5 * 1024 * 1024, // 5MB
       format: (_, responseText) => {
         const originalResponse = JSON.parse(responseText);

@@ -32,6 +32,7 @@ fakeScript("vditorKatexChemScript");
 
 import Vditor from "vditor";
 import vditorPackage from "vditor/package.json";
+import { resolveApiUrls } from "@/utils/api-url";
 import { applyLazyMedia } from "@/utils/lazy-media";
 import "@/styles/github-markdown.css";
 
@@ -70,6 +71,7 @@ onMounted(() => {
   }
 
   root.innerHTML = props.content;
+  resolveApiUrls(root);
   Vditor.mathRender(root, { cdn: `/vditor/${vditorPackage.version}`, math: { inlineDigit: true } });
   cleanupLazyMedia = applyLazyMedia(root);
   root.addEventListener("click", handleContentClick, true);

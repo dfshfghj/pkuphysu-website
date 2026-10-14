@@ -1,12 +1,11 @@
 import { useUserStore } from "@/stores/user";
+import { apiBase } from "@/utils/api-url";
 
 export interface UploadedFile {
   url: string;
   name: string;
   size: number;
 }
-
-const apiBase = () => import.meta.env.VITE_API_BASE_URL || "";
 
 export const uploadedFileUrl = (url: string) => `${apiBase()}/api/v2/static${url}`;
 
