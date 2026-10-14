@@ -19,7 +19,7 @@ env:
   JAVA_VERSION: '21'
   ANDROID_PLATFORM: 'android-36'
   NDK_VERSION: '29.0.14206865'
-  TAURI_CLI_VERSION: '^2.12'
+  TAURI_CLI_VERSION: '2.12.2'
 
 jobs:
   windows:
@@ -85,6 +85,8 @@ jobs:
         with:
           packages: 'platform-tools platforms;${{ env.ANDROID_PLATFORM }} ndk;${{ env.NDK_VERSION }}'
 
+      - uses: gradle/actions/setup-gradle@v6
+
       - name: Point the build at the installed NDK
         run: echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
@@ -93,7 +95,15 @@ jobs:
         env:
           HUSKY: '0'
 
+      - name: Cache the Tauri CLI
+        id: tauri-cli
+        uses: actions/cache@v6
+        with:
+          path: ~/.cargo/bin/cargo-tauri
+          key: cargo-tauri-${{ runner.os }}-${{ env.TAURI_CLI_VERSION }}
+
       - name: Install Tauri CLI
+        if: steps.tauri-cli.outputs.cache-hit != 'true'
         run: cargo install tauri-cli --version "$TAURI_CLI_VERSION" --locked
 
       - name: Configure signing
@@ -119,9 +129,9 @@ jobs:
       - name: Build APK
         run: |
           if [ "${{ steps.signing.outputs.variant }}" = release ]; then
-            cargo tauri android build --apk --target aarch64
+            cargo tauri android build --ci --apk --target aarch64
           else
-            cargo tauri android build --apk --debug --target aarch64
+            cargo tauri android build --ci --apk --debug --target aarch64
           fi
 
       - name: Collect APK
@@ -130,7 +140,7 @@ jobs:
           apk=$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -1)
           test -n "$apk"
           mkdir -p out
-          cp "$apk" "out/PKUPhysU_${version}_arm64_${{ steps.signing.outputs.variant }}.apk"
+          cp "$apk" "out/PKUPhySU_${version}_arm64_${{ steps.signing.outputs.variant }}.apk"
 
       - uses: actions/upload-artifact@v7
         with:
