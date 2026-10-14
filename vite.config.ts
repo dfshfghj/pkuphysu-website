@@ -69,6 +69,9 @@ export default defineConfig({
     },
   },
   server: {
+    watch: {
+      ignored: ["**/src-tauri/**"],
+    },
     proxy: {
       "/api/v2": {
         target: "http://localhost:8082",
