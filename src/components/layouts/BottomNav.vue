@@ -74,7 +74,9 @@ const isActive = (names: string[]) => names.includes(String(route.name));
   border-top: 1px solid var(--border);
   background-color: var(--sidebar);
   backdrop-filter: blur(8px) saturate(120%);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
 }
 
 .nav-btn {

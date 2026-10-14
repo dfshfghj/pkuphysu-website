@@ -6,7 +6,7 @@
     leave-to-class="opacity-0 translate-y-5"
   >
     <div
-      class="bg-card box-border flex border-t border-(--border) p-2.5 items-center fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute"
+      class="bg-card box-border flex border-t border-(--border) p-2.5 items-center fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute pb-[calc(0.625rem_+_var(--safe-bottom))]"
       data-comment-editor
       v-if="!isEditing"
       key="simp"
@@ -29,8 +29,8 @@
       class="box-border flex bg-card sm:border-t border-(--border) unselectable"
       :class="
         isFullscreen
-          ? 'is-fullscreen fixed inset-0 z-9999 h-full rounded-none'
-          : 'rounded-t fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute'
+          ? 'is-fullscreen fixed inset-0 z-9999 h-full rounded-none pt-[var(--safe-top)] pb-[var(--safe-bottom)] pl-[var(--safe-left)] pr-[var(--safe-right)]'
+          : 'rounded-t fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute pb-[var(--safe-bottom)]'
       "
       data-comment-editor
       v-else

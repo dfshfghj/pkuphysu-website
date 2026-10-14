@@ -1,5 +1,6 @@
 <template>
-  <div v-if="!showIaaaLogin" class="min-h-screen flex items-center justify-center p-4">
+  <div v-if="!showIaaaLogin" class="min-h-screen flex items-center justify-center p-4"
+    style="padding-top: max(1rem, var(--safe-top)); padding-bottom: max(1rem, var(--safe-bottom))">
     <div class="w-full max-w-100 bg-card rounded-xl shadow-xl overflow-hidden">
       <div class="p-8">
         <div class="text-center mb-8">
@@ -106,7 +107,8 @@
     </div>
   </div>
 
-  <div v-else class="min-h-screen flex items-center justify-center p-4">
+  <div v-else class="min-h-screen flex items-center justify-center p-4"
+    style="padding-top: max(1rem, var(--safe-top)); padding-bottom: max(1rem, var(--safe-bottom))">
     <div class="w-full max-w-100 rounded-xl shadow-xl overflow-hidden">
       <div class="p-8 bg-card">
         <div class="text-center mb-8">

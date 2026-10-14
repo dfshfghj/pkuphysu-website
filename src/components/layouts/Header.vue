@@ -170,7 +170,7 @@ const gotoDocs = () => {
     width: 80%;
     border: none;
     border-radius: 30px;
-    top: 20px;
+    top: calc(20px + var(--safe-top));
     margin: 0px 10%;
   }
 }

@@ -1,6 +1,10 @@
 <template>
   <div class="flex min-h-screen bg-background">
-    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2" data-sidebar>
+    <div
+      class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2"
+      style="padding-left: var(--safe-left)"
+      data-sidebar
+    >
       <div class="control-btn sm:font-serif font-bold p-2" @click="goPosts">
         <RotateCw class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">最新</span>
@@ -57,9 +61,12 @@
     </div>
     <div
       class="flex flex-col flex-1 min-w-0 h-screen sm:pb-0"
-      :class="isDetail ? 'pb-[env(safe-area-inset-bottom)]' : 'pb-14'"
+      :class="isDetail ? 'pb-[var(--safe-bottom)]' : 'pb-[calc(3.5rem_+_var(--safe-bottom))]'"
     >
-      <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
+      <div
+        class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden"
+        style="padding-top: calc(0.25rem + var(--safe-top))"
+      >
         <div class="control-search p-1 m-2 bg-card">
           <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
           <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
@@ -309,8 +316,9 @@ onUnmounted(() => {
 <style scoped>
 .control-bar {
   line-height: 2em;
-  padding-top: 10px;
-  padding-right: 0.5rem;
+  padding-top: calc(10px + var(--safe-top));
+  padding-right: calc(0.5rem + var(--safe-right));
+  padding-left: var(--safe-left);
   display: flex;
   align-items: center;
 }

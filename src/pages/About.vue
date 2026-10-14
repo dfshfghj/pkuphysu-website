@@ -1,6 +1,9 @@
 <template>
   <ScrollPane>
-    <div class="mx-auto min-h-lvh w-full max-w-4xl px-4 py-6">
+    <div
+      class="mx-auto min-h-lvh w-full max-w-4xl px-4 py-6"
+      style="padding-top: calc(1.5rem + var(--safe-top)); padding-bottom: calc(1.5rem + var(--safe-bottom))"
+    >
       <div class="mb-4 flex items-center gap-3">
         <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer" @click="router.back()" />
         <h1 class="text-xl font-bold sm:font-serif">关于本站</h1>

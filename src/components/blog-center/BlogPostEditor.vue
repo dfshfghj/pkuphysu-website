@@ -3,7 +3,9 @@
     v-show="visible"
     class="fixed inset-0 bg-black/50 z-9999 pointer-events-auto overflow-auto acrylic unselectable content-center"
   >
-    <div class="editor h-full w-full bg-background p-2 sm:h-auto sm:w-auto sm:mx-2 sm:rounded-md lg:mx-12">
+    <div
+      class="editor h-full w-full bg-background p-2 sm:h-auto sm:w-auto sm:mx-2 sm:rounded-md lg:mx-12 pt-[calc(0.5rem_+_var(--safe-top))] pb-[calc(0.5rem_+_var(--safe-bottom))] pl-[calc(0.5rem_+_var(--safe-left))] pr-[calc(0.5rem_+_var(--safe-right))]"
+    >
       <div class="mt-2.5 ml-2.5 flex items-center">
         <X class="size-5 cursor-pointer" @click="close" />
         <span class="sm:hidden pl-4 text-lg font-bold">发布</span>
@@ -14,7 +16,7 @@
         ref="editorRef"
         v-model="content"
         :dark-mode="darkMode"
-        :height="isNarrow ? 'calc(100vh - 210px)' : 800"
+        :height="isNarrow ? 'calc(100vh - 210px - var(--safe-top) - var(--safe-bottom))' : 800"
         :toolbar="isNarrow ? narrowToolbar : undefined"
         :extra-toolbar="extraToolbar"
       />
@@ -219,7 +221,7 @@ const submit = async () => {
 
 <style scoped>
 .editor:deep(.vditor-editor) {
-  max-height: calc(100vh - 200px);
+  max-height: calc(100vh - 200px - var(--safe-top) - var(--safe-bottom));
 }
 
 .poll-summary {
