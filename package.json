@@ -18,13 +18,18 @@
     ]
   },
   "scripts": {
+    "sync:vditor": "node scripts/sync-vditor.mjs",
+    "predev": "npm run sync:vditor",
     "dev": "vite --host",
+    "prebuild": "npm run sync:vditor",
     "build": "vite build",
+    "prebuild:app": "npm run sync:vditor",
     "build:app": "vite build --mode app",
     "preview": "vite preview --host",
     "tauri": "tauri",
     "app:dev": "tauri dev",
     "app:build": "tauri build",
+    "predev:app": "npm run sync:vditor",
     "dev:app": "vite --host --mode appdev",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
