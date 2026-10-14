@@ -42,7 +42,7 @@
           <li v-for="(block, index) in surveyConfig.blocks" :key="index">{{ surveyBlockLabel(block) }}</li>
         </ul>
       </div>
-      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25">
+      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25 h-6 rounded-full">
         {{ isEdit ? "保存" : "发布" }}
       </Button>
     </div>

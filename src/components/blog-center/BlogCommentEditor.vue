@@ -57,7 +57,7 @@
           </Button>
         </div>
         <div class="absolute bottom-0 right-0 flex items-center gap-2">
-          <Button variant="outline" @click="handleSubmit"> 发送 </Button>
+          <Button class="h-6 rounded-full mb-1 mr-2" @click="handleSubmit"> 发送 </Button>
         </div>
         <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
       </div>
