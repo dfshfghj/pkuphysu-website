@@ -1,5 +1,6 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia } from "pinia";
 import ForumContent from "@/components/blog-center/ForumContent.vue";
 import { clearPostQuoteCache } from "@/utils/post-quote";
 import { clearTreeholeQuoteCache } from "@/utils/treehole-quote";
@@ -31,7 +32,11 @@ const quotePayload = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const mountWith = (content: string, attrs: Record<string, unknown> = {}) =>
-  mount(ForumContent, { props: { content }, attrs, global: { stubs: { teleport: false } } });
+  mount(ForumContent, {
+    props: { content },
+    attrs,
+    global: { stubs: { teleport: false }, plugins: [createPinia()] },
+  });
 
 const quoteCard = () => document.body.querySelector('[data-slot="hover-card-content"]');
 
@@ -185,5 +190,55 @@ describe("ForumContent 的引用行为", () => {
     expect(mocks.requestApi).toHaveBeenCalledTimes(1);
     expect(quoteCard()).not.toBeNull();
     expect(bodyText()).toContain("被引用的完整正文");
+  });
+});
+
+describe("ForumContent 的提及行为", () => {
+  beforeEach(() => {
+    mocks.routerPush.mockReset();
+    mocks.requestApi.mockReset();
+    document.body.innerHTML = "";
+  });
+
+  it("提及标记只打标记，不改动 DOM 结构也不改样式", async () => {
+    const wrapper = mountWith('<p>你好 <a href="/u/7" rel="nofollow">@甲</a></p>');
+    await flushPromises();
+
+    const link = wrapper.find("a");
+    expect(link.attributes("data-mention")).toBe("7");
+    expect(link.classes()).toHaveLength(0);
+    expect(mocks.requestApi).not.toHaveBeenCalled();
+    expect(quoteCard()).toBeNull();
+  });
+
+  it("hover 提及链接弹出用户卡片并加载统计", async () => {
+    mocks.requestApi.mockResolvedValueOnce(okResponse({ post_count: 3, comment_count: 5, likes_received: 9 }));
+
+    const wrapper = mountWith('<p>你好 <a href="/u/7">@甲</a></p>');
+    await flushPromises();
+
+    await wrapper.find("a").trigger("mouseover");
+    await flushPromises();
+
+    expect(mocks.requestApi).toHaveBeenCalledWith("/api/v2/users/7/stats");
+
+    const card = quoteCard();
+    expect(card).not.toBeNull();
+    expect(card!.textContent).toContain("甲");
+    expect(card!.textContent).toContain("3");
+    expect(card!.textContent).toContain("9");
+  });
+
+  it("普通站内链接不会被当成提及", async () => {
+    const wrapper = mountWith('<p><a href="/45">@甲</a> 与 <a href="/u/7">看这个</a></p>');
+    await flushPromises();
+
+    wrapper.findAll("a").forEach((link) => {
+      expect(link.attributes("data-mention")).toBeUndefined();
+    });
+
+    await wrapper.findAll("a")[0].trigger("mouseover");
+    await flushPromises();
+    expect(mocks.requestApi).not.toHaveBeenCalled();
   });
 });

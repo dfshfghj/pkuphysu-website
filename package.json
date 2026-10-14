@@ -1,7 +1,7 @@
 {
   "name": "pkuphysu-website",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "lint-staged": {
     "*.{js,ts,jsx,tsx,vue}": [
@@ -20,7 +20,12 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
+    "build:app": "vite build --mode app",
     "preview": "vite preview --host",
+    "tauri": "tauri",
+    "app:dev": "tauri dev",
+    "app:build": "tauri build",
+    "dev:app": "vite --host --mode appdev",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "docs:dev": "vitepress dev docs",
@@ -42,6 +47,9 @@
     "@mdit/plugin-mark": "^0.22.2",
     "@mdit/plugin-tasklist": "^0.22.3",
     "@tailwindcss/vite": "^4.2.2",
+    "@unovis/ts": "^1.7.1",
+    "@unovis/vue": "^1.7.1",
+    "@tauri-apps/api": "^2.11.0",
     "@vueuse/core": "^14.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -74,6 +82,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@tauri-apps/cli": "^2.12.1",
     "@types/node": "^25.5.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/test-utils": "^2.4.6",

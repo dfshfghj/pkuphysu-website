@@ -17,7 +17,6 @@
       <span class="nav-btn-post">
         <IconRiAddLine width="22" height="22" />
       </span>
-      <span>发帖</span>
     </button>
     <button
       type="button"
@@ -25,7 +24,13 @@
       :class="{ 'nav-btn--active': isActive(['Messages']) }"
       @click="router.push('/messages')"
     >
-      <IconRiNotification3Line width="22" height="22" />
+      <span class="relative inline-flex">
+        <IconRiNotification3Line width="22" height="22" />
+        <span
+          v-if="notificationStore.unreadCount > 0"
+          class="absolute -right-1 -top-1 size-2 rounded-full bg-primary"
+        />
+      </span>
       <span>通知</span>
     </button>
     <button
@@ -41,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+import { useNotificationStore } from "@/stores/notification";
+
 const props = defineProps({
   homeNames: {
     type: Array as () => string[],
@@ -52,6 +59,7 @@ const emit = defineEmits(["home", "post"]);
 
 const route = useRoute();
 const router = useRouter();
+const notificationStore = useNotificationStore();
 
 const isActive = (names: string[]) => names.includes(String(route.name));
 </script>
@@ -63,10 +71,12 @@ const isActive = (names: string[]) => names.includes(String(route.name));
   left: 0;
   right: 0;
   z-index: 1000;
-  border-top: 1px solid var(--c-border);
-  background-color: color-mix(in srgb, var(--background) 80%, transparent);
+  border-top: 1px solid var(--border);
+  background-color: var(--sidebar);
   backdrop-filter: blur(8px) saturate(120%);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
 }
 
 .nav-btn {
@@ -78,7 +88,7 @@ const isActive = (names: string[]) => names.includes(String(route.name));
   gap: 1px;
   padding: 6px 0;
   font-size: 11px;
-  color: var(--c-secondary);
+  color: var(--muted-foreground);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -86,18 +96,18 @@ const isActive = (names: string[]) => names.includes(String(route.name));
 }
 
 .nav-btn--active {
-  color: var(--c-brand);
+  color: var(--primary);
 }
 
 .nav-btn-post {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
+  width: 52px;
   height: 34px;
   margin: -6px 0 -4px;
   border-radius: 9999px;
   color: #fff;
-  background-color: var(--c-brand);
+  background-color: var(--primary);
 }
 </style>

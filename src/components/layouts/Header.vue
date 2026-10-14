@@ -52,13 +52,11 @@ const gotoDocs = () => {
         <DropdownMenuContent align="end">
           <DropdownMenuItem @click="router.push('/')">论坛</DropdownMenuItem>
           <DropdownMenuItem @click="gotoDocs">文档</DropdownMenuItem>
-          <DropdownMenuItem @click="router.push('/posts')">文章</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <RouterLink to="/" class="header-link header-link--mobile-hidden">论坛</RouterLink>
       <button type="button" class="header-link header-link--mobile-hidden" @click="gotoDocs">文档</button>
-      <RouterLink to="/posts" class="header-link header-link--mobile-hidden">文章</RouterLink>
 
       <button type="button" class="header-link header-link--mobile-hidden" @click="toggleDark()">
         <Sun v-if="!isDark" class="size-5" />
@@ -76,7 +74,7 @@ const gotoDocs = () => {
               <span>个人设置</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem class="text-(--red-6)" @click="handleCommand('logout')">
+            <DropdownMenuItem class="text-destructive" @click="handleCommand('logout')">
               <Trash2 class="size-4" />
               <span>退出登录</span>
             </DropdownMenuItem>
@@ -92,7 +90,7 @@ const gotoDocs = () => {
 .menu-wrapper {
   --header-height: 56px;
   position: sticky;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--border);
   width: 100%;
   top: 0;
   z-index: 999;
@@ -124,14 +122,14 @@ const gotoDocs = () => {
   padding: 0 10px;
   border: none;
   background: transparent;
-  color: var(--c-text);
+  color: var(--foreground);
   font-size: 14px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .header-link:hover {
-  background-color: rgba(230, 247, 255, 0.2);
+  background-color: var(--accent);
 }
 
 .header-user {
@@ -172,7 +170,7 @@ const gotoDocs = () => {
     width: 80%;
     border: none;
     border-radius: 30px;
-    top: 20px;
+    top: calc(20px + var(--safe-top));
     margin: 0px 10%;
   }
 }

@@ -5,20 +5,20 @@
         <DialogTitle>历史版本</DialogTitle>
       </DialogHeader>
 
-      <div v-if="loading" class="py-8 text-center text-sm text-(--c-secondary)">加载中…</div>
-      <div v-else-if="entries.length === 0" class="py-8 text-center text-sm text-(--c-secondary)">暂无历史版本</div>
+      <div v-if="loading" class="py-8 text-center text-sm text-muted-foreground">加载中…</div>
+      <div v-else-if="entries.length === 0" class="py-8 text-center text-sm text-muted-foreground">暂无历史版本</div>
       <div v-else class="flex flex-col gap-4">
         <div
           v-for="entry in entries"
           :key="entry.version.version"
-          class="overflow-hidden rounded-md border border-(--c-border)"
+          class="overflow-hidden rounded-md border border-(--border)"
         >
-          <div class="flex items-center justify-between gap-2 bg-(--gray-2) px-3 py-1.5 text-sm">
+          <div class="flex items-center justify-between gap-2 bg-muted px-3 py-1.5 text-sm">
             <span class="font-bold">
               版本 {{ entry.version.version }}
-              <span v-if="entry.version.is_current" class="ml-1 font-normal text-(--c-secondary)">（当前）</span>
+              <span v-if="entry.version.is_current" class="ml-1 font-normal text-muted-foreground">（当前）</span>
             </span>
-            <span class="flex items-center gap-3 text-(--c-secondary)">
+            <span class="flex items-center gap-3 text-muted-foreground">
               <span v-if="entry.added || entry.removed" class="text-xs">
                 <span class="text-green-600 dark:text-green-400">+{{ entry.added }}</span>
                 <span class="ml-1 text-red-600 dark:text-red-400">-{{ entry.removed }}</span>

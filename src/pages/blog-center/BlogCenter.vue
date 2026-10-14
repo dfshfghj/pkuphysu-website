@@ -1,6 +1,10 @@
 <template>
-  <div class="flex">
-    <div class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2">
+  <div class="flex min-h-screen bg-background">
+    <div
+      class="bg-sidebar hidden sm:flex flex-col lg:min-w-30 pt-2"
+      style="padding-left: var(--safe-left)"
+      data-sidebar
+    >
       <div class="control-btn sm:font-serif font-bold p-2" @click="goPosts">
         <RotateCw class="size-5" :stroke-width="1.5" />
         <span class="control-btn-label">最新</span>
@@ -14,7 +18,13 @@
         <span class="control-btn-label">发布</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/messages')">
-        <Mail class="size-5" :stroke-width="1.5" />
+        <span class="relative inline-flex">
+          <Mail class="size-5" :stroke-width="1.5" />
+          <span
+            v-if="notificationStore.unreadCount > 0"
+            class="absolute -right-1 -top-1 size-2 rounded-full bg-primary"
+          />
+        </span>
         <span class="control-btn-label">消息</span>
       </div>
       <div class="control-btn sm:font-serif font-bold p-2" @click="router.push('/settings')">
@@ -49,21 +59,31 @@
         </DropdownMenu>
       </div>
     </div>
-    <div class="flex flex-col flex-1 min-w-0 h-screen pb-14 sm:pb-0">
-      <div class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden">
+    <div
+      class="flex flex-col flex-1 min-w-0 h-screen sm:pb-0"
+      :class="isDetail ? 'pb-[var(--safe-bottom)]' : 'pb-[calc(3.5rem_+_var(--safe-bottom))]'"
+    >
+      <div
+        class="bg-sidebar p-1 sticky top-0 z-999 hidden sm:block md:hidden"
+        style="padding-top: calc(0.25rem + var(--safe-top))"
+      >
         <div class="control-search p-1 m-2 bg-card">
           <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
           <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
         </div>
       </div>
       <div
-        class="text-(--c-title) pb-[0.7em] sticky top-0 left-0 w-full shadow-[0_0_25px_rgba(0,0,0,0.4)] bg-card z-10 unselectable sm:hidden"
+        class="text-foreground pb-[0.7em] sticky top-0 left-0 w-full bg-sidebar z-10 unselectable sm:hidden"
       >
         <div class="control-bar">
           <template v-if="isDetail">
             <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
-            <span class="text-(--c-secondary)!">#{{ route.params.id }}</span>
+            <span class="text-muted-foreground!">#{{ route.params.id }}</span>
             <span class="page-title">详情</span>
+          </template>
+          <template v-else-if="isSurvey">
+            <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
+            <span class="page-title">{{ isSurveyResults ? "问卷数据" : "问卷" }}</span>
           </template>
           <template v-else>
             <div class="control-btn p-2" @click="goFollow">
@@ -91,22 +111,27 @@
         </keep-alive>
       </router-view>
     </div>
-    <div class="flex-col w-3/10 border-l border-(--c-border) hidden md:flex">
+    <div class="flex-col w-3/10 hidden md:flex bg-card">
       <div class="control-search p-1 m-3">
         <SearchTagInput v-model="searchDraft" placeholder="搜索内容 或 #id 或 :tag" @search="navigateToSearch()" />
         <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
       </div>
       <Accordion type="single" collapsible class="p-5" default-value="item-3">
         <AccordionItem value="item-1">
-          <AccordionTrigger>热门话题</AccordionTrigger>
+          <AccordionTrigger>话题标签</AccordionTrigger>
           <AccordionContent>
-            <p>暂无</p>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>最近更新</AccordionTrigger>
-          <AccordionContent>
-            <p>暂无</p>
+            <div v-if="tags.length" class="flex flex-wrap gap-2 pt-1">
+              <button
+                v-for="tag in tags"
+                :key="tag"
+                type="button"
+                class="rounded-full bg-muted px-3 py-1 text-xs transition-opacity hover:opacity-70"
+                @click="navigateToTag(tag)"
+              >
+                {{ tag }}
+              </button>
+            </div>
+            <p v-else class="text-sm text-muted-foreground">暂无</p>
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-3">
@@ -114,10 +139,10 @@
           <AccordionContent>
             <p>项目地址:</p>
             <p>
-              <a class="no-underline text-(--c-text)!" href="https://github.com/dfshfghj/pkuphysu-website"
+              <a class="no-underline text-foreground!" href="https://github.com/dfshfghj/pkuphysu-website"
                 >pkuphysu-website</a
               >,
-              <a class="no-underline text-(--c-text)!" href="https://github.com/dfshfghj/pkuphysu-backend"
+              <a class="no-underline text-foreground!" href="https://github.com/dfshfghj/pkuphysu-backend"
                 >pkuphysu-backend</a
               >
             </p>
@@ -137,17 +162,18 @@
   <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="handlePostCreated" />
   <PasswordDialog />
 
-  <BottomNav :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
-  <div class="bg-img"></div>
+  <BottomNav v-if="!isDetail" :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
 </template>
 
 <script setup lang="ts">
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
 import SearchTagInput from "@/components/SearchTagInput.vue";
+import { requestApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
 import { isDark } from "@/composables/theme";
 import { useUserStore } from "@/stores/user";
+import { useNotificationStore } from "@/stores/notification";
 import { buildSearchRouteQuery, getSearchTokensFromRouteQuery } from "@/utils/forum-search";
 import {
   DropdownMenu,
@@ -166,11 +192,14 @@ import { ChevronLeft, Book, FileText, Mail, Plus, RotateCw, Search, Settings, St
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
+const notificationStore = useNotificationStore();
 
 const editing = ref(false);
 const searchDraft = ref<string[]>([]);
 const isFollowPage = computed(() => route.name === "FollowView");
 const isDetail = computed(() => route.name === "CommentsView");
+const isSurvey = computed(() => route.name === "SurveyView" || route.name === "SurveyResults");
+const isSurveyResults = computed(() => route.name === "SurveyResults");
 const currentPageRef = ref<InstanceType<typeof PostsView> | InstanceType<typeof FollowView> | null>(null);
 const pendingPostsForceRefresh = ref(false);
 const pendingFollowForceRefresh = ref(false);
@@ -201,6 +230,23 @@ const goFollow = () => {
   }
 };
 
+const tags = ref<string[]>([]);
+
+const fetchTags = async () => {
+  try {
+    const res = await requestApi("/api/v2/forum/tags");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    tags.value = data.data.map((tag: { tag_name: string }) => tag.tag_name);
+  } catch (error) {
+    console.error("Fetch tags failed:", error);
+  }
+};
+
+const navigateToTag = (tag: string) => {
+  router.push({ path: "/search", query: { tag } });
+};
+
 const navigateToSearch = () => {
   if (searchDraft.value.length > 0) {
     const query: LocationQueryRaw = buildSearchRouteQuery(searchDraft.value);
@@ -223,6 +269,8 @@ const handlePostCreated = () => {
 watch(
   () => route.name,
   async (name) => {
+    notificationStore.fetchUnreadCount();
+
     if (name === "PostsView" && pendingPostsForceRefresh.value) {
       pendingPostsForceRefresh.value = false;
       await nextTick();
@@ -246,6 +294,11 @@ watch(
   { immediate: true }
 );
 
+onMounted(() => {
+  fetchTags();
+  notificationStore.fetchUnreadCount();
+});
+
 // 引用外部图片绕过防盗链
 onBeforeMount(() => {
   const meta = document.createElement("meta");
@@ -263,8 +316,9 @@ onUnmounted(() => {
 <style scoped>
 .control-bar {
   line-height: 2em;
-  padding-top: 10px;
-  padding-right: 0.5rem;
+  padding-top: calc(10px + var(--safe-top));
+  padding-right: calc(0.5rem + var(--safe-right));
+  padding-left: var(--safe-left);
   display: flex;
   align-items: center;
 }
@@ -292,7 +346,7 @@ onUnmounted(() => {
 .control-search {
   display: flex;
   align-items: center;
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--border);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   border-radius: 9999px;
 }
@@ -304,15 +358,14 @@ onUnmounted(() => {
 
 .tag {
   font-size: 14px;
-  background: var(--gray-2);
+  background: var(--muted);
   padding: 2px 12px;
   margin: 0 12px 8px 0;
-  border: 1px solid var(--gray-2);
+  border: 1px solid var(--muted);
   border-radius: 9999px;
 }
 
 .comment-card {
-  margin: 5px;
   max-width: none;
 }
 
@@ -320,28 +373,7 @@ onUnmounted(() => {
   font-size: 14px;
   padding: 15px 0 10px 0;
   margin-bottom: 10px;
-  border-bottom: 1px solid var(--c-border);
-}
-
-.bg-img {
-  position: fixed;
-  z-index: -1;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url("/images/bg-light.webp") center center / cover rgb(255, 255, 255);
-}
-
-.dark .bg-img {
-  background: url("/images/bg.webp") center center / cover rgb(255, 255, 255);
-}
-
-.bg-img::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: color-mix(in oklab, var(--background) 70%, transparent);
+  border-bottom: 1px solid var(--border);
 }
 
 @media (max-width: 1024px) {

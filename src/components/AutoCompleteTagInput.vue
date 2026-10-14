@@ -123,7 +123,7 @@ const keepOpenForInput = (event: Event) => {
 }
 
 .tags-wrapper:hover {
-  border-color: #409eff;
+  border-color: var(--ring);
 }
 
 .tag-input {

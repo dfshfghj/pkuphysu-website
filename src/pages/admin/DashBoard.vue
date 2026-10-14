@@ -80,12 +80,12 @@
           <div class="grid gap-2">
             <Label for="new-username">用户名</Label>
             <Input id="new-username" v-model="newUserForm.username" placeholder="请输入用户名" />
-            <p v-if="errors.username" class="text-xs text-(--red-6)">{{ errors.username }}</p>
+            <p v-if="errors.username" class="text-xs text-destructive">{{ errors.username }}</p>
           </div>
           <div class="grid gap-2">
             <Label for="new-password">密码</Label>
             <Input id="new-password" v-model="newUserForm.password" type="password" placeholder="请输入密码" />
-            <p v-if="errors.password" class="text-xs text-(--red-6)">{{ errors.password }}</p>
+            <p v-if="errors.password" class="text-xs text-destructive">{{ errors.password }}</p>
           </div>
           <div class="grid gap-2">
             <Label>角色</Label>
@@ -289,7 +289,7 @@ const handleCreateUser = async () => {
     creatingUser.value = true;
     const hashedPassword = await sha256(newUserForm.password, "hello_pkuphysu");
 
-    const response = await requestApi("/api/v2/user/create", {
+    const response = await requestApi("/api/v2/admin/user/create", {
       method: "POST",
       body: JSON.stringify({
         username: newUserForm.username,

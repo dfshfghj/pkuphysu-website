@@ -69,8 +69,11 @@ describe("SearchView", () => {
     await wrapper.vm.loadMorePosts("bottom");
     await flushPromises();
 
-    expect(mocks.requestApi).toHaveBeenNthCalledWith(1, "/api/v2/forum/posts?keyword=physics&limit=20");
-    expect(mocks.requestApi).toHaveBeenNthCalledWith(2, "/api/v2/forum/posts?keyword=physics&limit=20&begin=20");
+    expect(mocks.requestApi).toHaveBeenNthCalledWith(1, "/api/v2/forum/posts?keyword=physics&limit=20&comment_limit=2");
+    expect(mocks.requestApi).toHaveBeenNthCalledWith(
+      2,
+      "/api/v2/forum/posts?keyword=physics&limit=20&begin=20&comment_limit=2"
+    );
     expect(wrapper.findAll(".post-card")).toHaveLength(21);
   });
 
@@ -93,7 +96,7 @@ describe("SearchView", () => {
 
     await flushPromises();
 
-    expect(mocks.requestApi).toHaveBeenCalledWith("/api/v2/forum/posts/42");
+    expect(mocks.requestApi).toHaveBeenCalledWith("/api/v2/forum/posts/42?comment_limit=2");
     expect(wrapper.findAll(".post-card")).toHaveLength(1);
   });
 });

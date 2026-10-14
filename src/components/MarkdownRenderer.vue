@@ -32,10 +32,13 @@ fakeScript("vditorKatexChemScript");
 
 import Vditor from "vditor";
 import vditorPackage from "vditor/package.json";
+import { resolveApiUrls } from "@/utils/api-url";
+import { applyLazyMedia } from "@/utils/lazy-media";
 import "@/styles/github-markdown.css";
 
 const vditorRef = ref<HTMLDivElement | null>(null);
 const router = useRouter();
+let cleanupLazyMedia: (() => void) | null = null;
 
 const props = defineProps({
   content: {
@@ -68,11 +71,15 @@ onMounted(() => {
   }
 
   root.innerHTML = props.content;
-  Vditor.mathRender(root, { cdn: `/vditor/${vditorPackage.version}` });
+  resolveApiUrls(root);
+  Vditor.mathRender(root, { cdn: `/vditor/${vditorPackage.version}`, math: { inlineDigit: true } });
+  cleanupLazyMedia = applyLazyMedia(root);
   root.addEventListener("click", handleContentClick, true);
 });
 
 onBeforeUnmount(() => {
+  cleanupLazyMedia?.();
+  cleanupLazyMedia = null;
   vditorRef.value?.removeEventListener("click", handleContentClick, true);
 });
 </script>
@@ -88,18 +95,7 @@ onBeforeUnmount(() => {
 :deep(h4),
 :deep(h5),
 :deep(h6) {
-  font-family: "KaTeX_Main", serif;
-}
-
-@media (max-width: 640px) {
-  :deep(h1),
-  :deep(h2),
-  :deep(h3),
-  :deep(h4),
-  :deep(h5),
-  :deep(h6) {
-    font-family: "KaTeX_Main";
-  }
+  font-family: var(--md-font-heading);
 }
 
 :deep(h1:first-child),
@@ -118,6 +114,9 @@ onBeforeUnmount(() => {
 .markdown-body :deep(iframe) {
   border: none;
   border-radius: 4px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 
 /* KaTeX 相关样式 */

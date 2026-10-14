@@ -1,22 +1,25 @@
 <template>
   <ScrollPane>
-    <div class="mx-auto min-h-lvh w-full max-w-4xl px-4 py-6">
+    <div
+      class="mx-auto min-h-lvh w-full max-w-4xl px-4 py-6"
+      style="padding-top: calc(1.5rem + var(--safe-top)); padding-bottom: calc(1.5rem + var(--safe-bottom))"
+    >
       <div class="mb-4 flex items-center gap-3">
         <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer" @click="router.back()" />
         <h1 class="text-xl font-bold sm:font-serif">关于本站</h1>
         <div class="flex-1"></div>
-        <RouterLink to="/" class="text-sm text-(--c-secondary) hover:text-(--c-title)">进入论坛</RouterLink>
+        <RouterLink to="/" class="text-sm text-muted-foreground hover:text-foreground">进入论坛</RouterLink>
       </div>
 
       <Tabs v-model="currentDoc" class="mt-px gap-0">
         <TabsList
-          class="h-10 w-full items-stretch justify-start gap-10 rounded-none border-b border-(--c-border) bg-transparent p-0"
+          class="h-10 w-full items-stretch justify-start gap-10 rounded-none border-b border-(--border) bg-transparent p-0"
         >
           <TabsTrigger
             v-for="doc in docs"
             :key="doc.name"
             :value="doc.name"
-            class="h-full flex-none rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 text-[15px] text-(--c-secondary) shadow-none data-[state=active]:border-(--c-brand) data-[state=active]:bg-transparent data-[state=active]:text-(--c-brand) data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
+            class="h-full flex-none rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 text-[15px] text-muted-foreground shadow-none data-[state=active]:border-primary! data-[state=active]:bg-transparent data-[state=active]:text-primary! data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent"
           >
             {{ doc.label }}
           </TabsTrigger>

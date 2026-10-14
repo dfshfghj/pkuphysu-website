@@ -1,6 +1,24 @@
 import { defineStore } from "pinia";
 import { requestApi } from "@/api/api";
 import { buildForumListParams, extractPostIdToken } from "@/utils/forum-search";
+import type { SurveySummary } from "@/utils/survey";
+
+export interface PollOption {
+  id: number;
+  text: string;
+  count?: number;
+  percent?: number;
+  selected?: boolean;
+}
+
+export interface Poll {
+  id: number;
+  multiple: boolean;
+  voted: boolean;
+  can_see_results: boolean;
+  total_votes?: number;
+  options: PollOption[];
+}
 
 export interface Post {
   id: number;
@@ -15,6 +33,9 @@ export interface Post {
   reply: number;
   type: number;
   tags: string[];
+  comments?: Comment[];
+  poll?: Poll | null;
+  survey?: SurveySummary | null;
 }
 
 export interface Comment {
@@ -192,6 +213,12 @@ export const useForumStore = defineStore("forum", {
       if (index !== -1) {
         this.posts[index].is_like = isLike;
         this.posts[index].likenum = likeNum;
+      }
+    },
+    updatePostPoll(postId: number, poll: Poll | null) {
+      const index = this.posts.findIndex((post) => post.id === postId);
+      if (index !== -1) {
+        this.posts[index].poll = poll;
       }
     },
     async fetchPostById(id: number) {

@@ -21,11 +21,6 @@ const routes = [
     meta: { noHeader: true },
   },
   {
-    path: "/posts",
-    name: "Posts",
-    component: () => import("../pages/Posts.vue"),
-  },
-  {
     path: "/settings-1",
     name: "Settings",
     component: () => import("../pages/Settings.vue"),
@@ -59,13 +54,13 @@ const routes = [
         meta: { login: true },
       },
       {
-        path: ":id",
+        path: ":id(\\d+)",
         name: "CommentsView",
         component: () => import("../pages/blog-center/CommentsView.vue"),
         meta: { login: true },
       },
       {
-        path: "u/:id",
+        path: "u/:id(\\d+)",
         name: "UserProfile",
         component: () => import("../pages/Profile.vue"),
         meta: { login: true },
@@ -86,6 +81,18 @@ const routes = [
         path: "switch",
         name: "SwitchBoard",
         component: () => import("../pages/blog-center/SwitchBoard.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "survey/:id(\\d+)",
+        name: "SurveyView",
+        component: () => import("../pages/survey/SurveyView.vue"),
+        meta: { login: true },
+      },
+      {
+        path: "survey/:id(\\d+)/results",
+        name: "SurveyResults",
+        component: () => import("../pages/survey/SurveyResultsView.vue"),
         meta: { login: true },
       },
     ],

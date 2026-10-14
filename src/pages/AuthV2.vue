@@ -1,12 +1,13 @@
 <template>
-  <div v-if="!showIaaaLogin" class="min-h-screen flex items-center justify-center p-4">
+  <div v-if="!showIaaaLogin" class="min-h-screen flex items-center justify-center p-4"
+    style="padding-top: max(1rem, var(--safe-top)); padding-bottom: max(1rem, var(--safe-bottom))">
     <div class="w-full max-w-100 bg-card rounded-xl shadow-xl overflow-hidden">
       <div class="p-8">
         <div class="text-center mb-8">
           <h2 class="text-2xl font-bold">欢迎回来</h2>
           <p class="text-sm">登录账户以继续访问</p>
         </div>
-        <div class="flex mb-6 border-b border-(--c-border)">
+        <div class="flex mb-6 border-b border-(--border)">
           <button
             class="flex-1 py-3 px-4 text-center relative transition-colors duration-300"
             :class="[activeTab === 'login' ? 'font-semibold border-b-2 border-foreground' : '']"
@@ -79,7 +80,7 @@
           <div class="flex items-center justify-center mt-4 hidden">
             <label class="flex items-center text-xs text-gray-600 dark:text-gray-300">
               <input type="checkbox" v-model="agreeTerms" class="mr-1" required /> 我已阅读并同意
-              <a href="#" class="text-blue-500 hover:text-blue-700 ml-1">服务条款</a>
+              <a href="#" class="text-primary hover:text-primary/80 ml-1">服务条款</a>
             </label>
           </div>
           <div class="text-center mt-3 text-xs text-gray-500">注册成功后可在个人中心设置密码</div>
@@ -87,7 +88,7 @@
 
         <div class="my-4 text-center relative">
           <span class="text-sm relative z-10">其他方式登录</span>
-          <div class="absolute top-1/2 left-0 w-full h-px border-b border-(--c-border) z-0"></div>
+          <div class="absolute top-1/2 left-0 w-full h-px border-b border-(--border) z-0"></div>
         </div>
 
         <div class="flex justify-center gap-4">
@@ -106,7 +107,8 @@
     </div>
   </div>
 
-  <div v-else class="min-h-screen flex items-center justify-center p-4">
+  <div v-else class="min-h-screen flex items-center justify-center p-4"
+    style="padding-top: max(1rem, var(--safe-top)); padding-bottom: max(1rem, var(--safe-bottom))">
     <div class="w-full max-w-100 rounded-xl shadow-xl overflow-hidden">
       <div class="p-8 bg-card">
         <div class="text-center mb-8">

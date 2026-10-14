@@ -1,6 +1,6 @@
 <template>
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
-    <div class="min-h-lvh">
+    <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">关注</h2>
       <ListLoading v-if="postsLoading && !posts.length" />
       <EmptyState v-else-if="!posts.length" description="还没有关注的帖子" />
@@ -42,7 +42,7 @@ const fetchFollowPosts = async () => {
   postsLoading.value = true;
   try {
     endOfPosts.value = false;
-    const apiUrl = "/api/v2/forum/follow?limit=20";
+    const apiUrl = "/api/v2/forum/follow?limit=20&comment_limit=2";
 
     const res = await requestApi(apiUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -72,6 +72,7 @@ const loadMoreFollowPosts = async () => {
   try {
     const params = new URLSearchParams();
     params.append("limit", "20");
+    params.append("comment_limit", "2");
     params.append("begin", posts.value.at(-1).id);
 
     const apiUrl = `/api/v2/forum/follow?${params.toString()}`;

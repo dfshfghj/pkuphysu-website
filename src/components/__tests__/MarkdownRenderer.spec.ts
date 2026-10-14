@@ -25,6 +25,24 @@ describe("MarkdownRenderer", () => {
     expect(mathRender).toHaveBeenCalledTimes(1);
   });
 
+  it("给正文图片加上懒加载与异步解码属性", async () => {
+    const wrapper = mountWith('<p><img src="/api/v2/static/files/a.png"></p>');
+    await flushPromises();
+
+    const img = wrapper.find("img");
+    expect(img.attributes("loading")).toBe("lazy");
+    expect(img.attributes("decoding")).toBe("async");
+  });
+
+  it("把正文里的 iframe 推迟到进入可视区再挂载", async () => {
+    const wrapper = mountWith('<iframe src="//player.bilibili.com/player.html?bvid=BV1"></iframe>');
+    await flushPromises();
+
+    const frame = wrapper.find("iframe");
+    expect(frame.attributes("src")).toBeUndefined();
+    expect(frame.attributes("data-src")).toBe("//player.bilibili.com/player.html?bvid=BV1");
+  });
+
   it("站内链接接管成路由跳转，并阻止冒泡到外层卡片", async () => {
     const outerClick = vi.fn();
     const wrapper = mountWith('<p><a href="/45">#45</a></p>', { onClick: outerClick });

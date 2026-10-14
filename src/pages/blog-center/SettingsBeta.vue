@@ -1,6 +1,6 @@
 <template>
   <ScrollPane class="h-screen! flex-1">
-    <div class="min-h-lvh">
+    <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">设置</h2>
       <div class="p-4 mt-10">
         <Label class="p-2" for="picture"> 头像 </Label>
@@ -32,7 +32,7 @@
             <Button type="submit" class="border" size="sm"> 更新 </Button>
           </Field>
         </form>
-        <div class="border-b border-(--c-border) my-2"></div>
+        <div class="border-b border-(--border) my-2"></div>
         <Item variant="outline">
           <ItemMedia>
             <ShieldCheckIcon />
@@ -97,7 +97,7 @@
             <Button variant="outline" size="sm" @click="handleLogout"> 退出 </Button>
           </ItemActions>
         </Item>
-        <Item variant="outline" class="text-(--red-7)">
+        <Item variant="outline" class="text-destructive">
           <ItemMedia>
             <AlertCircleIcon />
           </ItemMedia>
@@ -107,7 +107,7 @@
           <ItemActions>
             <AlertDialog>
               <AlertDialogTrigger as-child>
-                <Button class="border" type="submit" size="sm"> 确认 </Button>
+                <Button class="border" type="submit" size="sm"> 注销 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -115,8 +115,14 @@
                   <AlertDialogDescription> 您确定要删除您的账户吗？此操作不可逆。 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
-                  <AlertDialogAction>确认</AlertDialogAction>
+                  <AlertDialogCancel :disabled="deletingAccount">取消</AlertDialogCancel>
+                  <AlertDialogAction
+                    class="bg-destructive text-white hover:bg-destructive/90"
+                    :disabled="deletingAccount"
+                    @click="handleDeleteAccount"
+                  >
+                    {{ deletingAccount ? "注销中..." : "确认注销" }}
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -158,6 +164,31 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const handleLogout = () => {
   userStore.logout();
   router.push("/login");
+};
+
+const deletingAccount = ref(false);
+
+const handleDeleteAccount = async () => {
+  if (deletingAccount.value) {
+    return;
+  }
+  deletingAccount.value = true;
+  try {
+    const res = await requestApi("/api/v2/user/me", { method: "DELETE" });
+    const result = await res.json().catch(() => null);
+    if (!res.ok) {
+      toast.error(result?.message || "注销失败");
+      return;
+    }
+    toast.success("账号已注销");
+    userStore.logout();
+    router.push("/login");
+  } catch (err) {
+    toast.error("网络错误");
+    console.error("Delete account failed:", err);
+  } finally {
+    deletingAccount.value = false;
+  }
 };
 
 const goProfile = () => {

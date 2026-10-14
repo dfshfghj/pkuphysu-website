@@ -1,7 +1,14 @@
 <template>
   <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
-    <div class="min-h-lvh">
+    <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">搜索结果</h2>
+      <div v-if="posts.length" class="flex items-center justify-between gap-2 px-6 pt-2">
+        <span class="text-sm text-muted-foreground"> 共 {{ posts.length }}{{ endOfPosts ? "" : "+" }} 条结果 </span>
+        <Button variant="ghost" size="sm" @click="clearSearch">
+          <X class="size-4" />
+          清除筛选
+        </Button>
+      </div>
       <ListLoading v-if="postsLoading && !posts.length" />
       <EmptyState v-else-if="!posts.length" description="没有找到相关帖子" />
       <template v-else>
@@ -25,11 +32,17 @@ import ScrollPane from "@/components/ScrollPane.vue";
 import ListLoading from "@/components/ListLoading.vue";
 import EmptyState from "@/components/EmptyState.vue";
 import BlogPostCard from "../../components/blog-center/BlogPostCard.vue";
+import Button from "@/components/ui/button/Button.vue";
+import { X } from "lucide-vue-next";
 import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
 
 const router = useRouter();
 const route = useRoute();
+
+const clearSearch = () => {
+  router.push("/");
+};
 
 const mainScrollbar = ref<InstanceType<typeof ScrollPane> | null>(null);
 const posts = ref([]);
@@ -48,7 +61,7 @@ const fetchPosts = async () => {
     endOfPosts.value = false;
     const postId = extractPostIdToken(tokens);
     if (postId !== null) {
-      const res = await requestApi(`/api/v2/forum/posts/${postId}`);
+      const res = await requestApi(`/api/v2/forum/posts/${postId}?comment_limit=2`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       posts.value = [data.data];
@@ -56,7 +69,7 @@ const fetchPosts = async () => {
       return;
     }
 
-    const params = buildForumListParams({ query: tokens }, { limit: 20 });
+    const params = buildForumListParams({ query: tokens }, { limit: 20, commentLimit: 2 });
     const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
     const res = await requestApi(apiUrl);
@@ -91,7 +104,7 @@ const loadMorePosts = async () => {
         return;
       }
 
-      const params = buildForumListParams({ query: tokens }, { limit: 20, begin: posts.value.at(-1).id });
+      const params = buildForumListParams({ query: tokens }, { limit: 20, commentLimit: 2, begin: posts.value.at(-1).id });
       const apiUrl = `/api/v2/forum/posts?${params.toString()}`;
 
       const res = await requestApi(apiUrl);

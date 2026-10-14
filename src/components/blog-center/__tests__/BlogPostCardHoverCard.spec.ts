@@ -147,3 +147,57 @@ describe("BlogPostCard 悬浮卡跳转", () => {
     wrapper.unmount();
   });
 });
+
+describe("BlogPostCard 评论预览剩余条数", () => {
+  it("预览未展示完全时显示剩余条数", async () => {
+    const wrapper = mount(BlogPostCard, {
+      props: {
+        post: {
+          ...post,
+          reply: 5,
+          comments: [
+            { cid: 1, username: "Bob", text: "<p>a</p>", quote: null },
+            { cid: 2, username: "Carol", text: "<p>b</p>", quote: null },
+            { cid: 3, username: "Dave", text: "<p>c</p>", quote: null },
+          ],
+        },
+      },
+      global: { stubs },
+    });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("还有 3 条回复");
+    wrapper.unmount();
+  });
+
+  it("评论全部展示时不显示剩余条数", async () => {
+    const wrapper = mount(BlogPostCard, {
+      props: {
+        post: {
+          ...post,
+          reply: 2,
+          comments: [
+            { cid: 1, username: "Bob", text: "<p>a</p>", quote: null },
+            { cid: 2, username: "Carol", text: "<p>b</p>", quote: null },
+          ],
+        },
+      },
+      global: { stubs },
+    });
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain("还有");
+    wrapper.unmount();
+  });
+
+  it("有回复数但没有预览评论时也显示剩余条数", async () => {
+    const wrapper = mount(BlogPostCard, {
+      props: { post: { ...post, reply: 3, comments: [] } },
+      global: { stubs },
+    });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("还有 3 条回复");
+    wrapper.unmount();
+  });
+});

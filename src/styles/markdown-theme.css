@@ -1,0 +1,48 @@
+/* Shared visual tokens only: no editor or published-content layout rules. */
+:is(.markdown-body, .vditor-container) {
+  --md-font-body:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  --md-font-heading: "KaTeX_Main", serif;
+  --md-font-size: 16px;
+  --md-line-height: 1.5;
+  --md-code-line-height: 1.45;
+  --md-code-radius: 6px;
+  --base-size-4: 0.25rem;
+  --base-size-8: 0.5rem;
+  --base-size-16: 1rem;
+  --base-size-24: 1.5rem;
+  --base-size-40: 2.5rem;
+  --base-text-weight-normal: 400;
+  --base-text-weight-medium: 500;
+  --base-text-weight-semibold: 600;
+  --fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+
+  /* GitHub-compatible aliases follow the application theme. */
+  --focus-outlineColor: var(--ring);
+  --fgColor-default: var(--foreground);
+  --fgColor-muted: var(--muted-foreground);
+  --fgColor-accent: var(--primary);
+  --fgColor-success: var(--success);
+  --fgColor-attention: var(--warning);
+  --fgColor-danger: var(--destructive);
+  --fgColor-done: var(--important);
+  --bgColor-default: var(--card);
+  --bgColor-muted: var(--muted);
+  --bgColor-neutral-muted: var(--muted);
+  --borderColor-default: var(--border);
+  --borderColor-muted: var(--border);
+  --borderColor-neutral-muted: var(--border);
+  --borderColor-accent-emphasis: var(--primary);
+  --borderColor-success-emphasis: var(--success);
+  --borderColor-attention-emphasis: var(--warning);
+  --borderColor-danger-emphasis: var(--destructive);
+  --borderColor-done-emphasis: var(--important);
+  --bgColor-attention-muted: color-mix(in oklab, var(--warning) 15%, var(--card));
+}
+
+@media (max-width: 640px) {
+  :is(.markdown-body, .vditor-container) {
+    --md-font-heading: "KaTeX_Main";
+  }
+}

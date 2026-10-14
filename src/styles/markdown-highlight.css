@@ -1,0 +1,64 @@
+/* Match Chroma's published tokens and highlight.js editor tokens using the
+   same palette. Source markers and diagram renderers are not highlighted here. */
+.markdown-body
+  .highlight-chroma
+  :is(.highlight-c, .highlight-ch, .highlight-cm, .highlight-cp, .highlight-cpf, .highlight-c1, .highlight-cs),
+.vditor-container .hljs :is(.hljs-comment, .hljs-quote) {
+  color: var(--color-prettylights-syntax-comment);
+}
+
+.markdown-body
+  .highlight-chroma
+  :is(.highlight-k, .highlight-kc, .highlight-kd, .highlight-kn, .highlight-kp, .highlight-kr, .highlight-kt),
+.vditor-container .hljs :is(.hljs-keyword, .hljs-selector-tag) {
+  color: var(--color-prettylights-syntax-keyword);
+}
+
+.markdown-body
+  .highlight-chroma
+  :is(
+    .highlight-m,
+    .highlight-mb,
+    .highlight-mf,
+    .highlight-mh,
+    .highlight-mi,
+    .highlight-il,
+    .highlight-mo,
+    .highlight-no,
+    .highlight-na
+  ),
+.vditor-container .hljs :is(.hljs-number, .hljs-literal, .hljs-built_in, .hljs-attr) {
+  color: var(--color-prettylights-syntax-constant);
+}
+
+.markdown-body
+  .highlight-chroma
+  :is(
+    .highlight-s,
+    .highlight-sa,
+    .highlight-sb,
+    .highlight-sc,
+    .highlight-dl,
+    .highlight-sd,
+    .highlight-s2,
+    .highlight-se,
+    .highlight-sh,
+    .highlight-si,
+    .highlight-sx,
+    .highlight-sr,
+    .highlight-s1,
+    .highlight-ss
+  ),
+.vditor-container .hljs :is(.hljs-string, .hljs-regexp) {
+  color: var(--color-prettylights-syntax-string);
+}
+
+.markdown-body .highlight-chroma :is(.highlight-nf, .highlight-fm, .highlight-nc),
+.vditor-container .hljs :is(.hljs-title, .hljs-section) {
+  color: var(--color-prettylights-syntax-entity);
+}
+
+.markdown-body .highlight-chroma .highlight-nt,
+.vditor-container .hljs .hljs-name {
+  color: var(--color-prettylights-syntax-entity-tag);
+}
