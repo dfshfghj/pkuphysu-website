@@ -72,9 +72,7 @@
           <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
         </div>
       </div>
-      <div
-        class="text-foreground pb-[0.7em] sticky top-0 left-0 w-full bg-sidebar z-10 unselectable sm:hidden"
-      >
+      <div class="text-foreground pb-[0.7em] sticky top-0 left-0 w-full bg-sidebar z-10 unselectable sm:hidden">
         <div class="control-bar">
           <template v-if="isDetail">
             <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
@@ -159,7 +157,7 @@
       <div class="flex-1"></div>
     </div>
   </div>
-  <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="handlePostCreated" />
+  <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" />
   <PasswordDialog />
 
   <BottomNav v-if="!isDetail" :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
@@ -257,12 +255,6 @@ const navigateToSearch = () => {
     }
   } else {
     router.push({ path: "/" });
-  }
-};
-
-const handlePostCreated = () => {
-  if (route.name === "PostsView") {
-    handleRefresh();
   }
 };
 

@@ -1,7 +1,9 @@
-import { flushPromises, mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
+import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, reactive } from "vue";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Profile from "@/pages/Profile.vue";
+import { useForumStore, type Post } from "@/stores/forum";
 
 const mocks = vi.hoisted(() => ({
   routeState: { params: { id: "1" } },
@@ -30,6 +32,7 @@ vi.mock("vue-sonner", () => ({
 }));
 
 const route = reactive(mocks.routeState);
+enableAutoUnmount(afterEach);
 
 const UserAvatarStub = defineComponent({
   name: "UserAvatar",
@@ -110,8 +113,18 @@ const profileResponse = (overrides: Record<string, unknown> = {}) => ({
   }),
 });
 
+const deferredResponse = () => {
+  let resolve!: (response: ReturnType<typeof profileResponse>) => void;
+  const promise = new Promise<ReturnType<typeof profileResponse>>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+};
+const pagePosts = () => Array.from({ length: 10 }, (_, index) => ({ id: 100 - index, text: "old" }));
+
 describe("Profile", () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
     route.params.id = "1";
     mocks.userStore.userid = "1";
     mocks.requestApi.mockReset();
@@ -142,9 +155,14 @@ describe("Profile", () => {
     const own = mount(Profile, { global: { stubs } });
     await flushPromises();
     expect(own.text()).toContain("编辑主页");
+    own.unmount();
 
     mocks.requestApi.mockResolvedValueOnce(
-      profileResponse({ is_self: false, user: { id: 2, username: "姚博骞", bio: "", role: 0, verified: true } })
+      profileResponse({
+        is_self: false,
+        user: { id: 2, username: "姚博骞", bio: "", role: 0, verified: true },
+        profile: { content: "", updated_at: null },
+      })
     );
     route.params.id = "2";
     const other = mount(Profile, { global: { stubs } });
@@ -238,5 +256,85 @@ describe("Profile", () => {
     await flushPromises();
 
     expect(mocks.toastError).toHaveBeenCalledWith("主页内容最多 5000 个字符");
+  });
+
+  it("discards an old profile response after the route changes", async () => {
+    const old = deferredResponse();
+    mocks.requestApi
+      .mockReturnValueOnce(old.promise)
+      .mockResolvedValueOnce(profileResponse({ user: { id: 2, username: "新用户" }, posts: [{ id: 22 }] }));
+    const wrapper = mount(Profile, { global: { stubs } });
+    route.params.id = "2";
+    await flushPromises();
+    old.resolve(profileResponse());
+    await flushPromises();
+    expect(wrapper.text()).toContain("新用户");
+    expect(wrapper.find(".post-card").text()).toBe("22");
+    expect(useForumStore().getPostById(45)).toBeUndefined();
+  });
+
+  it("discards pagination from the previous profile", async () => {
+    const old = deferredResponse();
+    mocks.requestApi
+      .mockResolvedValueOnce(profileResponse({ posts: pagePosts() }))
+      .mockReturnValueOnce(old.promise)
+      .mockResolvedValueOnce(profileResponse({ posts: [{ id: 22 }] }));
+    const wrapper = mount(Profile, { global: { stubs } });
+    await flushPromises();
+    wrapper.findComponent(ScrollPaneStub).vm.$emit("end-reached");
+    await flushPromises();
+    route.params.id = "2";
+    await flushPromises();
+    old.resolve(profileResponse({ posts: [{ id: 90 }] }));
+    await flushPromises();
+    expect(wrapper.findAll(".post-card").map((card) => card.text())).toEqual(["22"]);
+    expect(useForumStore().getPostById(90)).toBeUndefined();
+  });
+
+  it("keeps the server page cursor after its last entity is deleted", async () => {
+    mocks.requestApi
+      .mockResolvedValueOnce(profileResponse({ posts: pagePosts() }))
+      .mockResolvedValueOnce(profileResponse({ posts: [] }));
+    const wrapper = mount(Profile, { global: { stubs } });
+    await flushPromises();
+    useForumStore().removePost(91);
+    wrapper.findComponent(ScrollPaneStub).vm.$emit("end-reached");
+    await flushPromises();
+    expect(mocks.requestApi).toHaveBeenLastCalledWith("/api/v2/users/1/profile?limit=10&begin=91");
+  });
+
+  it("does not overwrite entities changed while the profile request was pending", async () => {
+    const response = deferredResponse();
+    const store = useForumStore();
+    store.upsertPosts([{ id: 45, text: "before" } as Post]);
+    mocks.requestApi.mockReturnValueOnce(response.promise);
+    mount(Profile, { global: { stubs } });
+    store.postsById[45].text = "edited";
+    store.touchPost(45);
+    response.resolve(profileResponse());
+    await flushPromises();
+    expect(store.getPostById(45)?.text).toBe("edited");
+  });
+
+  it("discards the previous account response and reloads for the current session", async () => {
+    const old = deferredResponse();
+    mocks.requestApi.mockReturnValueOnce(old.promise).mockResolvedValueOnce(profileResponse({ posts: [{ id: 22 }] }));
+    const wrapper = mount(Profile, { global: { stubs } });
+    useForumStore().resetSession();
+    await flushPromises();
+    old.resolve(profileResponse());
+    await flushPromises();
+    expect(wrapper.findAll(".post-card").map((card) => card.text())).toEqual(["22"]);
+    expect(useForumStore().getPostById(45)).toBeUndefined();
+  });
+
+  it("ignores profile responses after unmount", async () => {
+    const response = deferredResponse();
+    mocks.requestApi.mockReturnValueOnce(response.promise);
+    const wrapper = mount(Profile, { global: { stubs } });
+    wrapper.unmount();
+    response.resolve(profileResponse());
+    await flushPromises();
+    expect(useForumStore().getPostById(45)).toBeUndefined();
   });
 });

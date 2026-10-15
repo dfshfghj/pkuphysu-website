@@ -57,7 +57,7 @@
           </Button>
         </div>
         <div class="absolute bottom-0 right-0 flex items-center gap-2">
-          <Button class="h-6 rounded-full mb-1 mr-2" @click="handleSubmit"> 发送 </Button>
+          <Button class="h-6 rounded-full mb-1 mr-2" :disabled="submitting" @click="handleSubmit"> 发送 </Button>
         </div>
         <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
       </div>
@@ -72,6 +72,7 @@ import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } f
 import { Maximize2, Minimize2 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
+import { useForumStore } from "@/stores/forum";
 import { ref, watch, onMounted, onUnmounted } from "vue";
 const emit = defineEmits(["success", "clear-quote"]);
 
@@ -99,6 +100,8 @@ const isEditing = ref(false);
 const editorRef = ref(null);
 const quoteVisible = ref(false);
 const isFullscreen = ref(false);
+const submitting = ref(false);
+const forumStore = useForumStore();
 
 const extraToolbar = [
   "|",
@@ -164,22 +167,29 @@ const insertQuote = (selection: QuoteSelection) => {
 };
 
 const handleSubmit = async () => {
+  if (submitting.value) return;
   const currentContent = editorRef.value?.vditor?.getValue() || content.value;
   if (!currentContent.trim()) {
     toast.error("评论内容不能为空");
     return;
   }
 
+  const postId = props.postId;
+  const session = forumStore.session;
+  submitting.value = true;
   try {
     const res = await requestApi("/api/v2/forum/comments", {
       method: "POST",
       body: JSON.stringify({
         text: currentContent,
-        pid: props.postId,
+        pid: postId,
         quote: props.quote ? props.quote : null,
       }),
     });
     if (!res.ok) throw new Error("上传失败");
+    if (forumStore.session !== session) return;
+    // The editor may have unmounted while submitting; shared data must still update.
+    void forumStore.refreshPost(postId);
 
     toast.success("评论成功");
 
@@ -187,8 +197,11 @@ const handleSubmit = async () => {
     isEditing.value = false;
     emit("success");
   } catch (error) {
+    if (forumStore.session !== session) return;
     toast.error("网络错误");
     console.error("Comment submit failed:", error);
+  } finally {
+    submitting.value = false;
   }
 };
 </script>

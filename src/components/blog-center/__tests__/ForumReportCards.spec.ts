@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,17 +13,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("vue-router", () => ({
   useRouter: () => ({ push: mocks.routerPush }),
 }));
-
-vi.mock("@/stores/forum", async () => {
-  const actual = await vi.importActual<typeof import("@/stores/forum")>("@/stores/forum");
-  return {
-    ...actual,
-    useForumStore: () => ({
-      updatePostLike: vi.fn(),
-      updateCommentLike: vi.fn(),
-    }),
-  };
-});
 
 const mockUserStore = {
   role: 0,
@@ -174,6 +164,7 @@ const dropdownStubs = {
 };
 
 describe("forum report buttons", () => {
+  beforeEach(() => setActivePinia(createPinia()));
   it("opens the post report dialog with post id", async () => {
     mockUserStore.role = 0;
     const wrapper = mount(BlogPostCard, {
@@ -394,6 +385,7 @@ const authorStubs = {
 
 describe("post card author hover card", () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
     mockUserStore.role = 0;
     mocks.routerPush.mockReset();
     vi.mocked(requestApi).mockReset();

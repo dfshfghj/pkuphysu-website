@@ -39,7 +39,9 @@
         <div class="shrink-0 sm:hidden">
           <UserAvatar :userid="post.userid" :size="28" @click.stop="goProfile" />
         </div>
-        <span class="min-w-0 cursor-pointer truncate font-bold hover:underline" @click.stop="goProfile">{{ post.username }}</span>
+        <span class="min-w-0 cursor-pointer truncate font-bold hover:underline" @click.stop="goProfile">{{
+          post.username
+        }}</span>
         <code class="shrink-0">#{{ post.id }}</code>
         <span class="ml-auto shrink-0 text-xs text-muted-foreground">
           {{ timeInfo.relativeTime }}
@@ -67,16 +69,30 @@
             {{ post.reply }}
             <MessageSquare class="size-3" />
           </div>
-          <div class="flex cursor-pointer items-center gap-1" @click.stop="handleLike">
+          <button
+            type="button"
+            aria-label="点赞"
+            :aria-pressed="!!isLiked"
+            :disabled="forumStore.pendingLikes[post.id]"
+            class="flex cursor-pointer items-center gap-1"
+            @click.stop="handleLike"
+          >
             {{ likeNum }}
             <IconRiHeartFill v-if="isLiked" class="size-3" />
             <IconRiHeartLine v-else class="size-3" />
-          </div>
-          <div class="flex cursor-pointer items-center gap-1" @click.stop="handleFollow">
+          </button>
+          <button
+            type="button"
+            aria-label="关注"
+            :aria-pressed="!!isFollowed"
+            :disabled="forumStore.pendingFollows[post.id]"
+            class="flex cursor-pointer items-center gap-1"
+            @click.stop="handleFollow"
+          >
             {{ followNum }}
             <Star class="size-3 fill-current" v-if="isFollowed" />
             <Star v-else class="size-3" />
-          </div>
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <Ellipsis class="size-4 scale-125 fill-current cursor-pointer" @click.stop />
@@ -98,7 +114,11 @@
         v-if="showPreviewComments && (previewComments.length || moreReplies)"
         class="my-2 flex flex-col gap-0.5 rounded-md bg-muted p-2 text-xs"
       >
-        <div v-for="comment in previewComments" :key="comment.cid" class="line-clamp-2 break-words text-muted-foreground">
+        <div
+          v-for="comment in previewComments"
+          :key="comment.cid"
+          class="line-clamp-2 break-words text-muted-foreground"
+        >
           <span class="text-foreground">{{ comment.username }}</span
           >: <span v-if="comment.mention" class="mr-1 text-foreground">{{ comment.mention }}</span
           ><span v-html="comment.html"></span>
@@ -114,14 +134,14 @@
     :title="isOwn ? '删除帖子' : '删除帖子（管理员）'"
     :description="`确认删除帖子 #${post.id} 吗？此操作不可撤销。`"
     success-message="帖子已删除"
-    @success="emit('deleted', post.id)"
+    :after-delete="handleDeleted"
   />
   <BlogPostEditor
     v-if="editMounted"
     v-model:visible="editVisible"
     :edit-target="editTarget"
     :dark-mode="darkMode"
-    @success="emit('updated', post.id)"
+    @success="handleUpdated"
   />
   <PostHistoryDialog v-model="historyVisible" :post-id="post.id" />
 </template>
@@ -135,7 +155,7 @@ import { requestApi } from "@/api/api";
 import { formatTime, shouldIgnoreCardClick } from "@/utils";
 import { buildPreviewComments } from "@/utils/preview";
 import UserAvatar from "@/components/UserAvatar.vue";
-import { useForumStore, type Poll } from "@/stores/forum";
+import { useForumStore, type Poll, type Post } from "@/stores/forum";
 import { useUserStore } from "@/stores/user";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { toast } from "vue-sonner";
@@ -144,7 +164,6 @@ import ForumReportDialog from "@/components/blog-center/ForumReportDialog.vue";
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PostPoll from "@/components/blog-center/PostPoll.vue";
 import PostSurvey from "@/components/survey/PostSurvey.vue";
-import { type SurveySummary } from "@/utils/survey";
 import PostHistoryDialog from "@/components/blog-center/PostHistoryDialog.vue";
 import {
   DropdownMenu,
@@ -174,12 +193,13 @@ const props = defineProps({
 
 const emit = defineEmits(["card-click", "deleted", "updated"]);
 
-const isLiked = ref(props.post.is_like);
-const isFollowed = ref(props.post.is_follow);
-const likeNum = ref(props.post.likenum);
-const followNum = ref(props.post.follownum);
-const poll = ref<Poll | null>(props.post.poll ?? null);
-const survey = ref<SurveySummary | null>(props.post.survey ?? null);
+const post = computed(() => forumStore.getPostById(props.post.id) ?? props.post);
+const isLiked = computed(() => post.value.is_like);
+const isFollowed = computed(() => post.value.is_follow);
+const likeNum = computed(() => post.value.likenum);
+const followNum = computed(() => post.value.follownum);
+const poll = computed(() => post.value.poll ?? null);
+const survey = computed(() => post.value.survey ?? null);
 const reportVisible = ref(false);
 const deleteVisible = ref(false);
 const editVisible = ref(false);
@@ -189,37 +209,25 @@ const editMounted = ref(false);
 watch(editVisible, (visible) => {
   if (visible) editMounted.value = true;
 });
-const timeInfo = computed(() => formatTime(props.post.timestamp));
-watch(
-  () => props.post.poll,
-  (next) => {
-    poll.value = next ?? null;
-  }
-);
-watch(
-  () => props.post.survey,
-  (next) => {
-    survey.value = next ?? null;
-  }
-);
-const previewComments = computed(() => buildPreviewComments(props.post.comments));
-const moreReplies = computed(() => Math.max(0, (props.post.reply ?? 0) - previewComments.value.length));
+const timeInfo = computed(() => formatTime(post.value.timestamp));
+const previewComments = computed(() => buildPreviewComments(post.value.comments));
+const moreReplies = computed(() => Math.max(0, (post.value.reply ?? 0) - previewComments.value.length));
 const isAdmin = computed(() => userStore.role === 2);
-const isOwn = computed(() => Number(props.post.userid) === Number(userStore.userid));
+const isOwn = computed(() => Number(post.value.userid) === Number(userStore.userid));
 const canDelete = computed(() => isOwn.value || isAdmin.value);
 const deleteEndpoint = computed(() =>
-  isOwn.value ? `/api/v2/forum/posts/${props.post.id}` : `/api/v2/admin/forum/posts/${props.post.id}`
+  isOwn.value ? `/api/v2/forum/posts/${post.value.id}` : `/api/v2/admin/forum/posts/${post.value.id}`
 );
 
 const handleEdit = async () => {
   try {
-    const res = await requestApi(`/api/v2/forum/posts/raw/${props.post.id}`);
+    const res = await requestApi(`/api/v2/forum/posts/raw/${post.value.id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     editTarget.value = {
-      id: props.post.id,
+      id: post.value.id,
       content: data.data.content,
-      tags: [...(props.post.tags ?? [])],
+      tags: [...(post.value.tags ?? [])],
     };
     editVisible.value = true;
   } catch (error) {
@@ -244,7 +252,7 @@ const loadHoverStats = async () => {
 
   hoverStatsLoading.value = true;
   try {
-    const res = await requestApi(`/api/v2/users/${props.post.userid}/stats`);
+    const res = await requestApi(`/api/v2/users/${post.value.userid}/stats`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const result = await res.json();
     hoverStats.value = result.data;
@@ -267,55 +275,48 @@ const goProfile = async () => {
   hoverCardDismissed.value = true;
   hoverCardOpen.value = false;
   await nextTick();
-  router.push({ name: "UserProfile", params: { id: props.post.userid } });
+  router.push({ name: "UserProfile", params: { id: post.value.userid } });
 };
 
+const ensurePost = () => {
+  if (!forumStore.getPostById(post.value.id)) forumStore.upsertPosts([props.post as Post]);
+};
 const handleLike = async () => {
-  const prevLiked = isLiked.value;
-  const prevNum = likeNum.value;
-  isLiked.value = !prevLiked;
-  likeNum.value = isLiked.value ? prevNum + 1 : prevNum - 1;
-  forumStore.updatePostLike(props.post.id, isLiked.value, likeNum.value);
-
+  ensurePost();
   try {
-    const res = await requestApi(`/api/v2/forum/like/${props.post.id}`, {
-      method: "POST",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  } catch (error) {    isLiked.value = prevLiked;
-    likeNum.value = prevNum;
-    forumStore.updatePostLike(props.post.id, prevLiked, prevNum);
+    await forumStore.togglePostLike(post.value.id);
+  } catch (error) {
     toast.error("操作失败");
     console.error("Like operation failed:", error);
   }
 };
-
 const handlePollVoted = (updated: Poll) => {
-  poll.value = updated;
-  forumStore.updatePostPoll(props.post.id, updated);
+  ensurePost();
+  forumStore.updatePostPoll(post.value.id, updated);
 };
-
 const handleFollow = async () => {
-  const prevFollowed = isFollowed.value;
-  const prevNum = followNum.value;
-  isFollowed.value = !prevFollowed;
-  followNum.value = isFollowed.value ? prevNum + 1 : prevNum - 1;
-
+  ensurePost();
   try {
-    const res = await requestApi(`/api/v2/forum/follow/${props.post.id}`, {
-      method: "POST",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  } catch (error) {    isFollowed.value = prevFollowed;
-    followNum.value = prevNum;
+    await forumStore.togglePostFollow(post.value.id);
+  } catch (error) {
     toast.error("操作失败");
     console.error("Follow operation failed:", error);
   }
 };
+const handleDeleted = computed(() => {
+  const session = forumStore.session;
+  const id = props.post.id;
+  return () => {
+    if (session !== forumStore.session) return;
+    forumStore.removePost(id);
+    emit("deleted", id);
+  };
+});
+const handleUpdated = () => emit("updated", post.value.id);
 
 const handleCopy = async () => {
   try {
-    const res = await requestApi(`/api/v2/forum/posts/raw/${props.post.id}`);
+    const res = await requestApi(`/api/v2/forum/posts/raw/${post.value.id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const text = data.data.content;

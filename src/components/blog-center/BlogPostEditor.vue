@@ -44,7 +44,12 @@
           <li v-for="(block, index) in surveyConfig.blocks" :key="index">{{ surveyBlockLabel(block) }}</li>
         </ul>
       </div>
-      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25 h-6 rounded-full">
+      <Button
+        type="outline"
+        :disabled="submitting"
+        @click="submit"
+        class="float-right mt-1.25 mb-1.25 h-6 rounded-full"
+      >
         {{ isEdit ? "保存" : "发布" }}
       </Button>
     </div>
@@ -63,9 +68,16 @@ import PollComposerDialog from "@/components/blog-center/PollComposerDialog.vue"
 import SurveyComposerDialog from "@/components/survey/SurveyComposerDialog.vue";
 import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
 import { createPollToolbarItem, type PollConfig } from "@/utils/poll";
-import { createSurveyToolbarItem, countQuestionBlocks, SURVEY_QUESTION_TYPES, type SurveyDraft, type SurveyDraftBlock } from "@/utils/survey";
+import {
+  createSurveyToolbarItem,
+  countQuestionBlocks,
+  SURVEY_QUESTION_TYPES,
+  type SurveyDraft,
+  type SurveyDraftBlock,
+} from "@/utils/survey";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
+import { useForumStore } from "@/stores/forum";
 import { useMediaQuery } from "@vueuse/core";
 import { ref, watch } from "vue";
 
@@ -85,6 +97,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:visible", "success"]);
+const forumStore = useForumStore();
+const submitting = ref(false);
 
 const content = ref("");
 const selectedTags = ref([]);
@@ -178,6 +192,7 @@ const close = () => {
 };
 
 const submit = async () => {
+  if (submitting.value) return;
   const currentContent = editorRef.value?.vditor?.getValue() || content.value;
   if (!currentContent.trim()) {
     toast.error("不能为空");
@@ -185,6 +200,7 @@ const submit = async () => {
   }
 
   const editing = props.editTarget;
+  const session = forumStore.session;
   const body: Record<string, unknown> = {
     text: currentContent,
     tags: selectedTags.value,
@@ -196,6 +212,7 @@ const submit = async () => {
     body.survey = surveyConfig.value;
   }
 
+  submitting.value = true;
   try {
     const res = await requestApi(editing ? `/api/v2/forum/posts/${editing.id}` : "/api/v2/forum/posts", {
       method: editing ? "PUT" : "POST",
@@ -209,12 +226,17 @@ const submit = async () => {
       return;
     }
 
+    if (session !== forumStore.session) return;
+    if (editing) void forumStore.postEdited(editing.id);
+    else forumStore.invalidateFeed("home");
     toast.success(data?.data?.message || (editing ? "修改成功" : "发布成功"));
     emit("success");
     close();
   } catch (error) {
     toast.error("网络错误");
     console.error("Post submit failed:", error);
+  } finally {
+    submitting.value = false;
   }
 };
 </script>

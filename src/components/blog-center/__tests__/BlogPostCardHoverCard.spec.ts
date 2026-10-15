@@ -1,7 +1,9 @@
+import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, nextTick } from "vue";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import BlogPostCard from "@/components/blog-center/BlogPostCard.vue";
+import { useForumStore, type Post } from "@/stores/forum";
 
 const mocks = vi.hoisted(() => ({
   routerPush: vi.fn(),
@@ -13,14 +15,6 @@ vi.mock("vue-router", () => ({
 }));
 
 vi.mock("@/api/api", () => ({ requestApi: mocks.requestApi }));
-
-vi.mock("@/stores/forum", async () => {
-  const actual = await vi.importActual<typeof import("@/stores/forum")>("@/stores/forum");
-  return {
-    ...actual,
-    useForumStore: () => ({ updatePostLike: vi.fn(), updateCommentLike: vi.fn() }),
-  };
-});
 
 vi.mock("@/stores/user", () => ({
   useUserStore: () => ({ role: 0, userid: "1" }),
@@ -98,6 +92,7 @@ const withExitAnimation = () => {
 
 describe("BlogPostCard 悬浮卡跳转", () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
     mocks.routerPush.mockReset();
     mocks.requestApi.mockReset();
     document.body.innerHTML = "";
@@ -109,6 +104,27 @@ describe("BlogPostCard 悬浮卡跳转", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("keeps cached cards synchronized after detail likes, follows, and refreshed content", async () => {
+    const store = useForumStore();
+    store.upsertPosts([post as Post]);
+    const home = mount(BlogPostCard, { props: { post }, global: { stubs } });
+    const detail = mount(BlogPostCard, { props: { post: { ...post } }, global: { stubs } });
+    await detail.get('button[aria-label="点赞"]').trigger("click");
+    await flushPromises();
+    expect(home.get('button[aria-label="点赞"]').attributes("aria-pressed")).toBe("true");
+    expect(home.get('button[aria-label="点赞"]').text()).toBe("1");
+    await detail.get('button[aria-label="关注"]').trigger("click");
+    await flushPromises();
+    expect(home.get('button[aria-label="关注"]').attributes("aria-pressed")).toBe("true");
+    expect(home.get('button[aria-label="关注"]').text()).toBe("1");
+    store.upsertPosts([{ ...post, likenum: 9, is_like: 0, follownum: 4, is_follow: 0 } as Post]);
+    await nextTick();
+    expect(home.get('button[aria-label="点赞"]').text()).toBe("9");
+    expect(detail.get('button[aria-label="关注"]').text()).toBe("4");
+    home.unmount();
+    detail.unmount();
   });
 
   it("点击名字时先移除 teleport 到 body 的浮层，再跳转", async () => {

@@ -10,7 +10,6 @@
         :post="forumStore.getPostById(pid)"
         :show-preview-comments="false"
         @deleted="handlePostDeleted"
-        @updated="forumStore.fetchPostById(pid)"
       />
 
       <div class="flex pl-6 py-2">
@@ -39,7 +38,7 @@
         :quote="quote"
         :quote-name="quoteName"
         :dark-mode="isDark"
-        @success="fetchComments(pid)"
+        @success="handleCommentPublished"
         @clear-quote="clearQuote"
       />
     </div>
@@ -67,6 +66,8 @@ const commentsLoading = ref(false);
 const ascSort = ref(false);
 const quote = ref(0);
 const quoteName = ref("");
+let commentsRequest = 0;
+let active = true;
 
 const toggleQuote = (id: number, name: string) => {
   if (quote.value !== id) {
@@ -83,12 +84,14 @@ const clearQuote = () => {
 };
 
 const fetchComments = async (postId: number) => {
+  const request = ++commentsRequest;
   commentsLoading.value = true;
   try {
     endOfComments.value = false;
     const res = await requestApi(`/api/v2/forum/comments/${postId}?limit=20&sort=${ascSort.value ? "asc" : "desc"}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    if (!active || request !== commentsRequest) return;
 
     comments.value = data.data;
     if (data.data.length < 20) {
@@ -97,7 +100,7 @@ const fetchComments = async (postId: number) => {
   } catch (error) {
     console.error("Fetch comments failed:", error);
   } finally {
-    commentsLoading.value = false;
+    if (active && request === commentsRequest) commentsLoading.value = false;
   }
 };
 
@@ -107,21 +110,24 @@ const loadMoreComments = async () => {
   }
 
   commentsLoading.value = true;
+  const request = ++commentsRequest;
   try {
     const res = await requestApi(
       `/api/v2/forum/comments/${pid.value}?limit=20&begin=${comments.value.at(-1)!.cid}&sort=${ascSort.value ? "asc" : "desc"}`
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    if (!active || request !== commentsRequest) return;
 
-    comments.value = [...comments.value, ...data.data];
+    const existingIds = new Set(comments.value.map((comment) => comment.cid));
+    comments.value = [...comments.value, ...data.data.filter((comment: Comment) => !existingIds.has(comment.cid))];
     if (data.data.length < 20) {
       endOfComments.value = true;
     }
   } catch (error) {
     console.error("Load more comments failed:", error);
   } finally {
-    commentsLoading.value = false;
+    if (active && request === commentsRequest) commentsLoading.value = false;
   }
 };
 
@@ -142,24 +148,28 @@ const handleCommentDeleted = (commentId: number) => {
   comments.value = comments.value.filter((comment) => comment.cid !== commentId);
 };
 
+const handleCommentPublished = () => fetchComments(pid.value);
+
 const handlePostDeleted = async () => {
+  forumStore.removePost(pid.value);
   await router.push({ name: "PostsView" });
 };
 
-watch(pid, async (newPid, oldPid) => {
-  if (newPid !== oldPid) {
+watch(
+  pid,
+  (newPid) => {
     comments.value = [];
     ascSort.value = false;
     quote.value = 0;
     quoteName.value = "";
-    await fetchComments(newPid);
-  }
-});
+    void forumStore.refreshPost(newPid);
+    void fetchComments(newPid);
+  },
+  { immediate: true }
+);
 
-onMounted(async () => {
-  if (!forumStore.getPostById(pid.value)) {
-    await forumStore.fetchPostById(pid.value);
-  }
-  await fetchComments(pid.value);
+onBeforeUnmount(() => {
+  active = false;
+  commentsRequest++;
 });
 </script>

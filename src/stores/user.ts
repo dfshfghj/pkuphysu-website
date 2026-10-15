@@ -1,3 +1,5 @@
+import { useForumStore } from "@/stores/forum";
+
 export const useUserStore = defineStore("user", {
   state: () => ({
     token: localStorage.getItem("user_token") || null,
@@ -9,6 +11,7 @@ export const useUserStore = defineStore("user", {
 
   actions: {
     login(data: any) {
+      useForumStore().resetSession();
       this.token = data.token;
       this.username = data.username;
       this.userid = String(data.userid);
@@ -23,6 +26,7 @@ export const useUserStore = defineStore("user", {
 
     // 退出登录
     logout() {
+      useForumStore().resetSession();
       this.token = null;
       this.userid = null;
       this.username = null;

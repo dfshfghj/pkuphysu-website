@@ -1,13 +1,19 @@
-import { flushPromises, mount } from "@vue/test-utils";
+import { enableAutoUnmount, flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, h } from "vue";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import BlogCommentEditor from "@/components/blog-center/BlogCommentEditor.vue";
 
 const mocks = vi.hoisted(() => ({
   insertValue: vi.fn(),
   getValue: vi.fn(() => ""),
   exposeVditor: true,
+  requestApi: vi.fn(),
+  forumStore: { session: 0, refreshPost: vi.fn() },
 }));
+
+vi.mock("@/api/api", () => ({ requestApi: mocks.requestApi }));
+vi.mock("@/stores/forum", () => ({ useForumStore: () => mocks.forumStore }));
+enableAutoUnmount(afterEach);
 
 vi.mock("@/components/MarkdownEditor.vue", async () => {
   const { defineComponent } = await import("vue");
@@ -62,6 +68,9 @@ describe("BlogCommentEditor 引用帖子", () => {
     mocks.insertValue.mockReset();
     mocks.getValue.mockReset();
     mocks.getValue.mockReturnValue("");
+    mocks.requestApi.mockReset();
+    mocks.forumStore.refreshPost.mockReset();
+    mocks.forumStore.session = 0;
   });
 
   it("展开评论框后通过 toolbar 引用能插入引用标记", async () => {
@@ -114,5 +123,71 @@ describe("BlogCommentEditor 引用帖子", () => {
 
     await editor().find(".fullscreen-toggle button").trigger("click");
     expect(editor().classes()).not.toContain("is-fullscreen");
+  });
+
+  it("refreshes the submitted post even when the editor unmounts before POST completes", async () => {
+    let resolvePost!: (response: { ok: boolean }) => void;
+    mocks.requestApi.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolvePost = resolve;
+      })
+    );
+    mocks.getValue.mockReturnValue("new comment");
+    const wrapper = mountEditor();
+    await wrapper.find(".unselectable").trigger("click");
+    const send = wrapper.findAll("button").find((button) => button.text() === "发送")!;
+    await send.trigger("click");
+    expect(mocks.requestApi).toHaveBeenCalledWith("/api/v2/forum/comments", {
+      method: "POST",
+      body: JSON.stringify({ text: "new comment", pid: 7, quote: null }),
+    });
+    await wrapper.setProps({ postId: 8 });
+    wrapper.unmount();
+    resolvePost({ ok: true });
+    await flushPromises();
+    expect(mocks.forumStore.refreshPost).toHaveBeenCalledWith(7);
+    expect(mocks.forumStore.refreshPost).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh the next account after an old submission completes", async () => {
+    let resolvePost!: (response: { ok: boolean }) => void;
+    mocks.requestApi.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolvePost = resolve;
+      })
+    );
+    mocks.getValue.mockReturnValue("new comment");
+    const wrapper = mountEditor();
+    await wrapper.find(".unselectable").trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "发送")!
+      .trigger("click");
+    mocks.forumStore.session++;
+    resolvePost({ ok: true });
+    await flushPromises();
+    expect(mocks.forumStore.refreshPost).not.toHaveBeenCalled();
+    expect(wrapper.emitted("success")).toBeUndefined();
+  });
+
+  it("allows only one comment submission while POST is pending", async () => {
+    let resolvePost!: (response: { ok: boolean }) => void;
+    mocks.requestApi.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolvePost = resolve;
+      })
+    );
+    mocks.getValue.mockReturnValue("new comment");
+    const wrapper = mountEditor();
+    await wrapper.find(".unselectable").trigger("click");
+    const send = wrapper.findAll("button").find((button) => button.text() === "发送")!;
+    await send.trigger("click");
+    await send.trigger("click");
+    expect(send.attributes("disabled")).toBeDefined();
+    expect(mocks.requestApi).toHaveBeenCalledTimes(1);
+    resolvePost({ ok: true });
+    await flushPromises();
+    expect(wrapper.emitted("success")).toHaveLength(1);
+    expect(mocks.forumStore.refreshPost).toHaveBeenCalledTimes(1);
   });
 });
