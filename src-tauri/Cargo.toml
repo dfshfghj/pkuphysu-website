@@ -1,6 +1,6 @@
 [package]
 name = "pkuphysu"
-version = "0.2.0"
+version = "0.3.0"
 description = "PKUPhySU"
 authors = ["PKUPhySU"]
 edition = "2021"

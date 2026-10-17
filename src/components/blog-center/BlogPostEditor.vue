@@ -4,11 +4,19 @@
     class="fixed inset-0 bg-black/50 z-9999 pointer-events-auto overflow-auto acrylic unselectable content-center"
   >
     <div
-      class="editor h-full w-full bg-background p-2 sm:h-auto sm:w-auto sm:mx-2 sm:rounded-md lg:mx-12 pt-[calc(0.5rem_+_var(--safe-top))] pb-[calc(0.5rem_+_var(--safe-bottom))] pl-[calc(0.5rem_+_var(--safe-left))] pr-[calc(0.5rem_+_var(--safe-right))]"
+      class="editor h-full w-full bg-background p-2 sm:h-auto sm:w-auto sm:mx-2 sm:rounded-md lg:mx-12 pt-[calc(0.5rem_+_var(--safe-top))] pl-[calc(0.5rem_+_var(--safe-left))] pr-[calc(0.5rem_+_var(--safe-right))]"
+      :style="editorStyle"
     >
       <div class="mt-2.5 ml-2.5 flex items-center">
         <X class="size-5 cursor-pointer" @click="close" />
         <span class="sm:hidden pl-4 text-lg font-bold">发布</span>
+        <a
+          href="/guide?editor=post"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ml-auto mr-2 text-xs text-muted-foreground hover:underline"
+          >工具栏教程 ↗</a
+        >
       </div>
       <AutoCompleteTagInput v-model="selectedTags" :suggestions="tagSuggestions" />
       <p class="p-2 sm:hidden border-t">正文</p>
@@ -16,7 +24,7 @@
         ref="editorRef"
         v-model="content"
         :dark-mode="darkMode"
-        :height="isNarrow ? 'calc(100vh - 210px - var(--safe-top) - var(--safe-bottom))' : 800"
+        :height="isNarrow ? 'calc(100vh - 210px - var(--safe-top) - var(--safe-bottom) - var(--kb-inset))' : 800"
         :toolbar="isNarrow ? narrowToolbar : undefined"
         :extra-toolbar="extraToolbar"
       />
@@ -44,7 +52,12 @@
           <li v-for="(block, index) in surveyConfig.blocks" :key="index">{{ surveyBlockLabel(block) }}</li>
         </ul>
       </div>
-      <Button type="outline" @click="submit" class="float-right mt-1.25 mb-1.25 h-6 rounded-full">
+      <Button
+        type="outline"
+        :disabled="submitting"
+        @click="submit"
+        class="float-right mt-1.25 mb-1.25 h-6 rounded-full"
+      >
         {{ isEdit ? "保存" : "发布" }}
       </Button>
     </div>
@@ -61,13 +74,15 @@ import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
 import PollComposerDialog from "@/components/blog-center/PollComposerDialog.vue";
 import SurveyComposerDialog from "@/components/survey/SurveyComposerDialog.vue";
-import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
-import { createPollToolbarItem, type PollConfig } from "@/utils/poll";
-import { createSurveyToolbarItem, countQuestionBlocks, SURVEY_QUESTION_TYPES, type SurveyDraft, type SurveyDraftBlock } from "@/utils/survey";
+import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
+import { type PollConfig } from "@/utils/poll";
+import { countQuestionBlocks, SURVEY_QUESTION_TYPES, type SurveyDraft, type SurveyDraftBlock } from "@/utils/survey";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
+import { useForumStore } from "@/stores/forum";
 import { useMediaQuery } from "@vueuse/core";
 import { ref, watch } from "vue";
+import { POST_MOBILE_TOOLBAR, postExtraToolbar } from "@/utils/editor-toolbar";
 
 const props = defineProps({
   visible: {
@@ -85,14 +100,21 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:visible", "success"]);
+const forumStore = useForumStore();
+const submitting = ref(false);
 
 const content = ref("");
 const selectedTags = ref([]);
 const tagSuggestions = ref([]);
 const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 const isNarrow = useMediaQuery("(max-width: 639px)");
-const narrowToolbar = ["upload", "|", "undo", "redo"];
+const narrowToolbar = POST_MOBILE_TOOLBAR;
 const isEdit = computed(() => !!props.editTarget);
+
+const editorStyle = computed(() => ({
+  paddingBottom: "calc(0.5rem + max(0px, var(--safe-bottom) - var(--kb-inset)))",
+  ...(isNarrow.value ? { height: "calc(100% - var(--kb-inset))" } : {}),
+}));
 
 const quoteVisible = ref(false);
 const pollVisible = ref(false);
@@ -100,18 +122,17 @@ const pollConfig = ref<PollConfig | null>(null);
 const surveyVisible = ref(false);
 const surveyConfig = ref<SurveyDraft | null>(null);
 
-const extraToolbar = [
-  "|",
-  createQuotePostToolbarItem(() => {
+const extraToolbar = postExtraToolbar(
+  () => {
     quoteVisible.value = true;
-  }),
-  createPollToolbarItem(() => {
+  },
+  () => {
     pollVisible.value = true;
-  }),
-  createSurveyToolbarItem(() => {
+  },
+  () => {
     surveyVisible.value = true;
-  }),
-];
+  }
+);
 
 const handlePollConfirm = (config: PollConfig) => {
   pollConfig.value = config;
@@ -178,6 +199,7 @@ const close = () => {
 };
 
 const submit = async () => {
+  if (submitting.value) return;
   const currentContent = editorRef.value?.vditor?.getValue() || content.value;
   if (!currentContent.trim()) {
     toast.error("不能为空");
@@ -185,6 +207,7 @@ const submit = async () => {
   }
 
   const editing = props.editTarget;
+  const session = forumStore.session;
   const body: Record<string, unknown> = {
     text: currentContent,
     tags: selectedTags.value,
@@ -196,6 +219,7 @@ const submit = async () => {
     body.survey = surveyConfig.value;
   }
 
+  submitting.value = true;
   try {
     const res = await requestApi(editing ? `/api/v2/forum/posts/${editing.id}` : "/api/v2/forum/posts", {
       method: editing ? "PUT" : "POST",
@@ -209,19 +233,24 @@ const submit = async () => {
       return;
     }
 
+    if (session !== forumStore.session) return;
+    if (editing) void forumStore.postEdited(editing.id);
+    else forumStore.invalidateFeed("home");
     toast.success(data?.data?.message || (editing ? "修改成功" : "发布成功"));
     emit("success");
     close();
   } catch (error) {
     toast.error("网络错误");
     console.error("Post submit failed:", error);
+  } finally {
+    submitting.value = false;
   }
 };
 </script>
 
 <style scoped>
 .editor:deep(.vditor-editor) {
-  max-height: calc(100vh - 200px - var(--safe-top) - var(--safe-bottom));
+  max-height: calc(100vh - 200px - var(--safe-top) - var(--safe-bottom) - var(--kb-inset));
 }
 
 .poll-summary {

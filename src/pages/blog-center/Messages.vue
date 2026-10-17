@@ -1,5 +1,5 @@
 <template>
-  <ScrollPane class="h-screen! flex-1" :distance="400" back-top>
+  <ScrollPane class="h-screen! flex-1" :distance="400" back-top :refresh="fechNotifications">
     <div class="min-h-lvh bg-card">
       <div class="hidden items-center justify-between pt-6 pr-6 pl-6 sm:flex">
         <h2 class="mt-0 text-xl font-bold sm:font-serif">消息</h2>

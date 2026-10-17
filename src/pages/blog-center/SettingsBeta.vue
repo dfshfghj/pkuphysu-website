@@ -34,6 +34,11 @@
         </form>
         <div class="border-b border-(--border) my-2"></div>
         <Item variant="outline">
+          <ItemMedia><BookOpen /></ItemMedia>
+          <ItemContent><ItemTitle>编辑器教程</ItemTitle></ItemContent>
+          <ItemActions><Button variant="outline" size="sm" @click="startTutorial">查看</Button></ItemActions>
+        </Item>
+        <Item variant="outline">
           <ItemMedia>
             <ShieldCheckIcon />
           </ItemMedia>
@@ -140,7 +145,8 @@ import Button from "@/components/ui/button/Button.vue";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { toast } from "vue-sonner";
-import { AlertCircleIcon, InfoIcon, LogOutIcon, Pencil, ShieldCheckIcon, UserIcon } from "lucide-vue-next";
+import { AlertCircleIcon, BookOpen, InfoIcon, LogOutIcon, Pencil, ShieldCheckIcon, UserIcon } from "lucide-vue-next";
+import { useOnboardingStore } from "@/stores/onboarding";
 import { sha256 } from "@/utils";
 
 interface User {
@@ -158,6 +164,12 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const avatarUpload = `${API_BASE}/api/v2/user/avatar`;
 const userStore = useUserStore();
 const router = useRouter();
+const onboarding = useOnboardingStore();
+const startTutorial = async () => {
+  await router.push({ name: "EditorGuide" });
+  onboarding.identify(userStore.userid ? String(userStore.userid) : null);
+  onboarding.replay();
+};
 const currentUser = ref<User>({} as User);
 const fileInput = ref<HTMLInputElement | null>(null);
 

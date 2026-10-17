@@ -36,11 +36,17 @@
 
       <div class="mt-1 flex items-center text-xs text-muted-foreground">
         <div class="ml-auto flex items-center gap-4">
-          <div class="flex cursor-pointer items-center gap-1" @click.stop="handleLike">
+          <button
+            type="button"
+            aria-label="点赞评论"
+            :disabled="liking"
+            class="flex cursor-pointer items-center gap-1"
+            @click.stop="handleLike"
+          >
             {{ props.comment.likenum }}
             <IconRiHeartFill v-if="props.comment.is_like" class="size-3" />
             <IconRiHeartLine v-else class="size-3" />
-          </div>
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <Ellipsis class="size-4 scale-125 fill-current cursor-pointer" @click.stop />
@@ -69,6 +75,7 @@
     :title="isOwn ? '删除评论' : '删除评论（管理员）'"
     :description="`确认删除评论 #${comment.cid} 吗？此操作不可撤销。`"
     success-message="评论已删除"
+    :after-delete="refreshParentPost"
     @success="emit('deleted', comment.cid)"
   />
 </template>
@@ -106,7 +113,16 @@ const props = defineProps({
     required: true,
   },
 });
+const refreshParentPost = computed(() => {
+  const session = forumStore.session;
+  const pid = props.comment.pid;
+  return () => {
+    if (session === forumStore.session) void forumStore.refreshPost(pid);
+  };
+});
+
 const reportVisible = ref(false);
+const liking = ref(false);
 const deleteVisible = ref(false);
 const mentionCardRef = ref<InstanceType<typeof UserMentionHoverCard> | null>(null);
 
@@ -134,24 +150,32 @@ const deleteEndpoint = computed(() =>
 );
 
 const handleLike = async () => {
+  if (liking.value) return;
+  const session = forumStore.session;
+  const { cid, is_like, likenum } = props.comment;
+  liking.value = true;
   try {
-    const res = await requestApi(`/api/v2/forum/comment/like/${props.comment.cid}`, {
+    const res = await requestApi(`/api/v2/forum/comment/like/${cid}`, {
       method: "POST",
     });
 
     if (!res.ok) throw new Error("操作失败");
+    if (session !== forumStore.session) return;
 
     const updatedComment = {
-      cid: props.comment.cid,
-      is_like: Number(!props.comment.is_like),
-      likenum: props.comment.is_like ? props.comment.likenum - 1 : props.comment.likenum + 1,
+      cid,
+      is_like: Number(!is_like),
+      likenum: Math.max(0, likenum + (is_like ? -1 : 1)),
     };
 
     forumStore.updateCommentLike(updatedComment.cid, updatedComment.is_like, updatedComment.likenum);
     emit("like-update", updatedComment);
   } catch (error) {
+    if (session !== forumStore.session) return;
     toast.error("操作失败");
     console.error("Like operation failed:", error);
+  } finally {
+    liking.value = false;
   }
 };
 

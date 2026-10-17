@@ -5,12 +5,12 @@
 帖子 / 评论正文的渲染与引用卡片按三层拆开。**通用能力不要塞进通用组件** —— 通用渲染器不认识业务概念，
 业务行为放在上层包装组件里。
 
-| 组件 | 职责 |
-| --- | --- |
-| `components/MarkdownRenderer.vue` | 通用渲染器：把服务端渲染好的 HTML 铺出来、渲染公式、站内链接走路由。不认识「引用」，不挂 hover |
-| `components/blog-center/ForumContent.vue` | 论坛内容（帖子 / 评论正文）：`MarkdownRenderer` + 引用链接的标注与 hover 接线 |
-| `components/blog-center/PostQuoteHoverCard.vue` | 引用卡片本体，对外只暴露 `show(link)` |
-| `components/ui/hover-card/HoverCardExternalTrigger.vue` | 把外部元素注册成 HoverCard 触发元素的通用桥 |
+| 组件                                                    | 职责                                                                                           |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `components/MarkdownRenderer.vue`                       | 通用渲染器：把服务端渲染好的 HTML 铺出来、渲染公式、站内链接走路由。不认识「引用」，不挂 hover |
+| `components/blog-center/ForumContent.vue`               | 论坛内容（帖子 / 评论正文）：`MarkdownRenderer` + 引用链接的标注与 hover 接线                  |
+| `components/blog-center/PostQuoteHoverCard.vue`         | 引用卡片本体，对外只暴露 `show(link)`                                                          |
+| `components/ui/hover-card/HoverCardExternalTrigger.vue` | 把外部元素注册成 HoverCard 触发元素的通用桥                                                    |
 
 帖子正文（`BlogPostCard`）与评论（`BlogCommentCard`）都用 `ForumContent`。
 
@@ -23,12 +23,33 @@
 
 - 内部是 `ui/scroll-area`（reka），对外 `defineExpose` 出 `scrollTo(options)` 与 `scrollToTop()`。
 - `back-top` 开关控制右下角的回到顶部按钮，`distance`（默认 400）是 `end-reached` 的触发阈值。
-- 用法：`<ScrollPane :distance="400" back-top @end-reached="loadMorePosts">`。
+- `refresh`（可选，`() => unknown`）传入后启用下拉刷新：只在 `scrollTop === 0` 起手、纵向位移占优时接管手势，
+  刷新期间指示器停在阈值位置，结束后回弹。内容位移用 viewport 的 `padding-top` 实现——
+  **不要改成 `transform`**，那会让 `position: fixed` 的子孙（详情页的评论输入条）换掉 containing block。
+- 用法：`<ScrollPane :distance="400" back-top :refresh="() => refresh(true)" @end-reached="loadMorePosts">`。
 
 `components/SearchTagInput.vue` 是博客中心与树洞共用的搜索输入框，替代 `el-input-tag`：
 `v-model` 是 `string[]`，空格提交一个标签；超过 `maxCollapseTags` 的标签折叠为 `+N`，点开是 Popover。
 建议列表的浮层用 `Popover` + `Command`，输入框只存在于 DOM 上（reka 的 `TagsInputInput` 不持有 ref），
 所以外部选中建议后直接清空 `input.value` 即可。
+
+## 移动端视口
+
+安全区与键盘高度都以 CSS 变量下发到 `:root`，组件只读变量，不要各自计算：
+
+- `--safe-top/right/bottom/left`：系统栏与刘海。Web 端初值来自 `env(safe-area-inset-*)`，
+  Android app 里由 `MainActivity` 的 `SafeAreaBridge` 覆盖成实测值。
+- `--kb-inset`：软键盘遮挡高度。目前只有 app 会写（`WindowInsetsCompat.Type.ime()`），Web 端恒为 `0px`。
+
+约定：
+
+- 贴底固定的输入条 / 弹层写 `bottom: var(--kb-inset)`，不要写 `bottom-0`。
+- 键盘弹起时安全区已被键盘盖住，内边距用 `max(0px, var(--safe-bottom) - var(--kb-inset))`，不要直接相加。
+- 已经占满高度的全屏编辑态用 `padding-bottom: calc(var(--safe-bottom) + var(--kb-inset))` 把内容顶上来。
+- 依赖视口高度的编辑器（Vditor 的 `height`）在移动端要减掉 `var(--kb-inset)`，否则底部按钮会被键盘盖住。
+
+手机浏览器暂不处理键盘遮挡：各家行为不一致（有的自己顶出空间），以后要用 `visualViewport` 统一，
+但注意 Tauri WebView 里 `visualViewport` 不反映键盘高度（tauri#10631），app 端只能走原生 insets。
 
 ## 引用标记
 
@@ -136,7 +157,13 @@ teleport 出去的内容不受影响，所以把弹窗放进根元素内部没�
 渲染后的后处理（公式渲染、事件监听）挂在元素上：
 
 ```ts
-watch(elRef, (el) => { if (el) decorate(el) }, { flush: "post" });
+watch(
+  elRef,
+  (el) => {
+    if (el) decorate(el);
+  },
+  { flush: "post" }
+);
 ```
 
 ## 测试
@@ -152,3 +179,21 @@ watch(elRef, (el) => { if (el) decorate(el) }, { flush: "post" });
   顺序写反会让测试假通过。
 - 写完测试要验证它有牙：临时把修复改回错误实现，确认测试真的失败，再还原（还原要**完整**，
   只还原一半会得到"照样通过"的假象）。
+
+## 构建产物
+
+- `npm run build`（web）产出预压缩 `.gz`（`vite-plugin-compression`，gzip level 9，>10KB 才压），
+  供 nginx `gzip_static` 用。
+- `npm run build:app`（app）**不产出 `.gz`**，插件用 `disable: mode === "app"` 关掉。原因：
+  Tauri 把 `frontendDist` 的每个文件在编译期用 brotli 压进二进制（`tauri-codegen`
+  `embedded_assets.rs`，release quality 9，无扩展名过滤），运行时解压。资源不走 HTTP，
+  没有 content negotiation，`.gz` 永远不会被读取；留着只会让安装包多背一份死重量
+  （实测 73 个文件 / 5.17MB）。
+- 两个模式都输出到 `dist/`，所以先跑 web 再跑 app 会互相覆盖。
+- `scripts/sync-vditor.mjs` 的 `EXCLUDED_PATHS` 决定哪些 vditor 子包不进 `public/vditor`。
+  目前只排掉 `js/mathjax`：Vditor 的默认公式引擎是 `KaTeX`（`mathRender.ts` 的 `defaultOptions`），
+  项目里所有 `math` 配置都没写 `engine`，所以 `tex-svg-full.js` 永远不会被加载。
+  **要排更多子包前先确认没人手打对应代码块**——`preview/index.ts` 的 `afterRender` 会无条件调
+  `mermaidRender` / `graphvizRender` / `chartRender` 等，只有等页面里真的出现该语言的代码块才 `addScript`。
+- 排掉子包后必须让 `.vditor-version` 戳跟着变（脚本里戳是 `${version}:${EXCLUDED_PATHS}`），
+  否则幂等判断会直接 `exit(0)`，改动不生效。

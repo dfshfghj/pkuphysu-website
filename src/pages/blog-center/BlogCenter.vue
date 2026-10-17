@@ -72,9 +72,7 @@
           <Search class="size-5 cursor-pointer" @click="navigateToSearch()" />
         </div>
       </div>
-      <div
-        class="text-foreground pb-[0.7em] sticky top-0 left-0 w-full bg-sidebar z-10 unselectable sm:hidden"
-      >
+      <div class="text-foreground pb-[0.7em] sticky top-0 left-0 w-full bg-sidebar z-10 unselectable sm:hidden">
         <div class="control-bar">
           <template v-if="isDetail">
             <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer ml-4 mr-2" @click="router.back()" />
@@ -159,8 +157,9 @@
       <div class="flex-1"></div>
     </div>
   </div>
-  <BlogPostEditor v-model:visible="editing" :dark-mode="isDark" @success="handlePostCreated" />
-  <PasswordDialog />
+  <BlogPostEditor v-if="editing" v-model:visible="editing" :dark-mode="isDark" />
+  <PasswordDialog @state-change="passwordBlocked = $event.checking || $event.open" />
+  <OnboardingGuide :blocked="passwordBlocked || editing" />
 
   <BottomNav v-if="!isDetail" :home-names="['PostsView', 'CommentsView']" @home="goPosts" @post="editing = true" />
 </template>
@@ -168,6 +167,7 @@
 <script setup lang="ts">
 import BlogPostEditor from "@/components/blog-center/BlogPostEditor.vue";
 import PasswordDialog from "@/components/blog-center/PasswordDialog.vue";
+import OnboardingGuide from "@/components/blog-center/OnboardingGuide.vue";
 import SearchTagInput from "@/components/SearchTagInput.vue";
 import { requestApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
@@ -195,6 +195,7 @@ const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 
 const editing = ref(false);
+const passwordBlocked = ref(true);
 const searchDraft = ref<string[]>([]);
 const isFollowPage = computed(() => route.name === "FollowView");
 const isDetail = computed(() => route.name === "CommentsView");
@@ -257,12 +258,6 @@ const navigateToSearch = () => {
     }
   } else {
     router.push({ path: "/" });
-  }
-};
-
-const handlePostCreated = () => {
-  if (route.name === "PostsView") {
-    handleRefresh();
   }
 };
 

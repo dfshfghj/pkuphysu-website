@@ -42,6 +42,12 @@ const routes = [
         meta: { login: true },
       },
       {
+        path: "guide",
+        name: "EditorGuide",
+        component: () => import("../pages/blog-center/EditorGuide.vue"),
+        meta: { login: true },
+      },
+      {
         path: "follow",
         name: "FollowView",
         component: () => import("../pages/blog-center/FollowView.vue"),

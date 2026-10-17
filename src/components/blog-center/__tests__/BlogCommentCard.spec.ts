@@ -1,9 +1,10 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BlogCommentCard from "@/components/blog-center/BlogCommentCard.vue";
+import { requestApi } from "@/api/api";
 
-const mocks = vi.hoisted(() => ({ routerPush: vi.fn() }));
+const mocks = vi.hoisted(() => ({ routerPush: vi.fn(), forumStore: { session: 0, updateCommentLike: vi.fn() } }));
 
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: mocks.routerPush }) }));
 
@@ -11,9 +12,7 @@ vi.mock("@/stores/forum", async () => {
   const actual = await vi.importActual<typeof import("@/stores/forum")>("@/stores/forum");
   return {
     ...actual,
-    useForumStore: () => ({
-      updateCommentLike: vi.fn(),
-    }),
+    useForumStore: () => mocks.forumStore,
   };
 });
 
@@ -94,6 +93,29 @@ const mountCard = (cardComment = comment) =>
 describe("BlogCommentCard", () => {
   beforeEach(() => {
     mocks.routerPush.mockReset();
+    mocks.forumStore.session = 0;
+    mocks.forumStore.updateCommentLike.mockReset();
+    vi.mocked(requestApi).mockReset();
+  });
+
+  it("does not apply a pending comment like to a different session", async () => {
+    let finish!: (value: Response) => void;
+    vi.mocked(requestApi).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      })
+    );
+    const wrapper = mountCard();
+    const button = wrapper.get('button[aria-label="点赞评论"]');
+    await button.trigger("click");
+    await button.trigger("click");
+    expect(requestApi).toHaveBeenCalledTimes(1);
+    mocks.forumStore.session++;
+    finish({ ok: true } as Response);
+    await flushPromises();
+    expect(mocks.forumStore.updateCommentLike).not.toHaveBeenCalled();
+    expect(wrapper.emitted("like-update")).toBeUndefined();
+    wrapper.unmount();
   });
 
   it("clicks on the card emit click so the parent can toggle the quote target", async () => {

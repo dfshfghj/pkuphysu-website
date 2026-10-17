@@ -13,7 +13,7 @@ import tailwindcss from "@tailwindcss/vite";
 // const certPath = path.resolve(__dirname, "./cert.pem");
 // const keyPath = path.resolve(__dirname, "./key.pem");
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
     // viteCompression({
@@ -29,7 +29,7 @@ export default defineConfig({
     // }),
     viteCompression({
       verbose: true,
-      disable: false,
+      disable: mode === "app",
       threshold: 10240,
       algorithm: "gzip",
       ext: ".gz",
@@ -89,4 +89,4 @@ export default defineConfig({
     //   cert: fs.readFileSync(certPath),
     // },
   },
-});
+}));

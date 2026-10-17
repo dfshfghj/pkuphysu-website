@@ -6,7 +6,8 @@
     leave-to-class="opacity-0 translate-y-5"
   >
     <div
-      class="bg-card box-border flex border-t border-(--border) p-2.5 items-center fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute pb-[calc(0.625rem_+_var(--safe-bottom))]"
+      class="bg-card box-border flex border-t border-(--border) p-2.5 items-center fixed inset-x-0 z-9999 w-full sm:absolute"
+      :style="dockStyle"
       data-comment-editor
       v-if="!isEditing"
       key="simp"
@@ -29,9 +30,10 @@
       class="box-border flex bg-card sm:border-t border-(--border) unselectable"
       :class="
         isFullscreen
-          ? 'is-fullscreen fixed inset-0 z-9999 h-full rounded-none pt-[var(--safe-top)] pb-[var(--safe-bottom)] pl-[var(--safe-left)] pr-[var(--safe-right)]'
-          : 'rounded-t fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute pb-[var(--safe-bottom)]'
+          ? 'is-fullscreen fixed inset-0 z-9999 h-full rounded-none pt-[var(--safe-top)] pl-[var(--safe-left)] pr-[var(--safe-right)]'
+          : 'rounded-t fixed inset-x-0 z-9999 w-full sm:absolute'
       "
+      :style="sheetStyle"
       data-comment-editor
       v-else
       key="full"
@@ -45,6 +47,15 @@
           :extra-toolbar="extraToolbar"
           autofocus
         />
+        <div class="py-1 pl-3 pr-12 text-right sm:pr-3">
+          <a
+            href="/guide?editor=comment"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs text-muted-foreground hover:underline"
+            >工具栏教程 ↗</a
+          >
+        </div>
         <div v-if="quote" class="p-3 sm:pl-[35px]">
           <span class="text-sm text-muted-foreground!">
             {{ `@${quoteName}: ` }}
@@ -57,7 +68,7 @@
           </Button>
         </div>
         <div class="absolute bottom-0 right-0 flex items-center gap-2">
-          <Button class="h-6 rounded-full mb-1 mr-2" @click="handleSubmit"> 发送 </Button>
+          <Button class="h-6 rounded-full mb-1 mr-2" :disabled="submitting" @click="handleSubmit"> 发送 </Button>
         </div>
         <QuotePostDialog v-model:visible="quoteVisible" @select="insertQuote" />
       </div>
@@ -68,10 +79,12 @@
 <script setup lang="ts">
 import MarkdownEditor from "../MarkdownEditor.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
-import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
+import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
 import { Maximize2, Minimize2 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
+import { useForumStore } from "@/stores/forum";
+import { commentExtraToolbar } from "@/utils/editor-toolbar";
 import { ref, watch, onMounted, onUnmounted } from "vue";
 const emit = defineEmits(["success", "clear-quote"]);
 
@@ -99,13 +112,23 @@ const isEditing = ref(false);
 const editorRef = ref(null);
 const quoteVisible = ref(false);
 const isFullscreen = ref(false);
+const submitting = ref(false);
+const forumStore = useForumStore();
 
-const extraToolbar = [
-  "|",
-  createQuotePostToolbarItem(() => {
-    quoteVisible.value = true;
-  }),
-];
+const extraToolbar = commentExtraToolbar(() => {
+  quoteVisible.value = true;
+});
+
+const dockStyle = {
+  bottom: "var(--kb-inset)",
+  paddingBottom: "calc(0.625rem + max(0px, var(--safe-bottom) - var(--kb-inset)))",
+};
+
+const sheetStyle = computed(() =>
+  isFullscreen.value
+    ? { paddingBottom: "calc(var(--safe-bottom) + var(--kb-inset))" }
+    : { bottom: "var(--kb-inset)", paddingBottom: "max(0px, var(--safe-bottom) - var(--kb-inset))" }
+);
 
 const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;
@@ -164,22 +187,29 @@ const insertQuote = (selection: QuoteSelection) => {
 };
 
 const handleSubmit = async () => {
+  if (submitting.value) return;
   const currentContent = editorRef.value?.vditor?.getValue() || content.value;
   if (!currentContent.trim()) {
     toast.error("评论内容不能为空");
     return;
   }
 
+  const postId = props.postId;
+  const session = forumStore.session;
+  submitting.value = true;
   try {
     const res = await requestApi("/api/v2/forum/comments", {
       method: "POST",
       body: JSON.stringify({
         text: currentContent,
-        pid: props.postId,
+        pid: postId,
         quote: props.quote ? props.quote : null,
       }),
     });
     if (!res.ok) throw new Error("上传失败");
+    if (forumStore.session !== session) return;
+    // The editor may have unmounted while submitting; shared data must still update.
+    void forumStore.refreshPost(postId);
 
     toast.success("评论成功");
 
@@ -187,8 +217,11 @@ const handleSubmit = async () => {
     isEditing.value = false;
     emit("success");
   } catch (error) {
+    if (forumStore.session !== session) return;
     toast.error("网络错误");
     console.error("Comment submit failed:", error);
+  } finally {
+    submitting.value = false;
   }
 };
 </script>

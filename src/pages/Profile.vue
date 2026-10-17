@@ -1,5 +1,5 @@
 <template>
-  <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
+  <ScrollPane ref="mainScrollbar" :distance="400" back-top :refresh="loadProfile" @end-reached="loadMorePosts">
     <div class="min-h-lvh pb-10 bg-card">
       <template v-if="notFound">
         <div class="px-6 py-20 text-center text-muted-foreground">该用户不存在或已被删除</div>
@@ -56,7 +56,6 @@
               :post="post"
               @card-click="router.push(`/${post.id}`)"
               @deleted="handlePostDeleted"
-              @updated="refreshPost"
             />
           </template>
           <p v-else class="px-6 py-10 text-center text-sm text-muted-foreground">TA 还没有公开的帖子</p>
@@ -90,6 +89,7 @@
 import { requestApi } from "@/api/api";
 import ScrollPane from "@/components/ScrollPane.vue";
 import ListLoading from "@/components/ListLoading.vue";
+import { useForumStore, type Post } from "@/stores/forum";
 import { useUserStore } from "@/stores/user";
 import UserAvatar from "@/components/UserAvatar.vue";
 import BlogPostCard from "@/components/blog-center/BlogPostCard.vue";
@@ -128,11 +128,29 @@ const mainScrollbar = ref<InstanceType<typeof ScrollPane> | null>(null);
 const user = ref<Partial<ProfileUser>>({});
 const profile = ref<{ content: string; updated_at: number | null }>({ content: "", updated_at: null });
 const stats = ref({ post_count: 0, comment_count: 0, likes_received: 0 });
-const posts = ref<any[]>([]);
+const forumStore = useForumStore();
+const postIds = ref<number[]>([]);
+const posts = computed(() =>
+  postIds.value.map((id) => forumStore.getPostById(id)).filter((post): post is Post => !!post)
+);
 const endOfPosts = ref(false);
 const postsLoading = ref(false);
 const loaded = ref(false);
 const notFound = ref(false);
+const postCursor = ref<number>();
+let profileRequest = 0;
+let active = true;
+
+const requestContext = () => {
+  const request = profileRequest;
+  const session = forumStore.session;
+  const id = userid.value;
+  return {
+    id,
+    revision: forumStore.revision,
+    current: () => active && request === profileRequest && session === forumStore.session && id === userid.value,
+  };
+};
 
 const isSelf = computed(() => Number(userStore.userid) === userid.value);
 
@@ -146,9 +164,13 @@ const scrollToTop = () => {
 };
 
 const loadProfile = async () => {
+  profileRequest++;
+  const context = requestContext();
+  postsLoading.value = false;
   notFound.value = false;
   try {
-    const res = await requestApi(`/api/v2/users/${userid.value}/profile?limit=${PAGE_SIZE}`);
+    const res = await requestApi(`/api/v2/users/${context.id}/profile?limit=${PAGE_SIZE}`);
+    if (!context.current()) return;
     if (res.status === 404) {
       notFound.value = true;
       return;
@@ -156,58 +178,57 @@ const loadProfile = async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const result = await res.json();
+    if (!context.current()) return;
     const data = result.data;
     user.value = data.user;
     profile.value = data.profile;
     stats.value = data.stats;
-    posts.value = data.posts ?? [];
-    endOfPosts.value = posts.value.length < PAGE_SIZE;
+    forumStore.upsertPosts(data.posts ?? [], context.revision);
+    postIds.value = (data.posts ?? []).map((post: Post) => post.id);
+    postCursor.value = data.posts?.at(-1)?.id;
+    endOfPosts.value = (data.posts ?? []).length < PAGE_SIZE;
   } catch (error) {
+    if (!context.current()) return;
     toast.error("加载用户主页失败");
     console.error("Load user profile failed:", error);
   } finally {
-    loaded.value = true;
+    if (context.current()) loaded.value = true;
   }
 };
 
 const loadMorePosts = async () => {
-  if (endOfPosts.value || postsLoading.value || !posts.value.length) return;
+  if (!loaded.value || endOfPosts.value || postsLoading.value || postCursor.value === undefined) return;
 
+  const context = requestContext();
   postsLoading.value = true;
   try {
     const params = new URLSearchParams();
     params.append("limit", String(PAGE_SIZE));
-    params.append("begin", String(posts.value.at(-1).id));
+    params.append("begin", String(postCursor.value));
 
-    const res = await requestApi(`/api/v2/users/${userid.value}/profile?${params.toString()}`);
+    const res = await requestApi(`/api/v2/users/${context.id}/profile?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const result = await res.json();
+    if (!context.current()) return;
     const more = result.data.posts ?? [];
-    posts.value = [...posts.value, ...more];
+    forumStore.upsertPosts(more, context.revision);
+    postIds.value = [...new Set([...postIds.value, ...more.map((post: Post) => post.id)])];
+    postCursor.value = more.at(-1)?.id ?? postCursor.value;
     if (more.length < PAGE_SIZE) {
       endOfPosts.value = true;
     }
   } catch (error) {
+    if (!context.current()) return;
     console.error("Load more profile posts failed:", error);
   } finally {
-    postsLoading.value = false;
+    if (context.current()) postsLoading.value = false;
   }
 };
 
 const handlePostDeleted = (postId: number) => {
-  posts.value = posts.value.filter((post) => post.id !== postId);
+  postIds.value = postIds.value.filter((id) => id !== postId);
   stats.value.post_count = Math.max(0, stats.value.post_count - 1);
-};
-
-const refreshPost = async (postId: number) => {
-  const res = await requestApi(`/api/v2/forum/posts/${postId}`);
-  if (!res.ok) return;
-  const result = await res.json();
-  const index = posts.value.findIndex((post) => post.id === postId);
-  if (index !== -1) {
-    posts.value[index] = result.data;
-  }
 };
 
 const openEditor = async () => {
@@ -245,19 +266,21 @@ const saveProfile = async () => {
   }
 };
 
-onMounted(async () => {
-  await loadProfile();
-  scrollToTop();
-});
-
 watch(
-  () => route.params.id,
+  () => [userid.value, forumStore.session],
   async () => {
-    posts.value = [];
+    postIds.value = [];
+    postCursor.value = undefined;
     endOfPosts.value = false;
     loaded.value = false;
     await loadProfile();
     scrollToTop();
-  }
+  },
+  { immediate: true }
 );
+
+onBeforeUnmount(() => {
+  active = false;
+  profileRequest++;
+});
 </script>

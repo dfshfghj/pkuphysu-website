@@ -2,7 +2,14 @@
 import { ref } from "vue";
 import { requestApi } from "@/api/api";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "vue-sonner";
 
 const props = defineProps<{
@@ -11,6 +18,7 @@ const props = defineProps<{
   title: string;
   description: string;
   successMessage: string;
+  afterDelete?: () => void;
 }>();
 
 const emit = defineEmits<{
@@ -28,6 +36,8 @@ const handleOpenChange = (value: boolean) => {
 };
 
 const handleDelete = async () => {
+  if (deleting.value) return;
+  const afterDelete = props.afterDelete;
   deleting.value = true;
   try {
     const res = await requestApi(props.endpoint, {
@@ -38,6 +48,7 @@ const handleDelete = async () => {
       throw new Error(result?.message || "删除失败");
     }
 
+    afterDelete?.();
     toast.success(result?.message || props.successMessage);
     emit("success");
     emit("update:modelValue", false);
@@ -59,11 +70,7 @@ const handleDelete = async () => {
 
       <DialogFooter>
         <Button variant="outline" :disabled="deleting" @click="handleOpenChange(false)">取消</Button>
-        <Button
-          class="bg-destructive text-white hover:bg-destructive/90"
-          :disabled="deleting"
-          @click="handleDelete"
-        >
+        <Button class="bg-destructive text-white hover:bg-destructive/90" :disabled="deleting" @click="handleDelete">
           {{ deleting ? "删除中..." : "确认删除" }}
         </Button>
       </DialogFooter>

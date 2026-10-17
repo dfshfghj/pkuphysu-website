@@ -15,14 +15,18 @@ const version = JSON.parse(readFileSync(pkgPath, "utf8")).version;
 const dest = resolve(root, "public/vditor", version, "dist");
 const stamp = resolve(dest, ".vditor-version");
 
+const EXCLUDED_PATHS = ["js/mathjax"];
+const excluded = new Set(EXCLUDED_PATHS.map((item) => resolve(src, item)));
+const stampValue = `${version}:${EXCLUDED_PATHS.join(",")}`;
+
 rmSync(resolve(root, "public/vditor/dist"), { recursive: true, force: true });
 
-if (existsSync(stamp) && readFileSync(stamp, "utf8").trim() === version) {
+if (existsSync(stamp) && readFileSync(stamp, "utf8").trim() === stampValue) {
   process.exit(0);
 }
 
 rmSync(dest, { recursive: true, force: true });
 mkdirSync(dest, { recursive: true });
-cpSync(src, dest, { recursive: true });
-writeFileSync(stamp, version);
+cpSync(src, dest, { recursive: true, filter: (from) => !excluded.has(from) });
+writeFileSync(stamp, stampValue);
 console.log(`[sync-vditor] 已同步 vditor ${version} 到 public/vditor/${version}/dist`);

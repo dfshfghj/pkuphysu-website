@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, reactive } from "vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -37,6 +38,7 @@ const route = reactive(mocks.routeState);
 
 describe("SearchView", () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
     route.query = {};
     mocks.requestApi.mockReset();
     mocks.routerPush.mockReset();
@@ -58,6 +60,7 @@ describe("SearchView", () => {
     const wrapper = mount(SearchView, {
       global: {
         stubs: {
+          ScrollPane: { template: "<div><slot /></div>", methods: { scrollTo() {} } },
           BlogPostCard: BlogPostCardStub,
           ElScrollbar: ElScrollbarStub,
           ElBacktop: ElBacktopStub,
@@ -87,6 +90,7 @@ describe("SearchView", () => {
     const wrapper = mount(SearchView, {
       global: {
         stubs: {
+          ScrollPane: { template: "<div><slot /></div>", methods: { scrollTo() {} } },
           BlogPostCard: BlogPostCardStub,
           ElScrollbar: ElScrollbarStub,
           ElBacktop: ElBacktopStub,
@@ -114,7 +118,7 @@ const BlogPostCardStub = defineComponent({
 const ElScrollbarStub = defineComponent({
   name: "ElScrollbar",
   emits: ["end-reached"],
-  template: '<div><slot /></div>',
+  template: "<div><slot /></div>",
 });
 
 const ElBacktopStub = defineComponent({

@@ -1,10 +1,20 @@
-import { mount } from "@vue/test-utils";
+import { enableAutoUnmount, mount } from "@vue/test-utils";
 import { nextTick } from "vue";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VisDonutSelectors } from "@unovis/vue";
 import { ChartTooltip } from "@/components/ui/chart";
 import SurveyResultBlock from "@/components/survey/SurveyResultBlock.vue";
 import type { SurveyQuestionResultBlock, SurveyQuestionType } from "@/utils/survey";
+
+beforeEach(() => vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] }));
+enableAutoUnmount(afterEach);
+afterEach(() => {
+  // Unovis leaves throttled tooltip callbacks queued after destroying a chart.
+  // Flush them while jsdom still exists, rather than after environment teardown.
+  vi.runOnlyPendingTimers();
+  vi.clearAllTimers();
+  vi.useRealTimers();
+});
 
 vi.mock("@/utils/upload", () => ({
   uploadedFileUrl: (url: string) => `/api/v2/static${url}`,
