@@ -1,5 +1,5 @@
 <template>
-  <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
+  <ScrollPane ref="mainScrollbar" :distance="400" back-top :refresh="() => refresh(true)" @end-reached="loadMorePosts">
     <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:block text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">主页</h2>
       <ListLoading v-if="feed.loading && !posts.length" />

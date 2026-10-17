@@ -1,5 +1,5 @@
 <template>
-  <ScrollPane :distance="400" back-top @end-reached="loadMoreComments">
+  <ScrollPane :distance="400" back-top :refresh="() => fetchComments(pid)" @end-reached="loadMoreComments">
     <div class="min-h-lvh bg-card">
       <h2 class="hidden sm:flex items-center text-xl font-bold sm:font-serif pl-6 mt-0 pt-6">
         <ChevronLeft :stroke-width="3" class="size-5 cursor-pointer" @click="router.back()" />

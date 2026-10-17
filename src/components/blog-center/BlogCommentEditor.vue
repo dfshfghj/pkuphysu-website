@@ -6,7 +6,8 @@
     leave-to-class="opacity-0 translate-y-5"
   >
     <div
-      class="bg-card box-border flex border-t border-(--border) p-2.5 items-center fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute pb-[calc(0.625rem_+_var(--safe-bottom))]"
+      class="bg-card box-border flex border-t border-(--border) p-2.5 items-center fixed inset-x-0 z-9999 w-full sm:absolute"
+      :style="dockStyle"
       data-comment-editor
       v-if="!isEditing"
       key="simp"
@@ -29,9 +30,10 @@
       class="box-border flex bg-card sm:border-t border-(--border) unselectable"
       :class="
         isFullscreen
-          ? 'is-fullscreen fixed inset-0 z-9999 h-full rounded-none pt-[var(--safe-top)] pb-[var(--safe-bottom)] pl-[var(--safe-left)] pr-[var(--safe-right)]'
-          : 'rounded-t fixed inset-x-0 bottom-0 z-9999 w-full sm:absolute pb-[var(--safe-bottom)]'
+          ? 'is-fullscreen fixed inset-0 z-9999 h-full rounded-none pt-[var(--safe-top)] pl-[var(--safe-left)] pr-[var(--safe-right)]'
+          : 'rounded-t fixed inset-x-0 z-9999 w-full sm:absolute'
       "
+      :style="sheetStyle"
       data-comment-editor
       v-else
       key="full"
@@ -116,6 +118,17 @@ const forumStore = useForumStore();
 const extraToolbar = commentExtraToolbar(() => {
   quoteVisible.value = true;
 });
+
+const dockStyle = {
+  bottom: "var(--kb-inset)",
+  paddingBottom: "calc(0.625rem + max(0px, var(--safe-bottom) - var(--kb-inset)))",
+};
+
+const sheetStyle = computed(() =>
+  isFullscreen.value
+    ? { paddingBottom: "calc(var(--safe-bottom) + var(--kb-inset))" }
+    : { bottom: "var(--kb-inset)", paddingBottom: "max(0px, var(--safe-bottom) - var(--kb-inset))" }
+);
 
 const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;

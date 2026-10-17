@@ -24,7 +24,8 @@ class MainActivity : TauriActivity() {
       val safeArea = windowInsets.getInsets(
         WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
       )
-      safeAreaBridge.update(safeArea)
+      val keyboard = windowInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+      safeAreaBridge.update(safeArea, keyboard)
       webView.evaluateJavascript(safeAreaBridge.updateScript(), null)
       windowInsets
     }
@@ -35,18 +36,21 @@ class MainActivity : TauriActivity() {
     @Volatile
     private var insets = Insets.NONE
 
-    fun update(value: Insets) {
+    @Volatile
+    private var keyboardBottom = 0
+
+    fun update(value: Insets, keyboard: Int) {
       insets = value
+      keyboardBottom = keyboard
     }
 
     @JavascriptInterface
-    fun getInsets(): String = insets.toCssPixels(density)
+    fun getInsets(): String = values()
 
-    fun updateScript(): String =
-      "window.__applyAndroidSafeAreaInsets?.(${insets.toCssPixels(density)})"
+    fun updateScript(): String = "window.__applyAndroidSafeAreaInsets?.(${values()})"
 
-    private fun Insets.toCssPixels(density: Float): String =
-      listOf(top, right, bottom, left)
+    private fun values(): String =
+      listOf(insets.top, insets.right, insets.bottom, insets.left, keyboardBottom)
         .joinToString(",") { (it / density).toString() }
   }
 

@@ -1,5 +1,5 @@
 <template>
-  <ScrollPane ref="mainScrollbar" :distance="400" back-top @end-reached="loadMorePosts">
+  <ScrollPane ref="mainScrollbar" :distance="400" back-top :refresh="loadProfile" @end-reached="loadMorePosts">
     <div class="min-h-lvh pb-10 bg-card">
       <template v-if="notFound">
         <div class="px-6 py-20 text-center text-muted-foreground">该用户不存在或已被删除</div>
