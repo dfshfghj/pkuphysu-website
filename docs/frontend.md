@@ -179,3 +179,21 @@ watch(
   顺序写反会让测试假通过。
 - 写完测试要验证它有牙：临时把修复改回错误实现，确认测试真的失败，再还原（还原要**完整**，
   只还原一半会得到"照样通过"的假象）。
+
+## 构建产物
+
+- `npm run build`（web）产出预压缩 `.gz`（`vite-plugin-compression`，gzip level 9，>10KB 才压），
+  供 nginx `gzip_static` 用。
+- `npm run build:app`（app）**不产出 `.gz`**，插件用 `disable: mode === "app"` 关掉。原因：
+  Tauri 把 `frontendDist` 的每个文件在编译期用 brotli 压进二进制（`tauri-codegen`
+  `embedded_assets.rs`，release quality 9，无扩展名过滤），运行时解压。资源不走 HTTP，
+  没有 content negotiation，`.gz` 永远不会被读取；留着只会让安装包多背一份死重量
+  （实测 73 个文件 / 5.17MB）。
+- 两个模式都输出到 `dist/`，所以先跑 web 再跑 app 会互相覆盖。
+- `scripts/sync-vditor.mjs` 的 `EXCLUDED_PATHS` 决定哪些 vditor 子包不进 `public/vditor`。
+  目前只排掉 `js/mathjax`：Vditor 的默认公式引擎是 `KaTeX`（`mathRender.ts` 的 `defaultOptions`），
+  项目里所有 `math` 配置都没写 `engine`，所以 `tex-svg-full.js` 永远不会被加载。
+  **要排更多子包前先确认没人手打对应代码块**——`preview/index.ts` 的 `afterRender` 会无条件调
+  `mermaidRender` / `graphvizRender` / `chartRender` 等，只有等页面里真的出现该语言的代码块才 `addScript`。
+- 排掉子包后必须让 `.vditor-version` 戳跟着变（脚本里戳是 `${version}:${EXCLUDED_PATHS}`），
+  否则幂等判断会直接 `exit(0)`，改动不生效。
