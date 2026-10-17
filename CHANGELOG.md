@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-17
+
+### Added
+
+- 新用户引导：首次进入时按步骤高亮顶栏搜索、发帖入口等关键位置，可在设置页重放
+- 「编辑器使用指南」页（设置页入口）：逐个说明工具栏按钮与 Markdown 语法
+- 滚动容器支持下拉刷新：`ScrollPane` 新增 `refresh` 属性，帖子 / 关注 / 搜索 / 评论 / 通知 / 个人主页均已接入
+- Android 软键盘避让：原生侧把 `WindowInsets.Type.ime()` 的高度写进 CSS 变量 `--kb-inset`，评论框、发帖编辑器、Vditor 高度都按它收缩，不再指望 WebView 自己 resize 视口
+
+### Changed
+
+- 移动端 toast 按移动端规范收敛：同时只显示 1 条、默认 2s、宽度 75%、位置在 header 下方、内边距与字号收紧；桌面端行为不变
+- app 构建不再产出预压缩 `.gz`：Tauri 在编译期已用 brotli 把 `frontendDist` 的每个文件压进二进制并在运行时解压，资源不走 HTTP，`.gz` 永远读不到，留着只是让包体多背一份
+- vditor 静态资源剔除 `mathjax`：Vditor 的默认公式引擎是 KaTeX，`tex-svg-full.js` 不会被加载
+- 帖子 / 关注 / 搜索 / 评论的列表数据统一收进 forum store
+
+### Fixed
+
+- 切换页面或刷新后列表内容与状态不同步
+
 ## [0.2.0] - 2026-10-14
 
 ### Added
