@@ -238,3 +238,14 @@ span {
     @apply bg-background text-foreground;
   }
 }
+
+@media (max-width: 600px) {
+  html [data-sonner-toaster][data-y-position="top"] {
+    top: calc(var(--safe-top) + 64px);
+  }
+
+  html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}
