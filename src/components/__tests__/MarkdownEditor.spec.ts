@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import { isDark } from "@/composables/theme";
 
+const mocks = vi.hoisted(() => ({ options: null as any }));
+
 vi.mock("vditor", () => ({
   default: class {
     static preview = vi.fn(async (element: HTMLElement) => {
@@ -13,6 +15,7 @@ vi.mock("vditor", () => ({
     destroy = vi.fn();
     setTheme = vi.fn();
     constructor(element: HTMLElement, options: { after: () => void }) {
+      mocks.options = options;
       // IR uses a pre as the editable surface, alongside nested code previews.
       element.innerHTML = `<div class="vditor-ir"><pre class="vditor-reset"><div class="vditor-ir__node"><pre class="vditor-ir__marker--pre"><code>source</code></pre><div class="vditor-ir__preview"><pre><code class="hljs">preview</code></pre></div></div></pre></div><div class="vditor-wysiwyg"><pre class="vditor-reset"></pre></div><div class="vditor-preview"><div class="vditor-reset"></div></div>`;
       queueMicrotask(options.after);
@@ -21,6 +24,18 @@ vi.mock("vditor", () => ({
 }));
 
 describe("MarkdownEditor style isolation", () => {
+  it("disables Vditor draft persistence for the tutorial without changing normal editors", async () => {
+    const practice = mount(MarkdownEditor, { props: { cacheEnabled: false } });
+    await flushPromises();
+    expect(mocks.options.cache.enable).toBe(false);
+    expect(mocks.options.upload.handler).toBeUndefined();
+    practice.unmount();
+    const normal = mount(MarkdownEditor);
+    await flushPromises();
+    expect(mocks.options.cache.enable).toBe(true);
+    expect(mocks.options.upload.handler).toBeUndefined();
+    normal.unmount();
+  });
   it("keeps standalone previews isolated from published layout resets", async () => {
     const wrapper = mount(MarkdownEditor, { props: { preview: true, modelValue: "```js\n42\n```" } });
     await flushPromises();

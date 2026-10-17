@@ -9,6 +9,13 @@
       <div class="mt-2.5 ml-2.5 flex items-center">
         <X class="size-5 cursor-pointer" @click="close" />
         <span class="sm:hidden pl-4 text-lg font-bold">发布</span>
+        <a
+          href="/guide?editor=post"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ml-auto mr-2 text-xs text-muted-foreground hover:underline"
+          >工具栏教程 ↗</a
+        >
       </div>
       <AutoCompleteTagInput v-model="selectedTags" :suggestions="tagSuggestions" />
       <p class="p-2 sm:hidden border-t">正文</p>
@@ -66,20 +73,15 @@ import AutoCompleteTagInput from "@/components/AutoCompleteTagInput.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
 import PollComposerDialog from "@/components/blog-center/PollComposerDialog.vue";
 import SurveyComposerDialog from "@/components/survey/SurveyComposerDialog.vue";
-import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
-import { createPollToolbarItem, type PollConfig } from "@/utils/poll";
-import {
-  createSurveyToolbarItem,
-  countQuestionBlocks,
-  SURVEY_QUESTION_TYPES,
-  type SurveyDraft,
-  type SurveyDraftBlock,
-} from "@/utils/survey";
+import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
+import { type PollConfig } from "@/utils/poll";
+import { countQuestionBlocks, SURVEY_QUESTION_TYPES, type SurveyDraft, type SurveyDraftBlock } from "@/utils/survey";
 import { toast } from "vue-sonner";
 import { requestApi } from "@/api/api";
 import { useForumStore } from "@/stores/forum";
 import { useMediaQuery } from "@vueuse/core";
 import { ref, watch } from "vue";
+import { POST_MOBILE_TOOLBAR, postExtraToolbar } from "@/utils/editor-toolbar";
 
 const props = defineProps({
   visible: {
@@ -105,7 +107,7 @@ const selectedTags = ref([]);
 const tagSuggestions = ref([]);
 const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null);
 const isNarrow = useMediaQuery("(max-width: 639px)");
-const narrowToolbar = ["upload", "|", "undo", "redo"];
+const narrowToolbar = POST_MOBILE_TOOLBAR;
 const isEdit = computed(() => !!props.editTarget);
 
 const quoteVisible = ref(false);
@@ -114,18 +116,17 @@ const pollConfig = ref<PollConfig | null>(null);
 const surveyVisible = ref(false);
 const surveyConfig = ref<SurveyDraft | null>(null);
 
-const extraToolbar = [
-  "|",
-  createQuotePostToolbarItem(() => {
+const extraToolbar = postExtraToolbar(
+  () => {
     quoteVisible.value = true;
-  }),
-  createPollToolbarItem(() => {
+  },
+  () => {
     pollVisible.value = true;
-  }),
-  createSurveyToolbarItem(() => {
+  },
+  () => {
     surveyVisible.value = true;
-  }),
-];
+  }
+);
 
 const handlePollConfirm = (config: PollConfig) => {
   pollConfig.value = config;

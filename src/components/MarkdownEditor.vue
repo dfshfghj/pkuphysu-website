@@ -42,6 +42,7 @@ import { apiBase } from "@/utils/api-url";
 import { buildMentionMarkdown } from "@/utils/mention";
 import { searchUsers } from "@/utils/user-search";
 import { prepareVditorPreview } from "@/utils/vditor-preview";
+import { DEFAULT_EDITOR_TOOLBAR } from "@/utils/editor-toolbar";
 
 const props = defineProps({
   modelValue: {
@@ -84,35 +85,13 @@ const props = defineProps({
     type: Array as PropType<(string | Record<string, unknown>)[]>,
     default: undefined,
   },
+  cacheEnabled: { type: Boolean, default: true },
+  highlightToolbarItem: { type: String, default: "" },
   extraToolbar: {
     type: Array as PropType<(string | Record<string, unknown>)[]>,
     default: undefined,
   },
 });
-
-const DEFAULT_TOOLBAR: (string | Record<string, unknown>)[] = [
-  "headings",
-  "bold",
-  "italic",
-  "strike",
-  "link",
-  "|",
-  "list",
-  "ordered-list",
-  "check",
-  "code",
-  "table",
-  "upload",
-  "|",
-  "undo",
-  "redo",
-  "|",
-  "edit-mode",
-  {
-    name: "more",
-    toolbar: ["both", "export", "outline"],
-  },
-];
 
 const emit = defineEmits(["update:modelValue", "change", "save"]);
 
@@ -178,11 +157,12 @@ const initVditor = () => {
     },
     cache: {
       id: "MarkdownCache",
+      enable: props.cacheEnabled,
     },
     image: {
       isPreview: false,
     },
-    toolbar: [...(props.toolbar ?? DEFAULT_TOOLBAR), ...(props.extraToolbar ?? [])],
+    toolbar: [...(props.toolbar ?? DEFAULT_EDITOR_TOOLBAR), ...(props.extraToolbar ?? [])],
     toolbarConfig: {
       hide: props.hideToolbar,
     },
@@ -249,6 +229,7 @@ const initVditor = () => {
     after: () => {
       setValue(props.modelValue);
       setupToolbarNav();
+      revealGuideItem();
       if (props.autofocus) {
         vditor.value?.focus();
       }
@@ -323,6 +304,24 @@ const setupToolbarNav = () => {
     toolbarEl = null;
   };
 };
+
+const revealGuideItem = () => {
+  if (!toolbarEl) return;
+  toolbarEl.querySelectorAll("[data-guide-active]").forEach((el) => el.removeAttribute("data-guide-active"));
+  const button = [...toolbarEl.querySelectorAll<HTMLElement>("[data-type]")].find(
+    (el) => el.dataset.type === props.highlightToolbarItem
+  );
+  if (!button) return;
+  const item = button.closest<HTMLElement>(".vditor-toolbar__item") ?? button;
+  measureToolbar();
+  toolbarShift = Math.max(0, Math.min(item.offsetLeft - 32, toolbarMaxShift));
+  applyToolbarShift();
+  button.setAttribute("data-guide-active", "true");
+};
+watch(
+  () => props.highlightToolbarItem,
+  () => nextTick(revealGuideItem)
+);
 
 watch(
   () => props.modelValue,
@@ -477,6 +476,12 @@ defineExpose({
 .vditor-container .vditor .vditor-toolbar__item .vditor-tooltipped:hover,
 .vditor-container .vditor .vditor-toolbar__item .vditor-tooltipped:focus {
   background-color: var(--accent);
+}
+
+.vditor-container .vditor-toolbar [data-guide-active="true"] {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: -2px;
+  border-radius: 4px;
 }
 
 .vditor-container .vditor .vditor-menu--current {

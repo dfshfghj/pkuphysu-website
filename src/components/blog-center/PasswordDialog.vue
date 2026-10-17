@@ -44,10 +44,23 @@ import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { sha256 } from "../../utils";
 import { useUserStore } from "../../stores/user";
-const emit = defineEmits(["success"]);
+const emit = defineEmits<{
+  success: [];
+  "state-change": [state: { checking: boolean; open: boolean }];
+}>();
 
 const userStore = useUserStore();
 const internalVisible = ref(false);
+const checking = ref(true);
+let checkRequest = 0;
+let active = true;
+watch(
+  [checking, internalVisible],
+  () => {
+    emit("state-change", { checking: checking.value, open: internalVisible.value });
+  },
+  { immediate: true }
+);
 const passwordForm = reactive({
   newPassword: "",
   confirmPassword: "",
@@ -62,12 +75,19 @@ const handleVisibleChange = (visible: boolean) => {
 };
 
 const checkUserPasswordStatus = async () => {
-  if (!userStore.isLoggedIn) return;
+  const request = ++checkRequest;
+  internalVisible.value = false;
+  if (!userStore.isLoggedIn) {
+    checking.value = false;
+    return;
+  }
+  checking.value = true;
 
   try {
     const res = await requestApi("/api/v2/user/me");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+    if (!active || request !== checkRequest) return;
 
     if (data.data && data.data.has_password === false) {
       toast.warning("您尚未设置密码，请尽快设置以保障账户安全");
@@ -75,11 +95,15 @@ const checkUserPasswordStatus = async () => {
     }
   } catch {
     console.error("Check user password status failed:");
+  } finally {
+    if (active && request === checkRequest) checking.value = false;
   }
 };
 
-onMounted(() => {
-  checkUserPasswordStatus();
+watch(() => [userStore.isLoggedIn, userStore.userid], checkUserPasswordStatus, { immediate: true });
+onBeforeUnmount(() => {
+  active = false;
+  checkRequest++;
 });
 
 const handleCancel = () => {

@@ -13,7 +13,7 @@
       <IconRiBook2Line width="22" height="22" />
       <span>板块</span>
     </button>
-    <button type="button" class="nav-btn" @click="emit('post')">
+    <button type="button" class="nav-btn" aria-label="发布帖子" @click="emit('post')">
       <span class="nav-btn-post">
         <IconRiAddLine width="22" height="22" />
       </span>

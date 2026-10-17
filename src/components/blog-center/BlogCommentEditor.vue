@@ -45,6 +45,15 @@
           :extra-toolbar="extraToolbar"
           autofocus
         />
+        <div class="py-1 pl-3 pr-12 text-right sm:pr-3">
+          <a
+            href="/guide?editor=comment"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs text-muted-foreground hover:underline"
+            >工具栏教程 ↗</a
+          >
+        </div>
         <div v-if="quote" class="p-3 sm:pl-[35px]">
           <span class="text-sm text-muted-foreground!">
             {{ `@${quoteName}: ` }}
@@ -68,11 +77,12 @@
 <script setup lang="ts">
 import MarkdownEditor from "../MarkdownEditor.vue";
 import QuotePostDialog from "@/components/blog-center/QuotePostDialog.vue";
-import { buildQuoteMarkdown, createQuotePostToolbarItem, type QuoteSelection } from "@/utils/quote";
+import { buildQuoteMarkdown, type QuoteSelection } from "@/utils/quote";
 import { Maximize2, Minimize2 } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import { requestApi } from "../../api/api";
 import { useForumStore } from "@/stores/forum";
+import { commentExtraToolbar } from "@/utils/editor-toolbar";
 import { ref, watch, onMounted, onUnmounted } from "vue";
 const emit = defineEmits(["success", "clear-quote"]);
 
@@ -103,12 +113,9 @@ const isFullscreen = ref(false);
 const submitting = ref(false);
 const forumStore = useForumStore();
 
-const extraToolbar = [
-  "|",
-  createQuotePostToolbarItem(() => {
-    quoteVisible.value = true;
-  }),
-];
+const extraToolbar = commentExtraToolbar(() => {
+  quoteVisible.value = true;
+});
 
 const toggleEdit = (editing: boolean) => {
   isEditing.value = editing;
